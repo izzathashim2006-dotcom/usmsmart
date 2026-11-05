@@ -1222,16 +1222,26 @@ function usmsmartDecodeAvatarDataUrl($value) {
     return array('ok'=>true,'bytes'=>$bytes,'message'=>'');
 }
 
-// Server-side JSON backups are stored separately from downloads and protected against direct web access.
+// Server-side JSON backups are stored outside the document root by default, so a
+// web-server misconfiguration cannot expose them. USMSMART_BACKUP_DIR overrides the
+// location for deployments that mount backups elsewhere.
 function usmsmartBackupDirectory() {
-    $dir = USM_ROOT . DIRECTORY_SEPARATOR . 'usmsmart_private_backups';
+    $override = trim((string)getenv('USMSMART_BACKUP_DIR'));
+    $dir = $override !== ''
+        ? rtrim($override, "/\\")
+        : dirname(USM_ROOT, 2) . DIRECTORY_SEPARATOR . 'usmsmart_private_backups';
     if (!is_dir($dir) && !@mkdir($dir, 0700, true) && !is_dir($dir)) {
         throw new RuntimeException('Folder sandaran tidak dapat dibuat. Semak kebenaran folder projek.');
     }
     @chmod($dir, 0700);
-    $deny = "Require all denied\nDeny from all\n";
-    if (!is_file($dir . DIRECTORY_SEPARATOR . '.htaccess')) @file_put_contents($dir . DIRECTORY_SEPARATOR . '.htaccess', $deny, LOCK_EX);
-    if (!is_file($dir . DIRECTORY_SEPARATOR . 'index.php')) @file_put_contents($dir . DIRECTORY_SEPARATOR . 'index.php', "<?php http_response_code(404); exit;", LOCK_EX);
+    // Defense in depth only when an override puts the folder back inside the web root.
+    $root = str_replace('\\', '/', (string)realpath(USM_ROOT));
+    $target = str_replace('\\', '/', (string)realpath($dir));
+    if ($root !== '' && $target !== '' && strpos($target . '/', $root . '/') === 0) {
+        $deny = "Require all denied\nDeny from all\n";
+        if (!is_file($dir . DIRECTORY_SEPARATOR . '.htaccess')) @file_put_contents($dir . DIRECTORY_SEPARATOR . '.htaccess', $deny, LOCK_EX);
+        if (!is_file($dir . DIRECTORY_SEPARATOR . 'index.php')) @file_put_contents($dir . DIRECTORY_SEPARATOR . 'index.php', "<?php http_response_code(404); exit;", LOCK_EX);
+    }
     return $dir;
 }
 function usmsmartBackupLog($event, $message, $file = null) {

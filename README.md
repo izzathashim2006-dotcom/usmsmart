@@ -119,9 +119,12 @@ database, but the account itself is real.
 
 ## Backup and restore
 
-**In-app.** Administrators can run a verified backup from the dashboard. The
-backup actions write to the private directory outside the web root and log to
-`usmsmart_audit_log`.
+**In-app.** Administrators can run a verified backup from the dashboard. Backups
+are written to `<parent of the project folder>/usmsmart_private_backups` by
+default — outside the document root — and every action is logged to
+`usmsmart_audit_log`. Set `USMSMART_BACKUP_DIR` to use a different location; the
+built-in `.htaccess` denial is applied only when that override points back inside
+the web root. The CLI scheduler uses the same variable.
 
 **Manual (recommended before schema work):**
 
@@ -155,6 +158,10 @@ still serve it from the project folder.
   regenerated on login, and expire after 30 minutes of inactivity.
 - The dashboard has one modal keyboard layer (`data-modal-close` on each
   dialog) that handles Escape, the Tab trap and focus return.
+- The root `.htaccess` refuses `.git/`, `tools/` and `database/` over HTTP and
+  blocks direct requests for `sqlserver_connection.php` and the backup
+  scheduler. Both are includes or CLI jobs, never endpoints. Keep scratch
+  scripts and old copies of the app outside `htdocs`.
 
 ## Troubleshooting
 

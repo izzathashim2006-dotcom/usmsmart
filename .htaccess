@@ -4,6 +4,16 @@
     Require all denied
 </FilesMatch>
 
+# Repository metadata, tooling sources and the schema folder are build-time only.
+RedirectMatch 404 "(?i)/\.git(/|$)"
+RedirectMatch 404 "(?i)/tools(/|$)"
+RedirectMatch 404 "(?i)/database(/|$)"
+
+# Includes and CLI jobs: never endpoints, even though they live beside index.php.
+<FilesMatch "^(sqlserver_connection|USMSmart_backup_scheduler)\.php$">
+    Require all denied
+</FilesMatch>
+
 # Do not list application files if a request resolves to the directory itself.
 Options -Indexes
 
