@@ -539,7 +539,7 @@
                             </label>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                            <div onclick="viewStudentsByExpiryStatus('expired')" class="cursor-pointer group hover:bg-white dark:hover:bg-zinc-800 transition rounded-xl bg-white/70 dark:bg-zinc-900/60 p-3.5 border border-transparent hover:border-rose-300 dark:hover:border-rose-800 shadow-2xs">
+                            <div onclick="viewStudentsByExpiryStatus('expired')" class="cursor-pointer group hover:bg-white dark:hover:bg-zinc-800 transition rounded-xl bg-white/70 dark:bg-zinc-900/60 p-3.5 border border-transparent hover:border-rose-300 dark:hover:border-rose-800 shadow-sm">
                                 <div class="flex items-center justify-between">
                                     <div class="text-xs font-semibold text-rose-800 dark:text-rose-300 flex items-center gap-1.5"><i class="fa-solid fa-circle-xmark text-rose-500"></i> Kad tamat tempoh</div>
                                     <span class="text-[10px] text-rose-600 dark:text-rose-400 font-semibold group-hover:translate-x-0.5 transition-transform">Tapis ➔</span>
@@ -547,7 +547,7 @@
                                 <div id="expiry-alert-expired-count" class="text-2xl font-bold text-rose-600 mt-1">0</div>
                                 <div class="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">Klik untuk tapis senarai pelajar ini</div>
                             </div>
-                            <div onclick="viewStudentsByExpiryStatus('7')" class="cursor-pointer group hover:bg-white dark:hover:bg-zinc-800 transition rounded-xl bg-white/70 dark:bg-zinc-900/60 p-3.5 border border-transparent hover:border-orange-300 dark:hover:border-orange-800 shadow-2xs">
+                            <div onclick="viewStudentsByExpiryStatus('7')" class="cursor-pointer group hover:bg-white dark:hover:bg-zinc-800 transition rounded-xl bg-white/70 dark:bg-zinc-900/60 p-3.5 border border-transparent hover:border-orange-300 dark:hover:border-orange-800 shadow-sm">
                                 <div class="flex items-center justify-between">
                                     <div class="text-xs font-semibold text-orange-800 dark:text-orange-300 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation text-orange-500"></i> Tamat dalam 7 hari</div>
                                     <span class="text-[10px] text-orange-600 dark:text-orange-400 font-semibold group-hover:translate-x-0.5 transition-transform">Tapis ➔</span>
@@ -555,7 +555,7 @@
                                 <div id="expiry-alert-week-count" class="text-2xl font-bold text-orange-600 mt-1">0</div>
                                 <div class="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">Tindakan segera diperlukan</div>
                             </div>
-                            <div onclick="viewStudentsByExpiryStatus('30')" class="cursor-pointer group hover:bg-white dark:hover:bg-zinc-800 transition rounded-xl bg-white/70 dark:bg-zinc-900/60 p-3.5 border border-transparent hover:border-amber-300 dark:hover:border-amber-700 shadow-2xs">
+                            <div onclick="viewStudentsByExpiryStatus('30')" class="cursor-pointer group hover:bg-white dark:hover:bg-zinc-800 transition rounded-xl bg-white/70 dark:bg-zinc-900/60 p-3.5 border border-transparent hover:border-amber-300 dark:hover:border-amber-700 shadow-sm">
                                 <div class="flex items-center justify-between">
                                     <div id="expiry-alert-window-label" class="text-xs font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-1.5"><i class="fa-solid fa-clock text-amber-500"></i> Tamat dalam 30 hari</div>
                                     <span class="text-[10px] text-amber-700 dark:text-amber-400 font-semibold group-hover:translate-x-0.5 transition-transform">Tapis ➔</span>
@@ -573,25 +573,25 @@
                     <!-- QUICK FILTER PILLS BAR -->
                     <div class="flex flex-wrap items-center gap-2 pt-2 border-b border-slate-100 dark:border-zinc-800/60 pb-3" id="quick-expiry-pills">
                         <span class="text-[10px] font-bold text-slate-400 dark:text-zinc-400 uppercase tracking-wider mr-1">Tapis Pantas:</span>
-                        <button type="button" id="pill-filter-all" onclick="viewStudentsByExpiryStatus('')" class="pill-filter-btn active px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs">
+                        <button type="button" id="pill-filter-all" onclick="viewStudentsByExpiryStatus('')" class="pill-filter-btn active px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm">
                             <span>Semua Pelajar</span> <span id="pill-count-all" class="text-[10px] opacity-80">(0)</span>
                         </button>
-                        <button type="button" id="pill-filter-expiring30" onclick="viewStudentsByExpiryStatus('30')" class="pill-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 bg-amber-50 text-amber-900 border border-amber-300/80 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800 shadow-2xs">
+                        <button type="button" id="pill-filter-expiring30" onclick="viewStudentsByExpiryStatus('30')" class="pill-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 bg-amber-50 text-amber-900 border border-amber-300/80 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800 shadow-sm">
                             <i class="fa-solid fa-clock text-amber-500"></i>
                             <span>Hampir Luput (≤ 30 Hari)</span>
-                            <span id="pill-count-expiring30" class="px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-100 text-[10px] font-bold">0</span>
+                            <span id="pill-count-expiring30" class="px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-100 text-[10px] font-bold">0</span>
                         </button>
-                        <button type="button" id="pill-filter-expiring7" onclick="viewStudentsByExpiryStatus('7')" class="pill-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 bg-orange-50 text-orange-900 border border-orange-300/80 hover:bg-orange-100 dark:bg-orange-950/40 dark:text-orange-200 dark:border-orange-800 shadow-2xs">
+                        <button type="button" id="pill-filter-expiring7" onclick="viewStudentsByExpiryStatus('7')" class="pill-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 bg-orange-50 text-orange-900 border border-orange-300/80 hover:bg-orange-100 dark:bg-orange-950/40 dark:text-orange-200 dark:border-orange-800 shadow-sm">
                             <i class="fa-solid fa-triangle-exclamation text-orange-500"></i>
                             <span>Kritikal (≤ 7 Hari)</span>
-                            <span id="pill-count-expiring7" class="px-1.5 py-0.2 rounded-full bg-orange-200 text-orange-900 dark:bg-orange-900 dark:text-orange-100 text-[10px] font-bold">0</span>
+                            <span id="pill-count-expiring7" class="px-1.5 py-0.5 rounded-full bg-orange-200 text-orange-900 dark:bg-orange-900 dark:text-orange-100 text-[10px] font-bold">0</span>
                         </button>
-                        <button type="button" id="pill-filter-expired" onclick="viewStudentsByExpiryStatus('expired')" class="pill-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 bg-rose-50 text-rose-900 border border-rose-300/80 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800 shadow-2xs">
+                        <button type="button" id="pill-filter-expired" onclick="viewStudentsByExpiryStatus('expired')" class="pill-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 bg-rose-50 text-rose-900 border border-rose-300/80 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800 shadow-sm">
                             <i class="fa-solid fa-circle-xmark text-rose-500"></i>
                             <span>Tamat Tempoh</span>
-                            <span id="pill-count-expired" class="px-1.5 py-0.2 rounded-full bg-rose-200 text-rose-900 dark:bg-rose-900 dark:text-rose-100 text-[10px] font-bold">0</span>
+                            <span id="pill-count-expired" class="px-1.5 py-0.5 rounded-full bg-rose-200 text-rose-900 dark:bg-rose-900 dark:text-rose-100 text-[10px] font-bold">0</span>
                         </button>
-                        <button type="button" id="pill-filter-active" onclick="viewStudentsByExpiryStatus('active')" class="pill-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700 shadow-2xs">
+                        <button type="button" id="pill-filter-active" onclick="viewStudentsByExpiryStatus('active')" class="pill-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700 shadow-sm">
                             <i class="fa-solid fa-circle-check text-emerald-500"></i>
                             <span>Kad Aktif</span>
                             <span id="pill-count-active" class="text-[10px] opacity-75">(0)</span>
@@ -665,23 +665,23 @@
                         </button>
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <button type="button" onclick="bulkExportSelectedCSV()" class="bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-xs">
+                        <button type="button" onclick="bulkExportSelectedCSV()" class="bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-sm">
                             <i class="fa-solid fa-file-arrow-down text-emerald-600 dark:text-emerald-400"></i>
                             <span>Eksport Terpilih (CSV)</span>
                         </button>
-                        <button type="button" onclick="bulkExportSelectedSysweb()" class="bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-xs" title="Eksport rekod terpilih ke Sysweb">
+                        <button type="button" onclick="bulkExportSelectedSysweb()" class="bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Eksport rekod terpilih ke Sysweb">
                             <i class="fa-solid fa-network-wired text-indigo-600 dark:text-indigo-400"></i>
                             <span>Eksport Terpilih (Sysweb)</span>
                         </button>
-                        <button type="button" onclick="navigateToDataQuality()" class="bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-xs">
+                        <button type="button" onclick="navigateToDataQuality()" class="bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-sm">
                             <i class="fa-solid fa-shield-heart text-amber-600 dark:text-amber-400"></i><span>Kualiti Data</span>
                         </button>
                         <?php if (($_SESSION['role'] ?? 'viewer') === 'admin') { ?>
-                        <button type="button" onclick="navigateToBulkUpdatePage()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-xs">
+                        <button type="button" onclick="navigateToBulkUpdatePage()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
                             <i class="fa-solid fa-pen-to-square"></i>
                             <span>Kemaskini Pukal</span>
                         </button>
-                        <button type="button" onclick="confirmBulkDelete()" class="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-xs">
+                        <button type="button" onclick="confirmBulkDelete()" class="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
                             <i class="fa-solid fa-trash"></i>
                             <span>Padam Terpilih</span>
                         </button>
@@ -1096,7 +1096,7 @@
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <button type="button" onclick="exportStaffDirectoryToSysweb()" class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-800 hover:bg-teal-900 text-white px-4 py-2.5 text-xs font-bold shadow-xs cursor-pointer" title="Eksport senarai staf ke Sysweb"><i class="fa-solid fa-network-wired"></i>Eksport ke Sysweb</button>
+                        <button type="button" onclick="exportStaffDirectoryToSysweb()" class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-800 hover:bg-teal-900 text-white px-4 py-2.5 text-xs font-bold shadow-sm cursor-pointer" title="Eksport senarai staf ke Sysweb"><i class="fa-solid fa-network-wired"></i>Eksport ke Sysweb</button>
                         <button type="button" onclick="openLocalStaffForm()" <?php echo (($_SESSION['role'] ?? '') !== 'admin') ? 'hidden' : ''; ?> class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 text-xs font-bold"><i class="fa-solid fa-user-plus"></i>Tambah Staf</button>
                         <button type="button" id="sync-live-staff-button" onclick="syncLiveStaffToLocal()" <?php echo (($_SESSION['role'] ?? '') !== 'admin') ? 'hidden' : ''; ?> class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white px-4 py-2.5 text-xs font-bold"><i class="fa-solid fa-cloud-arrow-down"></i>Import dari SQL Server</button>
                         <button type="button" onclick="loadStaffDirectory(true)" class="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-zinc-900 text-emerald-800 dark:text-emerald-300 px-4 py-2.5 text-xs font-semibold"><i class="fa-solid fa-rotate"></i>Muat Semula</button>
@@ -1159,16 +1159,16 @@
                         <button type="button" onclick="loadSyswebSavedRecords(true)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-800 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-zinc-700 text-xs font-semibold transition cursor-pointer">
                             <i class="fa-solid fa-rotate"></i><span>Muat Semula</span>
                         </button>
-                        <button type="button" onclick="downloadSyswebCSV()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-700 text-xs font-semibold transition cursor-pointer shadow-xs" title="Eksport tanpa kata laluan">
+                        <button type="button" onclick="downloadSyswebCSV()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-700 text-xs font-semibold transition cursor-pointer shadow-sm" title="Eksport tanpa kata laluan">
                             <i class="fa-solid fa-file-arrow-down text-emerald-600"></i><span>Eksport CSV</span>
                         </button>
                         <?php if (($_SESSION['role'] ?? '') === 'admin') { ?>
-                        <button type="button" onclick="confirmSyswebCredentialExport()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-900 text-xs font-semibold transition cursor-pointer shadow-xs" title="Eksport dengan kata laluan — direkodkan dalam audit log">
+                        <button type="button" onclick="confirmSyswebCredentialExport()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-900 text-xs font-semibold transition cursor-pointer shadow-sm" title="Eksport dengan kata laluan — direkodkan dalam audit log">
                             <i class="fa-solid fa-file-shield"></i><span>Eksport CSV + Kata Laluan</span>
                         </button>
                         <?php } ?>
                         <?php if (($_SESSION['role'] ?? '') === 'admin') { ?>
-                        <button type="button" onclick="confirmClearSyswebData()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900 text-xs font-semibold transition cursor-pointer shadow-xs">
+                        <button type="button" onclick="confirmClearSyswebData()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900 text-xs font-semibold transition cursor-pointer shadow-sm">
                             <i class="fa-solid fa-trash-can"></i><span>Kosongkan Rekod</span>
                         </button>
                         <?php } ?>
@@ -1229,7 +1229,7 @@
                     <!-- Sysweb data quality / validation centre -->
                     <section id="sysweb-quality-centre" class="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 sm:p-5 space-y-3">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                            <div><h3 class="font-bold text-sm text-slate-900 dark:text-white"><i class="fa-solid fa-shield-check text-emerald-600 mr-2"></i>Pusat Semakan Data Sysweb</h3>
+                            <div><h3 class="font-bold text-sm text-slate-900 dark:text-white"><i class="fa-solid fa-shield-halved text-emerald-600 mr-2"></i>Pusat Semakan Data Sysweb</h3>
                             <p class="text-[11px] text-slate-500 dark:text-zinc-400">Semakan asas sebelum rekod digunakan dalam integrasi.</p></div>
                             <span id="sysweb-quality-total" class="text-[11px] font-semibold text-slate-500">Menunggu data…</span>
                         </div>
@@ -1260,7 +1260,7 @@
                     <div id="sysweb-active-batch-card" class="rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/40 dark:from-emerald-950/30 dark:via-zinc-900 dark:to-zinc-950 p-5 space-y-4 shadow-sm">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-start gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-base shrink-0 shadow-xs mt-0.5">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-base shrink-0 shadow-sm mt-0.5">
                                     <i class="fa-solid fa-paper-plane"></i>
                                 </div>
                                 <div>
@@ -1275,7 +1275,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 flex-wrap">
-                                <button type="button" id="sysweb-batch-toggle-btn" onclick="toggleSyswebSource()" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 text-xs font-semibold text-slate-700 dark:text-zinc-300 transition cursor-pointer flex items-center gap-1.5 shadow-xs">
+                                <button type="button" id="sysweb-batch-toggle-btn" onclick="toggleSyswebSource()" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 text-xs font-semibold text-slate-700 dark:text-zinc-300 transition cursor-pointer flex items-center gap-1.5 shadow-sm">
                                     <i class="fa-solid fa-shuffle text-indigo-500"></i><span>Tukar ke Sampel Demo</span>
                                 </button>
                                 <button type="button" id="sysweb-segment-send-btn" onclick="sendSyswebRecordsFromSegment()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-[0.99] text-white text-xs font-bold transition shadow-sm hover:shadow-md cursor-pointer flex items-center gap-2">
@@ -1383,7 +1383,7 @@
                             </div>
                             <div class="flex items-center gap-2 self-start sm:self-auto">
                                 <?php if (($_SESSION['role'] ?? '') === 'admin') { ?>
-                                <button type="button" id="sysweb-add-record-btn" onclick="openSyswebEditDrawer(-1)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-bold transition cursor-pointer shadow-xs">
+                                <button type="button" id="sysweb-add-record-btn" onclick="openSyswebEditDrawer(-1)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-bold transition cursor-pointer shadow-sm">
                                     <i class="fa-solid fa-plus text-[10px]"></i><span>Tambah Rekod</span>
                                 </button>
                                 <?php } ?>
@@ -1477,7 +1477,7 @@
                             <div id="sysweb-bulk-toolbar" class="hidden rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50/70 dark:bg-emerald-950/20 px-3 py-2.5 flex flex-wrap items-center justify-between gap-2">
                                 <div class="flex items-center gap-2 text-xs"><span id="sysweb-bulk-count" class="font-bold text-emerald-800 dark:text-emerald-300">0 dipilih</span><button type="button" onclick="selectAllFilteredSysweb()" class="text-emerald-700 dark:text-emerald-300 underline underline-offset-2">Pilih semua hasil penapis</button><button type="button" onclick="clearSyswebSelection()" class="text-slate-500 dark:text-zinc-400 underline underline-offset-2">Nyahpilih</button></div>
                                 <div class="flex flex-wrap gap-2">
-                                    <button type="button" onclick="validateSelectedSysweb()" class="px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold"> <i class="fa-solid fa-shield-check mr-1"></i>Semak semula</button>
+                                    <button type="button" onclick="validateSelectedSysweb()" class="px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold"> <i class="fa-solid fa-shield-halved mr-1"></i>Semak semula</button>
                                     <button type="button" onclick="exportSelectedSyswebCSV()" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-bold"><i class="fa-solid fa-file-csv mr-1"></i>Eksport pilihan</button>
                                 </div>
                             </div>
@@ -1893,7 +1893,7 @@
     </main>
 
     <!-- MODAL SCANNER KAMERA -->
-    <div id="scanner-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="scanner-modal-title" data-modal-close="closeScannerModal">
+    <div id="scanner-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="scanner-modal-title" data-modal-close="closeScannerModal">
         <div class="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full mx-4 space-y-4 font-mono shadow-2xl page-transition">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
                 <h3 id="scanner-modal-title" class="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider"><i class="fa-solid fa-camera text-indigo-500 mr-1.5" aria-hidden="true"></i> Imbas Kod QR / Barcode</h3>
@@ -1944,7 +1944,7 @@
     </div>
 
     <!-- MODAL CETAK KAD PELAJAR -->
-    <div id="student-card-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="card-modal-title" data-modal-close="closeCardModal">
+    <div id="student-card-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="card-modal-title" data-modal-close="closeCardModal">
         <div class="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full mx-4 space-y-5 font-mono shadow-2xl page-transition">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
                 <h3 id="card-modal-title" class="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider"><i class="fa-solid fa-id-card text-indigo-500 mr-1.5" aria-hidden="true"></i> Kad Akses Pelajar</h3>
@@ -1993,7 +1993,7 @@
     </div>
 
     <!-- MODAL DETAILS SESI -->
-    <div id="session-detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="modal-session-title" data-modal-close="closeDetailModal">
+    <div id="session-detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="modal-session-title" data-modal-close="closeDetailModal">
         <div class="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 max-w-xl w-full mx-4 space-y-4 font-mono shadow-2xl page-transition">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
                 <h3 class="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider" id="modal-session-title">Senarai Pelajar</h3>
@@ -2018,7 +2018,7 @@
     </div>
 
     <!-- MODAL PENGESAHAN -->
-    <div id="confirm-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" data-modal-close="closeConfirmModal">
+    <div id="confirm-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" data-modal-close="closeConfirmModal">
         <div class="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 max-w-sm w-full mx-4 space-y-4 font-mono shadow-2xl page-transition">
             <div class="flex items-center space-x-3 text-amber-500">
                 <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/50 flex items-center justify-center">
@@ -2035,7 +2035,7 @@
     </div>
 
     <!-- MODAL KEMASKINI REKOD PUKAL -->
-    <div id="bulk-update-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+    <div id="bulk-update-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-lg w-full font-mono shadow-2xl page-transition overflow-hidden">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 p-5 bg-white dark:bg-[#121214]">
                 <div class="flex items-center gap-3">
@@ -2134,7 +2134,7 @@
     </div>
 
     <!-- MODAL PENGESAHAN PADAM PUKAL -->
-    <div id="bulk-delete-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+    <div id="bulk-delete-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-sm w-full font-mono shadow-2xl page-transition p-6 space-y-4">
             <div class="flex items-center space-x-3 text-rose-500">
                 <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/50 flex items-center justify-center">
@@ -2158,7 +2158,7 @@
     </div>
 
     <!-- ===== NEW: MODAL PROFIL SAYA ===== -->
-    <div id="my-profile-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4" role="dialog" aria-modal="true" aria-labelledby="my-profile-title" data-modal-close="closeMyProfile">
+    <div id="my-profile-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4" role="dialog" aria-modal="true" aria-labelledby="my-profile-title" data-modal-close="closeMyProfile">
         <div class="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-lg w-full font-mono shadow-2xl page-transition max-h-[92vh] overflow-y-auto">
 
             <!-- Header -->
@@ -2284,7 +2284,7 @@
     <!-- ===== END NEW ===== -->
 
     <!-- ===== MODAL INTEGRASI SYSWEB (LANGKAH SETERUSNYA SELEPAS EKSPORT UDA) ===== -->
-    <div id="usm-sysweb-demo-modal" class="hidden fixed inset-0 z-[2000] bg-slate-950/60 backdrop-blur-xs p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="usm-sysweb-demo-title" data-modal-close="closeSyswebDemo">
+    <div id="usm-sysweb-demo-modal" class="hidden fixed inset-0 z-[2000] bg-slate-950/60 backdrop-blur-sm p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="usm-sysweb-demo-title" data-modal-close="closeSyswebDemo">
         <div class="w-full max-w-4xl max-h-[92vh] overflow-hidden flex flex-col rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 shadow-2xl">
             <!-- Header -->
             <div class="flex items-center justify-between border-b border-slate-200 dark:border-zinc-800 p-5 bg-white dark:bg-zinc-900">

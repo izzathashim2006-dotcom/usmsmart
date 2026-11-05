@@ -4,7 +4,8 @@
  *
  * Collects every class token written in the PHP views, index.php and the
  * dashboard JavaScript, then verifies that a rule for it exists in the
- * compiled assets/tailwind.css or the hand-written stylesheets.
+ * compiled assets/tailwind.css, the hand-written stylesheets or the vendor
+ * icon sheet. Classes that exist only as JS hooks are listed in hookOnly.
  *
  * Run after changing markup or adding classes in JS:
  *   node tools/tailwind-coverage.js
@@ -24,13 +25,36 @@ const sources = [
   'assets/usmsmart-login.css',
   'assets/usmsmart-dashboard.css',
 ];
-const cssFiles = ['assets/tailwind.css', 'assets/usmsmart-dashboard.css', 'assets/usmsmart-login.css'];
+const cssFiles = [
+  'assets/tailwind.css',
+  'assets/usmsmart-dashboard.css',
+  'assets/usmsmart-login.css',
+  'assets/vendor/font-awesome.css',
+];
 const css = cssFiles.map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('\n');
 
 const tokens = new Set();
 const dynamic = new Set();
 
-function collect(text) {
+// Class names used only as JS/CSS hooks: their appearance comes from the
+// utility classes at each call site, so no rule of their own is expected.
+const hookOnly = new Set([
+  'usm-src-badge',
+  'usm-stats-gate-label',
+  'sysweb-kind-btn',
+  'sysweb-seg-btn',
+]);
+
+// Class attributes in views embed PHP; in JS they embed template literals.
+// Removing both keeps bare words such as "echo" out of the token set.
+function stripExpressions(text) {
+  return text
+    .replace(/<\?(?:php|=)?[\s\S]*?\?>/g, ' ')
+    .replace(/\$\{[^}]*\}/g, ' ');
+}
+
+function collect(rawText) {
+  const text = stripExpressions(rawText);
   // class="..." and class='...' with optional escaping used inside JS strings.
   const re = /class=\\*["']([^"'\\]*(?:\\.[^"'\\]*)*)\\*["']/g;
   let m;
@@ -41,11 +65,16 @@ function collect(text) {
       tokens.add(token);
     }
   }
-  // classList.add/remove/toggle('a','b') with literal arguments.
-  const re2 = /classList\.(?:add|remove|toggle)\(([^)]*)\)/g;
+  // classList.add/remove('a','b') with literal arguments. For toggle the
+  // second argument is the force flag, not a class name.
+  const re2 = /classList\.(add|remove|toggle)\(([^)]*)\)/g;
   while ((m = re2.exec(text))) {
-    for (const lit of m[1].match(/'[^']+'|"[^"]+"/g) || []) {
-      const token = lit.slice(1, -1);
+    const args = m[2].split(',');
+    const limit = m[1] === 'toggle' ? 1 : args.length;
+    for (let i = 0; i < limit; i++) {
+      const lit = args[i].trim().match(/^'([^']+)'$|^"([^"]+)"$/);
+      if (!lit) continue;
+      const token = lit[1] || lit[2];
       if (!token || /[<>${}?=()]/.test(token)) continue;
       tokens.add(token);
     }
@@ -59,12 +88,15 @@ function escapeClass(token) {
 }
 
 const missing = [];
+let hooks = 0;
 for (const token of tokens) {
+  if (hookOnly.has(token)) { hooks++; continue; }
   const escaped = '.' + escapeClass(token);
   if (!css.includes(escaped)) missing.push(token);
 }
 
 console.log(`checked ${tokens.size} class tokens across ${sources.length} source files`);
+if (hooks) console.log(`ignored ${hooks} hook-only class(es)`);
 if (dynamic.size) {
   console.log(`skipped ${dynamic.size} dynamic expression(s), e.g. ${[...dynamic].slice(0, 5).join(' | ')}`);
 }
