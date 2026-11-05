@@ -22,58 +22,20 @@
   };
 })();
 </script>
-<script id="usmsmart-first-paint-gate">
-/* A frame of this portal is not one thing that appears; it is the markup, then the utility stylesheet
-   Tailwind writes while it reads that markup, then the icon font, then the style blocks this file
-   appends after the content they restyle. Shown as those land, the page stacks or jumps for a few
-   dozen milliseconds before settling. So the document is held hidden until parsing is done and given
-   back two frames later, once the styles have had their turn. The timer releases it whatever else
-   happens: a stalled subresource must never leave an operator staring at a blank page. */
-(function () {
-    var root = document.documentElement;
-    var released = false;
-    function release() {
-        if (released) return;
-        released = true;
-        root.style.removeProperty('visibility');
-    }
-    function twoFrames() {
-        var next = window.requestAnimationFrame || function (fn) { setTimeout(fn, 16); };
-        next(function () { next(release); });
-    }
-    root.style.setProperty('visibility', 'hidden', 'important');
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', twoFrames);
-    else twoFrames();
-    setTimeout(release, 1200);
-})();
-</script>
+
     <link rel="manifest" href="index.php?action=manifest">
     <meta name="theme-color" content="#6366f1">
-    <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <script>
         // Prevent dark-mode flash before paint (also re-applied in JS at bottom)
         if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/vendor/chart-4.6.1.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: { 
-                extend: { 
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
-                    boxShadow: { 'clean': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)' }
-                } 
-            }
-        }
-    </script>
+    <link rel="stylesheet" href="assets/tailwind.css?v=<?php echo @filemtime(__DIR__ . '/../assets/tailwind.css'); ?>">
         <link rel="stylesheet" href="assets/usmsmart-dashboard.css?v=<?php echo @filemtime(__DIR__ . '/../assets/usmsmart-dashboard.css'); ?>">
 
 
@@ -164,7 +126,7 @@
         <!-- HALAMAN UTAMA: TRANSPORTER -->
         <div id="view-transporter" class="space-y-5">
             
-            <div class="bg-white dark:bg-[#111113] border border-slate-200/60 dark:border-zinc-800/50 rounded-2xl p-4 shadow-clean flex items-center justify-between">
+            <div class="bg-white dark:bg-[#111113] border border-slate-200/60 dark:border-zinc-800/50 rounded-2xl p-4 shadow-clean flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
                         <i class="fa-solid fa-users-gear"></i>

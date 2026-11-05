@@ -1,0 +1,2 @@
+# Configuration is PHP source, but never serve it directly.
+Require all denied

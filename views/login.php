@@ -22,31 +22,7 @@
   };
 })();
 </script>
-<script id="usmsmart-first-paint-gate">
-/* A frame of this portal is not one thing that appears; it is the markup, then the utility stylesheet
-   Tailwind writes while it reads that markup, then the icon font, then the style blocks this file
-   appends after the content they restyle. Shown as those land, the page stacks or jumps for a few
-   dozen milliseconds before settling. So the document is held hidden until parsing is done and given
-   back two frames later, once the styles have had their turn. The timer releases it whatever else
-   happens: a stalled subresource must never leave an operator staring at a blank page. */
-(function () {
-    var root = document.documentElement;
-    var released = false;
-    function release() {
-        if (released) return;
-        released = true;
-        root.style.removeProperty('visibility');
-    }
-    function twoFrames() {
-        var next = window.requestAnimationFrame || function (fn) { setTimeout(fn, 16); };
-        next(function () { next(release); });
-    }
-    root.style.setProperty('visibility', 'hidden', 'important');
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', twoFrames);
-    else twoFrames();
-    setTimeout(release, 1200);
-})();
-</script>
+
     <title>USMSmart — <?php echo $setupMode ? 'Persediaan Pentadbir' : 'Log Masuk'; ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

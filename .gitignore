@@ -22,3 +22,7 @@ sysweb_demo_received.json
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Local database credentials (config/database.example.php is the committed template)
+config/database.local.php
+node_modules/

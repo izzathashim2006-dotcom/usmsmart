@@ -4071,8 +4071,33 @@
 
         function closeCardModal() { document.getElementById('student-card-modal').classList.add('hidden'); }
 
-        function openScannerModal() {
+        // The QR decoder is ~375 KB and most sessions never scan a card, so it is
+        // fetched the first time the scanner opens and then kept for the session.
+        function loadScannerLibrary() {
+            if (window.Html5Qrcode) return Promise.resolve();
+            if (window.__usmScannerLoading) return window.__usmScannerLoading;
+            window.__usmScannerLoading = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'assets/vendor/html5-qrcode-2.3.8.min.js';
+                script.onload = () => { window.__usmScannerLoading = null; resolve(); };
+                script.onerror = () => {
+                    window.__usmScannerLoading = null;
+                    reject(new Error('Pustaka pengimbas tidak dapat dimuatkan'));
+                };
+                document.head.appendChild(script);
+            });
+            return window.__usmScannerLoading;
+        }
+
+        async function openScannerModal() {
             document.getElementById('scanner-modal').classList.remove('hidden');
+            const resultBox = document.getElementById('scan-result-container');
+            try {
+                await loadScannerLibrary();
+            } catch (err) {
+                resultBox.innerText = 'Pustaka pengimbas tidak dapat dimuatkan. Semak sambungan dan cuba lagi.';
+                return;
+            }
             html5QrCode = new Html5Qrcode("reader");
             html5QrCode.start(
                 { facingMode: "environment" },

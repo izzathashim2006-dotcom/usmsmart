@@ -33,10 +33,14 @@ header('X-Permitted-Cross-Domain-Policies: none');
 header('Permissions-Policy: camera=(self), microphone=(), geolocation=()');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
-$host = 'localhost';
-$dbname = 'usmsmart_db';
-$username = 'root';
-$password = '';
+// Credentials are not kept in this file. config/database.local.php is the
+// per-installation, gitignored file; environment variables are the fallback.
+$usmDbConfigFile = __DIR__ . '/config/database.local.php';
+$usmDbConfig = is_file($usmDbConfigFile) ? require $usmDbConfigFile : array();
+$host = (string)($usmDbConfig['host'] ?? (getenv('USM_DB_HOST') ?: 'localhost'));
+$dbname = (string)($usmDbConfig['database'] ?? (getenv('USM_DB_NAME') ?: 'usmsmart_db'));
+$username = (string)($usmDbConfig['username'] ?? (getenv('USM_DB_USER') ?: ''));
+$password = (string)($usmDbConfig['password'] ?? (getenv('USM_DB_PASS') ?: ''));
 
 try {
     $pdo = new PDO("mysql:host=" . $host . ";dbname=" . $dbname . ";charset=utf8mb4", $username, $password);
