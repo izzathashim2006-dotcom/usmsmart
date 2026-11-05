@@ -1,0 +1,24 @@
+# Private backups, database dumps and their logs
+usmsmart_private_backups/
+*.bak
+*.sql
+
+# Large local test harness copies
+indextest_files/
+
+# Scratch scripts, local DB configuration and runtime data
+indextest.php
+automatedtest.php
+test.php
+test_sqlserver.php
+testdriver.php
+check_drivers.php
+db.php.php
+sqlserver_connection.php
+USMSmart_backup_scheduler.php
+sysweb_demo_received.json
+
+# OS noise
+Thumbs.db
+Desktop.ini
+.DS_Store

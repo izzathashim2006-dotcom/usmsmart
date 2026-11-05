@@ -1,0 +1,1991 @@
+/* ===== base ===== */
+.page-transition { animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideIn {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        :root { color-scheme: light; --usm-accent: #4f46e5; --usm-accent-hover: #4338ca; }
+        html.dark { color-scheme: dark; }
+        body { letter-spacing: -0.011em; }
+        ::selection { background: rgba(99, 102, 241, .15); }
+        :where(button, input, select, textarea, a) { -webkit-tap-highlight-color: transparent; }
+        :where(button, input, select, textarea):focus-visible, a:focus-visible {
+            outline: 2px solid rgba(99, 102, 241, .5) !important; outline-offset: 2px;
+        }
+        button { transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .1s ease; }
+        button:not(:disabled):active { transform: translateY(0.5px); }
+        button:disabled { cursor: not-allowed !important; opacity: .55; }
+        input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+            max-width: 100%; transition: border-color .15s ease, box-shadow .15s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #818cf8 !important; box-shadow: 0 0 0 3px rgba(99, 102, 241, .08);
+        }
+
+        /* ---- Header ---- */
+        header { box-shadow: 0 1px 0 rgba(15, 23, 42, .06); }
+        .dark header { box-shadow: 0 1px 0 rgba(255,255,255,.06); }
+        header > div { min-height: 48px; }
+        .header-top-bar { height: 36px; font-size: 11px; }
+
+        /* ---- Nav tabs: dimensions and state live in usmsmart-ui-tokens-v1 (.usm-tabbar/.usm-tab) ---- */
+
+        /* ---- Main content area ---- */
+        main.flex-grow { max-width: 1100px !important; padding-left: clamp(1rem, 3vw, 2rem) !important; padding-right: clamp(1rem, 3vw, 2rem) !important; }
+        main.flex-grow > section, main.flex-grow > div > section { scroll-margin-top: 80px; }
+
+        /* ---- Cards ---- */
+        .rounded-2xl { border-radius: 14px !important; }
+        .shadow-clean { box-shadow: 0 1px 3px rgba(15, 23, 42, .04), 0 1px 2px rgba(15, 23, 42, .02) !important; }
+        section.bg-white, section[class*="bg-white"], div.bg-white, div[class*="bg-white"] {
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+        section.bg-white:hover, section[class*="bg-white"]:hover { border-color: rgba(148, 163, 184, .4); }
+
+        /* ---- Tables ---- */
+        table thead th { position: sticky; top: 0; z-index: 2; background: #f8fafc; font-weight: 600; letter-spacing: .04em; }
+        .dark table thead th { background: #18181b; }
+        table tbody tr { transition: background-color .12s ease; }
+        table tbody tr:hover { background-color: rgba(99, 102, 241, .03); }
+        .dark table tbody tr:hover { background-color: rgba(129, 140, 248, .06); }
+        table td, table th { padding: 10px 14px !important; }
+
+        /* ---- Scrollbar ---- */
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; border: 2px solid transparent; background-clip: padding-box; }
+        .dark ::-webkit-scrollbar-thumb { background: #3f3f46; border: 2px solid transparent; background-clip: padding-box; }
+        ::-webkit-scrollbar-track { background: transparent; }
+
+        /* ---- Section headings ---- */
+        .section-heading {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .06em; color: #64748b;
+        }
+        .dark .section-heading { color: #a1a1aa; }
+
+        /* ---- Utility: softer badge ---- */
+        .badge-soft {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 600; padding: 3px 8px;
+            border-radius: 6px; line-height: 1.4;
+        }
+
+        @media (max-width: 640px) {
+            main.flex-grow { padding-top: 1rem !important; padding-bottom: 1.25rem !important; }
+            #nav-tabs { overflow-x: auto; justify-content: flex-start; scrollbar-width: thin; }
+            #nav-tabs button, #nav-tabs a { flex: 0 0 auto; white-space: nowrap; }
+            section.bg-white, section[class*="bg-white"] { padding: 0.875rem !important; }
+            #section-step-2 > div:first-child { align-items: stretch; }
+            #section-step-2 > div:first-child > div { flex-wrap: wrap; }
+            #section-step-2 button { min-height: 36px; }
+            table { min-width: 640px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+        }
+        @media print {
+            body { background: white !important; color: black !important; }
+            header, #nav-tabs, button, .no-print { display: none !important; }
+            #student-card-modal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white !important; z-index: 9999; }
+            .print-card-box { border: 2px solid #333 !important; box-shadow: none !important; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #e2e8f0; padding: 6px 8px; font-size: 10px; }
+        }
+
+
+        /* USMSmart minimal refresh: consistent surfaces, clearer hierarchy, less visual noise. */
+        :root { --usm-accent: #4f46e5; --usm-border: #e2e8f0; --usm-surface: #ffffff; }
+        html { scroll-behavior: smooth; }
+        body { letter-spacing: -0.012em; }
+        header { backdrop-filter: saturate(140%) blur(12px); }
+        header > div { gap: 1rem; }
+        button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #818cf8 !important; outline-offset: 2px; }
+        main.flex-grow { width: 100%; max-width: 1280px !important; }
+        main.flex-grow > section, main.flex-grow > div > section { border-radius: 16px !important; }
+        section.bg-white, section[class*="bg-white"], div.bg-white, div[class*="bg-white"] { box-shadow: 0 1px 2px rgba(15,23,42,.025); }
+        section.bg-white:hover, section[class*="bg-white"]:hover { border-color: #d8dee9; }
+        .dark section.bg-white, .dark section[class*="bg-white"], .dark div.bg-white, .dark div[class*="bg-white"] { box-shadow: none; }
+        h1, h2, h3 { text-wrap: balance; }
+        label { line-height: 1.45; }
+        input:not([type="checkbox"]):not([type="radio"]), select, textarea { min-height: 38px; border-radius: 9px !important; }
+        button { border-radius: 9px; }
+        table { border-collapse: separate; border-spacing: 0; }
+        table thead th { font-size: 10px; letter-spacing: .045em; }
+        table td, table th { vertical-align: middle; }
+        table tbody tr:hover { background-color: #f8faff; }
+        .dark table tbody tr:hover { background-color: #18181b; }
+        #master-student-tbody td { line-height: 1.45; }
+        #master-student-tbody tr td:first-child { color: #94a3b8; }
+        #master-search, #master-school-filter, #master-status-filter, #master-sort { min-height: 40px; }
+        #master-search:focus, #master-school-filter:focus, #master-status-filter:focus, #master-sort:focus { outline: 3px solid rgba(99,102,241,.18); border-color: #6366f1; box-shadow: 0 0 0 1px rgba(99,102,241,.18); }
+        .pill-filter-btn { min-height: 36px; }
+        #master-student-tbody tr { transition: background-color .15s ease; }
+        #master-student-tbody tr:hover { background-color: rgba(99,102,241,.045); }
+        #master-page-size { min-height: 34px; }
+        @media (prefers-reduced-motion: reduce) { #master-student-tbody tr { transition: none; } }
+        #master-bulk-bar { box-shadow: 0 4px 16px rgba(79,70,229,.06); }
+        #expiry-alerts { border-radius: 14px; }
+        .pill-filter-btn { min-height: 35px; }
+        .pill-filter-btn:focus-visible { outline-offset: 2px; }
+        #themeToggle { position: fixed !important; top: 12px !important; right: 14px !important; z-index: 60; width: 36px; height: 36px; border: 1px solid #e2e8f0 !important; border-radius: 10px; background: rgba(255,255,255,.94) !important; box-shadow: 0 1px 2px rgba(15,23,42,.04); font-size: 15px !important; }
+        .dark #themeToggle { background: #18181b !important; border-color: #3f3f46 !important; color: #e4e4e7 !important; }
+        #master-clear-filters { white-space: nowrap; min-height: 38px; }
+        .usm-shortcut-hint { color: #94a3b8; font-size: 10px; white-space: nowrap; }
+        @media (min-width: 1024px) { main.flex-grow { padding-top: 1.75rem !important; } }
+        @media (max-width: 760px) {
+            header > div { flex-wrap: wrap; height: auto !important; padding-top: .65rem; padding-bottom: .65rem; }
+            #nav-tabs { order: 3; width: 100%; max-width: 100%; }
+            #nav-tabs button { flex: 1 0 auto; }
+            #themeToggle { top: 9px !important; right: 9px !important; }
+            main.flex-grow { padding-left: .75rem !important; padding-right: .75rem !important; }
+            table { min-width: 720px; }
+            #master-bulk-bar { margin-inline: .75rem; }
+        }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+
+        /* =====================================================
+           USMSmart Modern UI Refresh — visual layer only
+           Preserves existing PHP routes, database, and JS logic
+           ===================================================== */
+        :root {
+            --usm-accent: #5b4be8;
+            --usm-accent-hover: #4938cf;
+            --usm-ink: #172033;
+            --usm-muted: #68758b;
+            --usm-line: #e7eaf2;
+            --usm-canvas: #f6f7fb;
+            --usm-card: #ffffff;
+            --usm-ring: rgba(91, 75, 232, .18);
+        }
+        html { background: var(--usm-canvas); }
+        body { background-color: var(--usm-canvas) !important; color: var(--usm-ink); }
+        .dark body { background-color: #0b0d13 !important; color: #eef0f7; }
+        ::selection { background: rgba(91, 75, 232, .18); }
+
+        /* More deliberate page rhythm */
+        main.flex-grow { max-width: 1360px !important; padding-top: 1.5rem !important; padding-bottom: 2.5rem !important; }
+        main.flex-grow > section, main.flex-grow > div > section { scroll-margin-top: 92px; }
+        h1, h2, h3, h4 { letter-spacing: -.025em; }
+        p { line-height: 1.55; }
+
+        /* Sticky navigation and brand area */
+        body > header { background: rgba(255,255,255,.9) !important; border-bottom-color: var(--usm-line) !important; box-shadow: 0 5px 24px rgba(26,34,58,.035) !important; backdrop-filter: blur(18px) saturate(160%); }
+        .dark body > header { background: rgba(15,17,24,.9) !important; border-bottom-color: #272b38 !important; }
+        body > header > div { min-height: 64px; }
+        body > header h1 { font-size: 14px !important; letter-spacing: -.03em; }
+
+        /* Cards: quieter borders, consistent corners, gentle lift */
+        .rounded-2xl { border-radius: 18px !important; }
+        .rounded-xl { border-radius: 14px !important; }
+        section.bg-white, section[class*="bg-white"], div.bg-white, div[class*="bg-white"] {
+            border-color: var(--usm-line);
+            box-shadow: 0 2px 8px rgba(27,36,64,.025), 0 12px 32px rgba(27,36,64,.018);
+            transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+        section.bg-white:hover, section[class*="bg-white"]:hover { border-color: #d8d9f3; box-shadow: 0 4px 12px rgba(27,36,64,.035), 0 16px 36px rgba(27,36,64,.025); }
+        .dark section.bg-white, .dark section[class*="bg-white"], .dark div.bg-white, .dark div[class*="bg-white"] { background-color: #11141d !important; border-color: #292d3b !important; box-shadow: 0 4px 24px rgba(0,0,0,.12); }
+        .dark section.bg-white:hover, .dark section[class*="bg-white"]:hover { border-color: #393b59 !important; }
+        [class*="shadow-clean"] { box-shadow: 0 2px 8px rgba(27,36,64,.035), 0 1px 2px rgba(27,36,64,.025) !important; }
+
+        /* Buttons */
+        button { font-weight: 600; letter-spacing: -.005em; }
+        button:not(:disabled):hover { filter: brightness(.985); }
+        button:not(:disabled):active { transform: translateY(1px); }
+        button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--usm-ring) !important; outline-offset: 2px !important; }
+
+        /* Form controls */
+        input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+            min-height: 40px; border-radius: 11px !important; border-color: #dfe3ed !important;
+            background-color: #fff; color: #172033; box-shadow: inset 0 1px 1px rgba(20,28,48,.015);
+        }
+        input::placeholder, textarea::placeholder { color: #9aa4b6; }
+        input:focus, select:focus, textarea:focus { border-color: #9a90f4 !important; box-shadow: 0 0 0 4px rgba(91,75,232,.09) !important; }
+        .dark input:not([type="checkbox"]):not([type="radio"]), .dark select, .dark textarea { background-color: #0d1018 !important; border-color: #303545 !important; color: #eef0f7 !important; }
+        .dark input::placeholder, .dark textarea::placeholder { color: #727c91; }
+
+        /* Tables are easier to scan */
+        table { width: 100%; border-collapse: separate !important; border-spacing: 0; }
+        table thead th { position: sticky; top: 0; z-index: 2; background: #f7f8fc !important; color: #66728a; font-size: 10px; font-weight: 700; letter-spacing: .065em; text-transform: uppercase; border-bottom: 1px solid var(--usm-line); }
+        .dark table thead th { background: #171a24 !important; color: #a4adc0; border-bottom-color: #2a2e3b; }
+        table td, table th { padding: 12px 14px !important; }
+        table tbody td { border-bottom: 1px solid #f0f1f6; }
+        .dark table tbody td { border-bottom-color: #222633; }
+        table tbody tr:last-child td { border-bottom: 0; }
+        table tbody tr:hover { background: #f8f8ff !important; }
+        .dark table tbody tr:hover { background: #191b29 !important; }
+
+        /* Badges, alerts and filter controls */
+        .badge-soft { border-radius: 999px; padding: 4px 9px; font-size: 10px; }
+        .pill-filter-btn { border-radius: 999px !important; padding-inline: 13px !important; }
+        #expiry-alerts { border-radius: 16px; }
+        #master-bulk-bar { border-radius: 14px; }
+        #themeToggle { border-radius: 12px !important; box-shadow: 0 4px 14px rgba(22,30,52,.08) !important; }
+
+        /* Scrollbars and motion */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd1df; border: 2px solid transparent; background-clip: padding-box; border-radius: 99px; }
+        .dark ::-webkit-scrollbar-thumb { background: #3c4253; border: 2px solid transparent; background-clip: padding-box; }
+        @media (max-width: 760px) {
+            main.flex-grow { padding-top: 1rem !important; padding-bottom: 1.5rem !important; }
+            body > header > div { gap: .75rem; }
+            #nav-tabs { max-width: 100%; overflow-x: auto; }
+            #nav-tabs button, #nav-tabs a { flex: 0 0 auto; }
+            table { min-width: 680px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+        }
+
+        /* USMSmart next UI pass: unify the four card-status summary tiles */
+        #view-analytics #analytics-export-wrapper > section:first-child {
+            gap: 12px !important;
+        }
+        #view-analytics #analytics-export-wrapper > section:first-child > div {
+            position: relative !important;
+            min-width: 0 !important;
+            min-height: 132px !important;
+            padding: 15px 16px !important;
+            border-width: 1px !important;
+            border-radius: 12px !important;
+            background: #fff !important;
+            box-shadow: none !important;
+            ring: 0 !important;
+            transition: border-color .15s ease, background-color .15s ease !important;
+        }
+        #view-analytics #analytics-export-wrapper > section:first-child > div:hover {
+            transform: none !important;
+            box-shadow: none !important;
+            border-color: #c4b5fd !important;
+        }
+        #view-analytics #analytics-export-wrapper > section:first-child > div > div:first-child {
+            align-items: center !important;
+            gap: 8px !important;
+        }
+        #view-analytics #analytics-export-wrapper > section:first-child > div > div:first-child p {
+            font-size: 11px !important;
+            line-height: 1.45 !important;
+            font-weight: 600 !important;
+        }
+        #view-analytics #analytics-export-wrapper > section:first-child > div > p[id^="card-stat-"] {
+            margin-top: 12px !important;
+            font-size: clamp(1.5rem, 2vw, 1.8rem) !important;
+            line-height: 1.15 !important;
+            font-weight: 700 !important;
+            font-variant-numeric: tabular-nums !important;
+        }
+        #view-analytics #analytics-export-wrapper > section:first-child > div > div:last-child {
+            gap: 8px !important;
+            margin-top: 8px !important;
+        }
+        #view-analytics #analytics-export-wrapper > section:first-child > div > div:last-child p,
+        #view-analytics #analytics-export-wrapper > section:first-child > div > div:last-child span {
+            font-size: 10px !important;
+            line-height: 1.4 !important;
+        }
+        #view-analytics #analytics-export-wrapper > section:first-child > div .animate-pulse {
+            animation: none !important;
+        }
+        .dark #view-analytics #analytics-export-wrapper > section:first-child > div {
+            background: #111318 !important;
+            border-color: #2b2f3a !important;
+        }
+        .dark #view-analytics #analytics-export-wrapper > section:first-child > div:hover {
+            border-color: #6252a3 !important;
+        }
+        @media (max-width: 640px) {
+            #view-analytics #analytics-export-wrapper > section:first-child { gap: 10px !important; }
+            #view-analytics #analytics-export-wrapper > section:first-child > div {
+                min-height: 120px !important;
+                padding: 13px !important;
+            }
+            #view-analytics #analytics-export-wrapper > section:first-child > div > div:last-child {
+                align-items: flex-start !important;
+                flex-direction: column !important;
+            }
+        }
+
+        /* USMSmart minimal dashboard polish: visual-only overrides */
+        #view-analytics #analytics-export-wrapper > section:first-child > div {
+            border: 1px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            background: #fff !important;
+            box-shadow: none !important;
+            padding: 16px !important;
+            ring: 0 !important;
+        }
+        /* USMSmart dashboard polish — visual-only overrides */
+        #view-analytics { --analytics-line: #e5e7eb; --analytics-muted: #64748b; }
+        #view-analytics #analytics-export-wrapper > section:first-child > div {
+            border: 1px solid var(--analytics-line) !important;
+            border-radius: 12px !important;
+            box-shadow: none !important;
+            transition: border-color .15s ease !important;
+        }
+        #view-analytics #analytics-export-wrapper > section:first-child > div:hover {
+            border-color: #c4b5fd !important;
+            box-shadow: none !important;
+        }
+        #view-analytics #analytics-export-wrapper > section:first-child > div:nth-child(3) {
+            border-width: 1px !important;
+            background: #fff !important;
+        }
+        #view-analytics #analytics-export-wrapper > section:first-child > div:nth-child(3) p:first-child { color: var(--analytics-muted) !important; }
+        #view-analytics #analytics-export-wrapper .animate-pulse { animation: none !important; }
+        #view-analytics .analytics-kpi {
+            min-width: 0 !important; padding: 16px !important; border: 1px solid var(--analytics-line) !important;
+            border-radius: 12px !important; background: #fff !important; box-shadow: none !important;
+        }
+        #view-analytics .analytics-kpi:hover { transform: none !important; box-shadow: none !important; }
+        #view-analytics .analytics-kpi:after { display: none !important; }
+        #view-analytics .analytics-kpi-top { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 10px; color: #64748b; font-size: 12px; }
+        #view-analytics .analytics-kpi-icon { display: grid !important; place-items: center !important; flex: 0 0 34px; width: 34px !important; height: 34px !important; border-radius: 9px !important; font-size: 13px; background: #eef2ff; color: #4f46e5; }
+        #view-analytics .analytics-kpi-emerald .analytics-kpi-icon { background: #ecfdf5; color: #059669; }
+        #view-analytics .analytics-kpi-violet .analytics-kpi-icon { background: #f5f3ff; color: #7c3aed; }
+        #view-analytics .analytics-kpi-amber .analytics-kpi-icon { background: #fffbeb; color: #d97706; }
+        #view-analytics .analytics-kpi-value { margin-top: 12px !important; font-size: clamp(1.5rem, 2vw, 1.9rem) !important; line-height: 1.2 !important; }
+        #view-analytics .analytics-kpi-text { min-height: 2.6rem; font-size: 1rem !important; overflow-wrap: anywhere; }
+        #view-analytics .analytics-kpi-caption { margin-top: 7px; line-height: 1.45; }
+        #view-analytics .analytics-filter-panel {
+            display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(250px, .8fr) !important;
+            align-items: center !important; gap: 20px !important; padding: 18px !important;
+            border: 1px solid var(--analytics-line) !important; border-radius: 12px !important;
+            background: #fff !important; box-shadow: none !important;
+        }
+        #view-analytics .analytics-filter-copy { min-width: 0; align-items: flex-start; gap: 12px; }
+        #view-analytics .analytics-filter-icon { flex: 0 0 36px; width: 36px !important; height: 36px !important; border-radius: 9px !important; background: #f3f0ff !important; color: #6d28d9 !important; }
+        #view-analytics .analytics-filter-copy h3 { color: #111827; font-size: 14px; font-weight: 650; }
+        #view-analytics .analytics-filter-copy p:not(.analytics-active-filter) { margin-top: 4px; max-width: 38rem; color: #64748b; font-size: 12px; line-height: 1.5; }
+        #view-analytics .analytics-active-filter { margin-top: 8px !important; color: #6d28d9 !important; font-size: 11px !important; line-height: 1.4; }
+        #view-analytics .analytics-filter-controls { display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; align-items: end !important; gap: 10px !important; min-width: 0; }
+        #view-analytics .analytics-filter-field { min-width: 0; gap: 6px !important; }
+        #view-analytics .analytics-filter-controls label, #view-analytics .analytics-month-filter label { display: block; margin-bottom: 5px; color: #64748b; font-size: 11px; font-weight: 650; }
+        #view-analytics .analytics-school-select, #view-analytics .analytics-month-input {
+            width: 100% !important; min-width: 0 !important; min-height: 40px; padding: 9px 11px !important;
+            border: 1px solid #d1d5db !important; border-radius: 8px !important; background: #fff !important;
+            color: #111827 !important; font-size: 12px !important; box-shadow: none !important;
+        }
+        #view-analytics .analytics-school-select:focus, #view-analytics .analytics-month-input:focus { border-color: #8b5cf6 !important; outline: 3px solid rgba(109,40,217,.12) !important; }
+        #view-analytics .analytics-reset-button, #view-analytics .analytics-month-reset {
+            min-height: 40px; padding: 9px 11px !important; border: 1px solid #d1d5db !important; border-radius: 8px !important;
+            background: #fff !important; color: #475569 !important; font-size: 11px !important; font-weight: 650; white-space: nowrap; box-shadow: none !important;
+        }
+        #view-analytics .analytics-reset-button:hover, #view-analytics .analytics-month-reset:hover { background: #f5f3ff !important; border-color: #c4b5fd !important; color: #5b21b6 !important; }
+        #view-analytics .analytics-reset-button[hidden] { display: none !important; }
+        #view-analytics .analytics-section-heading { align-items: flex-end; gap: 12px; padding: 0 2px; }
+        #view-analytics .analytics-section-heading h3 { color: #111827; font-size: 15px; }
+        #view-analytics .analytics-section-heading p { color: #64748b; font-size: 12px; line-height: 1.5; }
+        #view-analytics .analytics-section-heading > span { padding: 7px 10px; border: 1px solid var(--analytics-line); border-radius: 8px; background: transparent; color: #64748b; font-size: 11px; }
+        #view-analytics .analytics-month-filter {
+            display: grid !important; grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto !important;
+            align-items: end !important; gap: 12px !important; margin: 0 0 14px !important; padding: 0 0 14px !important;
+            border: 0 !important; border-bottom: 1px solid var(--analytics-line) !important; border-radius: 0 !important; background: transparent !important;
+        }
+        #view-analytics .analytics-month-filter > div { min-width: 0; }
+        #view-analytics .analytics-month-filter label { margin-bottom: 5px !important; }
+        #view-analytics .analytics-month-reset { width: auto; }
+        .dark #view-analytics #analytics-export-wrapper > section:first-child > div,
+        .dark #view-analytics #analytics-export-wrapper > section:first-child > div:nth-child(3),
+        .dark #view-analytics .analytics-kpi,
+        .dark #view-analytics .analytics-filter-panel { background: #111318 !important; border-color: #2b2f3a !important; }
+        .dark #view-analytics .analytics-kpi-icon { background: #1e1b4b !important; color: #c7d2fe !important; }
+        .dark #view-analytics .analytics-kpi-emerald .analytics-kpi-icon { background: #052e2b !important; color: #6ee7b7 !important; }
+        .dark #view-analytics .analytics-kpi-violet .analytics-kpi-icon { background: #2e1065 !important; color: #ddd6fe !important; }
+        .dark #view-analytics .analytics-kpi-amber .analytics-kpi-icon { background: #451a03 !important; color: #fcd34d !important; }
+        .dark #view-analytics .analytics-kpi-top,
+        .dark #view-analytics .analytics-kpi-caption,
+        .dark #view-analytics .analytics-filter-copy p:not(.analytics-active-filter),
+        .dark #view-analytics .analytics-filter-controls label,
+        .dark #view-analytics .analytics-month-filter label,
+        .dark #view-analytics .analytics-section-heading p { color: #a1a1aa !important; }
+        .dark #view-analytics .analytics-kpi-value,
+        .dark #view-analytics .analytics-filter-copy h3,
+        .dark #view-analytics .analytics-section-heading h3 { color: #f4f4f5 !important; }
+        .dark #view-analytics .analytics-school-select,
+        .dark #view-analytics .analytics-month-input,
+        .dark #view-analytics .analytics-reset-button,
+        .dark #view-analytics .analytics-month-reset { background: #171920 !important; border-color: #3b3f4b !important; color: #e4e4e7 !important; }
+        .dark #view-analytics .analytics-section-heading > span { border-color: #303440; color: #a1a1aa; }
+        .dark #view-analytics .analytics-month-filter { border-bottom-color: #303440 !important; }
+        @media (max-width: 760px) {
+            #view-analytics .analytics-filter-panel { grid-template-columns: minmax(0,1fr) !important; gap: 14px !important; }
+            #view-analytics .analytics-filter-controls { grid-template-columns: minmax(0,1fr) auto !important; }
+            #view-analytics .analytics-month-filter { grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important; }
+            #view-analytics .analytics-month-reset { grid-column: 1 / -1; width: 100%; }
+            #view-analytics .analytics-section-heading { align-items: flex-start; flex-direction: column; }
+        }
+        @media (max-width: 420px) {
+            #view-analytics .analytics-filter-controls, #view-analytics .analytics-month-filter { grid-template-columns: minmax(0,1fr) !important; }
+            #view-analytics .analytics-reset-button, #view-analytics .analytics-month-reset { width: 100%; }
+        }
+        /* Stage ST: one card language for the segment. Measured before this stage, the four card
+           families disagreed: status cards were pinned to 12px while KPI, filter and chart cards were
+           14px; the three grids used 12/16/20px gaps; and the section heading was 15px/400 next to
+           card titles at 14px/600. */
+        #view-analytics .analytics-chart-card, #view-audit-history .usm-chart-card, #view-data-quality .usm-chart-card, #view-sysweb .usm-chart-card, #view-transporter .usm-chart-card{ border-color: #e5e7eb; }
+        #view-analytics #analytics-export-wrapper > section:first-child > div { border-radius: 14px !important; }
+        @media (min-width: 641px) {
+            #view-analytics #analytics-export-wrapper > section[aria-label="Ringkasan status kad"],
+            #view-analytics #analytics-export-wrapper > section[aria-label="Sorotan analitik"],
+            #view-analytics .analytics-section-heading + div { gap: 16px; }
+        }
+        /* Weight only: the inks already differ by a hair across the segment (#0f172a / #111827) and
+           every one of them owns a .dark override, so re-pinning colour here would fight dark mode
+           for no visible gain. */
+        #view-analytics .analytics-section-heading h3, #view-analytics .analytics-chart-card h3, #view-audit-history .usm-chart-card h3, #view-data-quality .usm-chart-card h3, #view-sysweb .usm-chart-card h3, #view-transporter .usm-chart-card h3{ font-weight: 650; }
+        #view-analytics .analytics-chart-ico, #view-audit-history .usm-chart-ico, #view-data-quality .usm-chart-ico, #view-sysweb .usm-chart-ico, #view-transporter .usm-chart-ico{ display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 9px; background: #f3f0ff; color: #6d28d9; font-size: 13px; }
+        #view-analytics .analytics-records-button { display: inline-flex; align-items: center; gap: .4rem; min-height: 40px; padding: .6rem .75rem; border: 1px solid #ddd6fe; border-radius: 9px; background: #f5f3ff; color: #5b21b6; font-size: .75rem; font-weight: 650; white-space: nowrap; cursor: pointer; }
+        #view-analytics .analytics-records-button:hover { background: #ede9fe; border-color: #c4b5fd; color: #4c1d95; }
+        #view-analytics .analytics-records-button[hidden] { display: none; }
+        /* Only the armed state sets opacity, so a page without IntersectionObserver or with reduced
+           motion shows everything normally. */
+        #view-transporter.usm-reveal-arm [data-usm-reveal], #view-analytics.usm-reveal-arm [data-usm-reveal], #view-directory-page.usm-reveal-arm [data-usm-reveal], #view-staff-directory.usm-reveal-arm [data-usm-reveal], #view-edit-student.usm-reveal-arm [data-usm-reveal], #view-user-management.usm-reveal-arm [data-usm-reveal], #view-audit-history.usm-reveal-arm [data-usm-reveal], #view-bulk-update.usm-reveal-arm [data-usm-reveal], #view-data-quality.usm-reveal-arm [data-usm-reveal], #view-sysweb.usm-reveal-arm [data-usm-reveal] { opacity: 0; transform: translateY(18px) scale(.985); transition: opacity .42s ease var(--usm-reveal-delay,0ms), transform .5s cubic-bezier(.22,.61,.36,1) var(--usm-reveal-delay,0ms); }
+        #view-transporter.usm-reveal-arm [data-usm-reveal].usm-reveal-in, #view-analytics.usm-reveal-arm [data-usm-reveal].usm-reveal-in, #view-directory-page.usm-reveal-arm [data-usm-reveal].usm-reveal-in, #view-staff-directory.usm-reveal-arm [data-usm-reveal].usm-reveal-in, #view-edit-student.usm-reveal-arm [data-usm-reveal].usm-reveal-in, #view-user-management.usm-reveal-arm [data-usm-reveal].usm-reveal-in, #view-audit-history.usm-reveal-arm [data-usm-reveal].usm-reveal-in, #view-bulk-update.usm-reveal-arm [data-usm-reveal].usm-reveal-in, #view-data-quality.usm-reveal-arm [data-usm-reveal].usm-reveal-in, #view-sysweb.usm-reveal-arm [data-usm-reveal].usm-reveal-in { opacity: 1; transform: none; }
+        @media (prefers-reduced-motion: reduce) { #view-transporter.usm-reveal-arm [data-usm-reveal], #view-analytics.usm-reveal-arm [data-usm-reveal], #view-directory-page.usm-reveal-arm [data-usm-reveal], #view-staff-directory.usm-reveal-arm [data-usm-reveal], #view-edit-student.usm-reveal-arm [data-usm-reveal], #view-user-management.usm-reveal-arm [data-usm-reveal], #view-audit-history.usm-reveal-arm [data-usm-reveal], #view-bulk-update.usm-reveal-arm [data-usm-reveal], #view-data-quality.usm-reveal-arm [data-usm-reveal], #view-sysweb.usm-reveal-arm [data-usm-reveal] { opacity: 1; transform: none; transition: none; } }
+        /* Dark mode measured before this stage: the chart cards sat on #11141d while every other card
+           in the segment used #111318. !important is required because the winning rule is the broad
+           ".dark div.bg-white" pin, which also uses it. The four status cards keep a light
+           #e5e7eb hairline in dark mode as well, but an equally specific !important border-color rule
+           appended to the head does not move it either way, so that pin is left alone here and logged
+           as Stage S5 work instead of shipping a selector that measurably does nothing. */
+        .dark #view-analytics .analytics-chart-card, .dark #view-audit-history .usm-chart-card, .dark #view-data-quality .usm-chart-card, .dark #view-sysweb .usm-chart-card, .dark #view-transporter .usm-chart-card{ background: #111318 !important; border-color: #2b2f3a !important; }
+        .dark #view-analytics .analytics-chart-ico, .dark #view-audit-history .usm-chart-ico, .dark #view-data-quality .usm-chart-ico, .dark #view-sysweb .usm-chart-ico, .dark #view-transporter .usm-chart-ico{ background: #24183d; color: #c4b5fd; }
+        .dark #view-analytics .analytics-records-button { background: #24183d; border-color: #3f3f46; color: #c4b5fd; }
+        /* Stage HS: these two screens are opened from a click and #view-transporter is the landing view,
+           so neither is armed for reveal-on-scroll — arming the landing view would start every block in it
+           at opacity 0 and depend on the observer for the first paint. The statistics card takes a one-shot
+           entrance on the day its data arrives; display:none blocks do not animate, so un-hiding is what
+           triggers it, and a repaint of an already-visible panel replays nothing. */
+        @keyframes usm-stats-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+        #view-sysweb .usm-stats-entrant, #view-transporter .usm-stats-entrant, #view-audit-history .usm-stats-entrant, #view-data-quality .usm-stats-entrant { animation: usm-stats-rise .42s cubic-bezier(.22,.61,.36,1) both; }
+        @media (prefers-reduced-motion: reduce) { #view-sysweb .usm-stats-entrant, #view-transporter .usm-stats-entrant, #view-audit-history .usm-stats-entrant, #view-data-quality .usm-stats-entrant { animation: none; } }
+        /* Stage AU: the parts of the statistics card that only the log segment needs. The figures are
+           captioned rather than carded so the four counters at the top of the segment stay the loud row,
+           and these read as the filtered detail under the chart title. */
+        #view-audit-history .usm-stats-ranges, #view-data-quality .usm-stats-ranges, #view-sysweb .usm-stats-ranges, #view-transporter .usm-stats-ranges{ display: inline-flex; gap: 4px; padding: 4px; border-radius: 11px; background: #f6f5fb; }
+        #view-audit-history .usm-stats-range, #view-data-quality .usm-stats-range, #view-sysweb .usm-stats-range, #view-transporter .usm-stats-range{ min-height: 32px; padding: 0 .7rem; border: 0; border-radius: 8px; background: transparent; color: #6b6478; font-size: .6875rem; font-weight: 650; white-space: nowrap; cursor: pointer; transition: background .18s, color .18s, box-shadow .18s; }
+        #view-audit-history .usm-stats-range:hover, #view-data-quality .usm-stats-range:hover, #view-sysweb .usm-stats-range:hover, #view-transporter .usm-stats-range:hover{ color: #4c1d95; }
+        #view-audit-history .usm-stats-range.is-on, #view-data-quality .usm-stats-range.is-on, #view-sysweb .usm-stats-range.is-on, #view-transporter .usm-stats-range.is-on{ background: #fff; color: #5b21b6; box-shadow: 0 1px 3px rgba(31, 22, 55, .14); }
+        #view-audit-history .usm-stats-strip, #view-data-quality .usm-stats-strip, #view-sysweb .usm-stats-strip, #view-transporter .usm-stats-strip{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; padding: 14px 0 4px; border-top: 1px solid #eef0f4; margin-top: 16px; }
+        #view-audit-history .usm-stats-strip > div, #view-data-quality .usm-stats-strip > div, #view-sysweb .usm-stats-strip > div, #view-transporter .usm-stats-strip > div{ display: flex; flex-direction: column; min-width: 0; }
+        #view-audit-history .usm-stats-value, #view-data-quality .usm-stats-value, #view-sysweb .usm-stats-value, #view-transporter .usm-stats-value{ color: #0f172a; font-size: 1.4rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+        #view-audit-history .usm-stats-label, #view-data-quality .usm-stats-label, #view-sysweb .usm-stats-label, #view-transporter .usm-stats-label{ color: #64748b; font-size: .625rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; margin-top: 3px; }
+        #view-audit-history .usm-stats-delta, #view-data-quality .usm-stats-delta, #view-sysweb .usm-stats-delta, #view-transporter .usm-stats-delta{ font-size: .625rem; font-weight: 700; margin-top: 3px; }
+        #view-audit-history .usm-stats-delta.is-up, #view-data-quality .usm-stats-delta.is-up, #view-sysweb .usm-stats-delta.is-up, #view-transporter .usm-stats-delta.is-up{ color: #047857; }
+        #view-audit-history .usm-stats-delta.is-down, #view-data-quality .usm-stats-delta.is-down, #view-sysweb .usm-stats-delta.is-down, #view-transporter .usm-stats-delta.is-down{ color: #be123c; }
+        #view-audit-history .usm-stats-delta.is-flat, #view-data-quality .usm-stats-delta.is-flat, #view-sysweb .usm-stats-delta.is-flat, #view-transporter .usm-stats-delta.is-flat{ color: #64748b; }
+        @media (min-width: 641px) { #view-audit-history .usm-stats-strip, #view-data-quality .usm-stats-strip, #view-sysweb .usm-stats-strip, #view-transporter .usm-stats-strip{ grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        .dark #view-audit-history .usm-stats-ranges, .dark #view-data-quality .usm-stats-ranges, .dark #view-sysweb .usm-stats-ranges, .dark #view-transporter .usm-stats-ranges{ background: #1c1c22; }
+        .dark #view-audit-history .usm-stats-range, .dark #view-data-quality .usm-stats-range, .dark #view-sysweb .usm-stats-range, .dark #view-transporter .usm-stats-range{ color: #a1a1aa; }
+        .dark #view-audit-history .usm-stats-range:hover, .dark #view-data-quality .usm-stats-range:hover, .dark #view-sysweb .usm-stats-range:hover, .dark #view-transporter .usm-stats-range:hover{ color: #ddd6fe; }
+        .dark #view-audit-history .usm-stats-range.is-on, .dark #view-data-quality .usm-stats-range.is-on, .dark #view-sysweb .usm-stats-range.is-on, .dark #view-transporter .usm-stats-range.is-on{ background: #2a2438; color: #c4b5fd; box-shadow: none; }
+        .dark #view-audit-history .usm-stats-strip, .dark #view-data-quality .usm-stats-strip, .dark #view-sysweb .usm-stats-strip, .dark #view-transporter .usm-stats-strip{ border-top-color: #2b2f3a; }
+        .dark #view-audit-history .usm-stats-value, .dark #view-data-quality .usm-stats-value, .dark #view-sysweb .usm-stats-value, .dark #view-transporter .usm-stats-value{ color: #f4f4f5; }
+        .dark #view-audit-history .usm-stats-label, .dark #view-data-quality .usm-stats-label, .dark #view-sysweb .usm-stats-label, .dark #view-transporter .usm-stats-label{ color: #a1a1aa; }
+        .dark #view-audit-history .usm-stats-delta.is-up, .dark #view-data-quality .usm-stats-delta.is-up, .dark #view-sysweb .usm-stats-delta.is-up, .dark #view-transporter .usm-stats-delta.is-up{ color: #34d399; }
+        .dark #view-audit-history .usm-stats-delta.is-down, .dark #view-data-quality .usm-stats-delta.is-down, .dark #view-sysweb .usm-stats-delta.is-down, .dark #view-transporter .usm-stats-delta.is-down{ color: #fb7185; }
+
+
+/* ===== usmsmart-page-backdrop-v1 ===== */
+/* Stage BG: one quiet wash behind everything.
+   The two coloured tints stay under 8% alpha on purpose: the cards are the content, and a backdrop that
+   competes with them makes the scroll cascade read as noise instead of depth. The bottom shade is the only
+   heavier layer and it is pure black, so in dark mode it takes light away rather than adding colour. */
+:root {
+  --usm-bg-tint-a: rgba(109, 40, 217, .055);
+  --usm-bg-tint-b: rgba(2, 132, 199, .045);
+  --usm-bg-shade: rgba(15, 23, 42, .05);
+  --usm-bg-dot: rgba(100, 116, 139, .13);
+}
+html.dark {
+  /* Dark tints go the other way from light ones. The dark card is only four or five levels above the dark
+     canvas, so a pastel glow lifts the page past its own cards and they read as sunken; measured at .075 the
+     canvas beat the card. Here the corner *deepens* (a near-black navy) and the violet is kept to a whisper,
+     so the wash can only ever move the canvas away from the card, never onto it. */
+  --usm-bg-tint-a: rgba(139, 92, 246, .035);
+  --usm-bg-tint-b: rgba(2, 6, 23, .55);
+  --usm-bg-shade: rgba(0, 0, 0, .32);
+  --usm-bg-dot: rgba(148, 163, 184, .10);
+}
+html, body {
+  background-image:
+    radial-gradient(1100px 620px at 8% -6%, var(--usm-bg-tint-a), transparent 62%),
+    radial-gradient(980px 560px at 104% 10%, var(--usm-bg-tint-b), transparent 60%),
+    linear-gradient(180deg, transparent 55%, var(--usm-bg-shade)),
+    radial-gradient(var(--usm-bg-dot) .7px, transparent .7px);
+  background-size: auto, auto, auto, 22px 22px;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+  background-attachment: fixed, fixed, fixed, fixed;
+}
+/* Phones repaint a fixed attachment on every scroll frame; let the wash travel instead of jitter. */
+@media (max-width: 760px) {
+  html, body { background-attachment: scroll; }
+}
+@media print {
+  html, body { background-image: none !important; }
+}
+
+
+/* ===== usmsmart-page-backdrop-v2-vibe ===== */
+/* Stage VD: the same wash, turned up. Six hue layers travel slowly
+   behind the cards. The values are the strongest ones that keep every card the raised surface:
+     - light: cards are #fff, so a tint may only ever darken the page. Each corner keeps its own hue and the
+       blobs stay small enough that overlapping only happens mid-page, where mixing to a neutral is fine.
+     - dark: the card is L .0065 and the canvas .0041, so the whole page has a .0025 lightness budget. Green
+       is the expensive channel (it carries 71% of luminance), so the dark hues are violet, plum and indigo
+       with almost no green in them, and the ground layer deepens the canvas first to pay for them. Teal,
+       cyan and amber are not usable in dark mode at any alpha that would read as colour.
+   The five lists below (image, size, position, repeat, attachment) must stay the same length - a gradient
+   stack with a short background-size list silently cycles its values onto the wrong layers. */
+:root {
+  --usm-bg-ground: transparent;
+  --usm-bg-hue-1: rgba(124, 58, 237, .26);
+  --usm-bg-hue-2: rgba(6, 182, 211, .24);
+  --usm-bg-hue-3: rgba(236, 72, 153, .22);
+  --usm-bg-hue-4: rgba(249, 115, 22, .18);
+  --usm-bg-band-a: rgba(167, 139, 250, .08);
+  --usm-bg-band-b: rgba(103, 232, 249, .07);
+  --usm-bg-band-c: rgba(253, 164, 175, .07);
+  --usm-bg-shade: rgba(15, 23, 42, .04);
+  --usm-bg-dot: rgba(100, 116, 139, .14);
+  --usm-bg-drift: 72s;
+}
+html.dark {
+  --usm-bg-ground: rgba(3, 2, 14, .68);
+  --usm-bg-hue-1: rgba(26, 10, 74, .28);
+  --usm-bg-hue-2: rgba(42, 7, 62, .32);
+  --usm-bg-hue-3: rgba(14, 12, 96, .32);
+  --usm-bg-hue-4: rgba(10, 14, 74, .30);
+  --usm-bg-band-a: rgba(16, 6, 40, .22);
+  --usm-bg-band-b: rgba(12, 6, 52, .18);
+  --usm-bg-band-c: rgba(26, 5, 36, .18);
+  --usm-bg-shade: rgba(0, 0, 0, .28);
+  --usm-bg-dot: rgba(148, 163, 184, .09);
+}
+body {
+  background-image:
+    linear-gradient(var(--usm-bg-ground), var(--usm-bg-ground)),
+    radial-gradient(900px 620px at 6% -8%, var(--usm-bg-hue-1), transparent 66%),
+    radial-gradient(860px 600px at 102% 2%, var(--usm-bg-hue-2), transparent 62%),
+    radial-gradient(880px 620px at 10% 104%, var(--usm-bg-hue-3), transparent 62%),
+    radial-gradient(820px 580px at 98% 102%, var(--usm-bg-hue-4), transparent 60%),
+    linear-gradient(115deg, transparent 0%, var(--usm-bg-band-a) 50%, transparent 100%),
+    linear-gradient(115deg, transparent 0%, var(--usm-bg-band-b) 50%, transparent 100%),
+    linear-gradient(115deg, transparent 0%, var(--usm-bg-band-c) 50%, transparent 100%),
+    linear-gradient(180deg, transparent 58%, var(--usm-bg-shade)),
+    radial-gradient(var(--usm-bg-dot) .7px, transparent .7px);
+  background-size: 100% 100%, 168% 168%, 168% 168%, 168% 168%, 168% 168%, 260% 260%, 260% 260%, 260% 260%, auto, 22px 22px;
+  background-position: 0 0, 0% 0%, 100% 0%, 0% 100%, 100% 100%, 0% 0%, 18% 10%, 40% 24%, 0 0, 0 0;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+  background-attachment: fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed;
+  animation: usm-bg-vibe var(--usm-bg-drift) ease-in-out infinite alternate;
+}
+/* Oversized layers are what make the drift possible: a gradient sized to the box has nowhere to move, so
+   background-position would be a no-op. The corners hold their position at 0% and 100% of that slack. */
+@keyframes usm-bg-vibe {
+  0% { background-position: 0 0, 0% 0%, 100% 0%, 0% 100%, 100% 100%, 0% 0%, 18% 10%, 40% 24%, 0 0, 0 0; }
+  50% { background-position: 0 0, 7% 5%, 93% 8%, 5% 95%, 95% 93%, 26% 22%, 34% 30%, 55% 40%, 0 0, 0 0; }
+  100% { background-position: 0 0, 12% 9%, 88% 13%, 10% 90%, 90% 88%, 52% 46%, 62% 52%, 84% 66%, 0 0, 0 0; }
+}
+@media (max-width: 760px) {
+  body { background-attachment: scroll; }
+}
+/* A travelling gradient is a full-viewport repaint every frame. Nobody asked for that while printing, and
+   anyone who sets reduce-motion means it. */
+@media (prefers-reduced-motion: reduce) {
+  body { animation: none; }
+}
+@media print {
+  body { background-image: none !important; animation: none !important; }
+}
+
+
+/* ===== usmsmart-page-backdrop-v2-vibe-loud ===== */
+/* Stage VE: the light corners at their maximum.
+   Four tokens, light only. The hue alphas are what sandbox/bd-region-model.mjs reports as the largest set that
+   still obeys the two rules a light backdrop has to keep: no layer may brighten the #f8fafc canvas, and a card
+   must separate from the *deepest* washed point by at least 1.25:1. Measured over 20,148 grid points across all
+   six drift phases: brightest rgb(248,250,252) at 1.046:1 (the plain page - the wash only ever darkens it),
+   darkest rgb(203,181,247) at 1.831:1, 0 sunken points, saturation p50 0.454 against the 0.45 hue bar.
+   The p50 is the tight one. The three drifting pastel bands dilute the hue, and with the corners at max but no
+   bands at all the page measures 0.400 and fails the bar - so the bands stay exactly as Stage VD shipped them,
+   and only the corners move. Dark mode is not reachable from here: html.dark (0,1,1) outranks :root (0,1,0), so
+   the Stage VD dark tokens keep their values no matter what this block says. */
+:root {
+  --usm-bg-hue-1: rgba(124, 58, 237, .40);
+  --usm-bg-hue-2: rgba(6, 182, 211, .36);
+  --usm-bg-hue-3: rgba(236, 72, 153, .34);
+  --usm-bg-hue-4: rgba(249, 115, 22, .30);
+}
+
+
+/* ===== usmsmart-stats-gate-v1 ===== */
+/* Stage VF: a quiet bar above each statistics panel, and the panel stays
+   shut until you click it. Four panels cost something to open - the log figures are a server round trip, the
+   other three paint six Chart.js canvases - so they no longer do that work on every visit. The class family is
+   new, so these selectors need no view prefix: nothing else in the document can reach them. Colour lives in two
+   token sets; the rules below only read the tokens, which is why dark mode needs no second copy of them. */
+:root {
+  --usm-gate-fg: #5b21b6;
+  --usm-gate-bg: #f3f0ff;
+  --usm-gate-line: #ddd6fe;
+  --usm-gate-hint: #64748b;
+  --usm-gate-open-bg: #6d28d9;
+  --usm-gate-open-fg: #ffffff;
+}
+html.dark {
+  --usm-gate-fg: #c4b5fd;
+  --usm-gate-bg: #24183d;
+  --usm-gate-line: #3b2f5c;
+  --usm-gate-hint: #a1a1aa;
+  --usm-gate-open-bg: #c4b5fd;
+  --usm-gate-open-fg: #1a1130;
+}
+.usm-stats-gate { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 14px; }
+.usm-stats-gate-btn { display: inline-flex; align-items: center; gap: .5rem; min-height: 34px; padding: 0 .85rem; border: 1px solid var(--usm-gate-line); border-radius: 10px; background: var(--usm-gate-bg); color: var(--usm-gate-fg); font-size: .75rem; font-weight: 650; line-height: 1; cursor: pointer; transition: background .18s, color .18s, border-color .18s; }
+.usm-stats-gate-btn:hover { border-color: var(--usm-gate-fg); }
+.usm-stats-gate-btn:focus-visible { outline: 2px solid var(--usm-gate-fg); outline-offset: 2px; }
+.usm-stats-gate-btn[aria-expanded="true"] { background: var(--usm-gate-open-bg); border-color: var(--usm-gate-open-bg); color: var(--usm-gate-open-fg); }
+/* Open, but the panel has nothing to show yet - a scan that has not run, a session list that is empty. The
+   button says so instead of pretending to control something that failed to appear. */
+.usm-stats-gate-btn.is-empty { background: transparent; border-style: dashed; color: var(--usm-gate-hint); }
+.usm-stats-gate-chev { transition: transform .18s ease; }
+.usm-stats-gate-btn[aria-expanded="true"] .usm-stats-gate-chev { transform: rotate(180deg); }
+.usm-stats-gate-hint { color: var(--usm-gate-hint); font-size: .6875rem; }
+@media (prefers-reduced-motion: reduce) {
+  .usm-stats-gate-btn, .usm-stats-gate-chev { transition: none; }
+}
+@media print {
+  .usm-stats-gate { display: none; }
+}
+
+
+/* ===== usmsmart-dashboard-button-contrast-v2 ===== */
+/* Applied in the authenticated dashboard document (not the login page). */
+body.font-sans header.sticky { min-height: 64px; }
+body.font-sans header.sticky > div.max-w-\[1100px\] { min-height:64px;height:auto;gap:12px;padding-top:8px;padding-bottom:8px; }
+/* :not(.usm-db-status): the pill is a token control, so it must not inherit this !important radius, min-height or centring. */
+body.font-sans header.sticky > div > div:last-child button:not(.usm-db-status) { min-height:35px;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:9px!important;border-width:1px!important;border-style:solid!important;box-shadow:0 1px 2px #0f172a0d;transition:transform .16s,box-shadow .16s,filter .16s; }
+body.font-sans header.sticky > div > div:last-child button:not(.usm-db-status):hover { transform:translateY(-1px);box-shadow:0 4px 10px #0f172a18;filter:saturate(1.12); }
+body.font-sans header.sticky > div > div:last-child button:not(.usm-db-status):focus-visible { outline:3px solid #a5b4fc!important;outline-offset:2px; }
+body.font-sans header button[title="Panduan Pengguna"] {background:#e0f2fe!important;color:#075985!important;border-color:#7dd3fc!important;}
+body.font-sans header button[title="Profil Saya"]:not(.usm-header-profile) {background:#dbeafe!important;color:#1d4ed8!important;border-color:#93c5fd!important;}
+body.font-sans header button[title="Sejarah Rekod & Log Audit"] {background:#f3e8ff!important;color:#7e22ce!important;border-color:#d8b4fe!important;}
+body.font-sans header button[onclick="navigateToUserManagement()"] {background:#4f46e5!important;color:#fff!important;border-color:#4338ca!important;box-shadow:0 3px 8px #4f46e538!important;}
+body.font-sans header button[title="Imbas"] {background:#d1fae5!important;color:#047857!important;border-color:#6ee7b7!important;}
+body.font-sans header button[title="Cetak"] {background:#ffedd5!important;color:#c2410c!important;border-color:#fdba74!important;}
+body.font-sans header button[title="Toggle dark mode"] {background:#fef3c7!important;color:#92400e!important;border-color:#fcd34d!important;}
+body.font-sans header button[onclick="logoutUSMSmart()"] {background:#ffe4e6!important;color:#be123c!important;border-color:#fda4af!important;}
+body.font-sans header button[title="Panduan Pengguna"] span,body.font-sans header button[onclick="navigateToUserManagement()"] {font-weight:750!important;}
+body.font-sans header.sticky button {cursor:pointer;}
+body.dark header button[title="Panduan Pengguna"] {background:#082f49!important;color:#bae6fd!important;border-color:#0369a1!important;}
+body.dark header button[title="Profil Saya"] {background:#172554!important;color:#bfdbfe!important;border-color:#1d4ed8!important;}
+body.dark header button[title="Sejarah Rekod & Log Audit"] {background:#3b0764!important;color:#e9d5ff!important;border-color:#7e22ce!important;}
+body.dark header button[title="Imbas"] {background:#022c22!important;color:#a7f3d0!important;border-color:#047857!important;}
+body.dark header button[title="Cetak"] {background:#431407!important;color:#fed7aa!important;border-color:#c2410c!important;}
+body.dark header button[title="Toggle dark mode"] {background:#422006!important;color:#fde68a!important;border-color:#a16207!important;}
+body.dark header button[onclick="logoutUSMSmart()"] {background:#4c0519!important;color:#fecdd3!important;border-color:#be123c!important;}
+@media(max-width:900px){body.font-sans header.sticky > div.max-w-\[1100px\]{flex-wrap:wrap;justify-content:center;padding:10px 14px;}body.font-sans header.sticky > div > div:last-child{flex-wrap:wrap;justify-content:center;}}
+@media(max-width:560px){body.font-sans #nav-tabs{width:100%;justify-content:center;}body.font-sans #nav-tabs button{flex:1;min-width:0;}body.font-sans header.sticky > div > div:last-child button:not(.usm-db-status){min-height:38px;}}
+@media(prefers-reduced-motion:reduce){body.font-sans header.sticky button{transition:none!important;}body.font-sans header.sticky button:hover{transform:none!important;}}
+
+
+/* ===== usmsmart-clean-professional-redesign-v1 ===== */
+/* USMSmart clean professional UI refresh — presentation only; no app logic changed. */
+:root{
+  --usm-accent:#6d28d9;--usm-accent-hover:#5b21b6;--usm-accent-soft:#f5f3ff;
+  --usm-ink:#172033;--usm-muted:#64748b;--usm-line:#e5e7eb;--usm-canvas:#f8fafc;
+  --usm-card:#ffffff;--usm-radius:14px;--usm-shadow:0 4px 16px rgba(15,23,42,.045);
+}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{color:var(--usm-ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,input,select,textarea{font:inherit}
+button{transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid rgba(109,40,217,.35)!important;outline-offset:2px}
+input,select,textarea{border-radius:10px;max-width:100%}
+input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{border-color:#d7deea;box-shadow:none;transition:border-color .16s ease,box-shadow .16s ease}
+input:not([type=checkbox]):not([type=radio]):not([type=range]):focus,select:focus,textarea:focus{border-color:var(--usm-accent)!important;box-shadow:0 0 0 3px rgba(109,40,217,.11)!important;outline:0}
+label{color:#344054}
+/* Keep native hidden states and app-controlled visibility intact. */
+[hidden],.hidden{display:none!important}
+/* Sign-in page */
+.shell{gap:clamp(28px,5vw,64px)}
+.brand-mark{background:linear-gradient(145deg,#7c3aed,#5b21b6)!important;box-shadow:0 5px 12px rgba(109,40,217,.18)}
+.eyebrow{background:#f5f3ff!important;color:#6d28d9!important;border-color:#e9d5ff!important}
+/* Authenticated shell and top navigation */
+header.sticky,header.bg-white\/95{box-shadow:0 1px 0 rgba(15,23,42,.035)}
+main.flex-grow{padding-top:1.5rem;padding-bottom:2.5rem}
+.max-w-\[1100px\]{max-width:1200px}
+/* Cards / panels: consistent, subtle surfaces rather than heavy decoration. */
+.rounded-2xl,.rounded-xl{border-radius:var(--usm-radius)!important}
+.shadow-clean,.shadow-lg,.shadow-md{box-shadow:var(--usm-shadow)!important}
+.border-slate-200\/80,.border-slate-200,.border-zinc-800\/80{border-color:var(--usm-line)}
+/* Shared button hierarchy. Keep IDs and event handlers untouched. */
+button:not(:disabled){cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.58}
+button.bg-indigo-600,button.bg-violet-600,button.bg-purple-600,
+.bg-indigo-600.text-white,.bg-violet-600.text-white,.bg-purple-600.text-white,
+button[type=submit]:not(.unstyled){box-shadow:0 2px 5px rgba(91,33,182,.12)}
+button.bg-indigo-600:hover,button.bg-violet-600:hover,button.bg-purple-600:hover{filter:brightness(.96)}
+/* Tables and data-heavy pages */
+table{border-color:var(--usm-line)}
+thead th{font-weight:700;letter-spacing:.01em}
+tbody tr{transition:background-color .12s ease}
+tbody tr:hover{background-color:rgba(109,40,217,.035)}
+th,td{overflow-wrap:anywhere}
+/* Analytics: quieter KPI cards and tidy filter controls. */
+#view-analytics .analytics-kpi{border-radius:14px!important;box-shadow:var(--usm-shadow)!important}
+#view-analytics .analytics-filter-panel{border-radius:14px!important}
+/* Dialogs, drawers, messaging, notifications and helper panels. */
+#usm-messages-page,#usm-notifications-panel,#usm-requests-panel{border-radius:16px}
+#usm-notifications-panel,#usm-requests-panel{box-shadow:0 18px 50px rgba(15,23,42,.16)}
+/* Avoid layout overflow on tablet and phone widths. */
+img,canvas,svg{max-width:100%}
+@media(max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr);width:min(100% - 28px,620px);gap:24px;padding:28px 0}
+  .intro{max-width:none}
+  main.flex-grow{padding-left:14px;padding-right:14px}
+  #nav-tabs{flex-wrap:wrap;max-width:100%;overflow:visible}
+}
+@media(max-width:640px){
+  .shell{width:calc(100% - 24px);padding:20px 0}
+  .brand{margin-bottom:22px}
+  main.flex-grow{padding:16px 12px 28px}
+  table{font-size:12px}
+  input,select,textarea{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
+
+
+/* =========================================================
+   USMSmart UX pass — clarity, accessibility and responsive fit
+   Visual-only overrides; existing routes and JS handlers stay intact.
+   ========================================================= */
+:root {
+  --usm-focus-ring: rgba(109, 40, 217, .28);
+  --usm-ui-border: #e3e7f0;
+}
+html { scroll-padding-top: 96px; }
+body { line-height: 1.5; }
+/* One theme control is already available in the application header. */
+#themeToggle { display: none !important; }
+button:focus-visible, a:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--usm-focus-ring) !important;
+  outline-offset: 2px !important;
+}
+/* Keep content panels calm and consistent instead of animating whole cards. */
+section.bg-white:hover, section[class*="bg-white"]:hover,
+div.bg-white:hover, div[class*="bg-white"]:hover {
+  transform: none;
+}
+/* More comfortable text entry and clear labels. */
+label { font-size: 12px; font-weight: 600; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select, textarea { min-height: 42px; font-size: 13px; }
+input[type="checkbox"], input[type="radio"] { accent-color: #6d28d9; }
+/* Buttons should be easy to target and their disabled state should be obvious. */
+button:not(.unstyled) { min-height: 34px; }
+button:disabled { filter: grayscale(.15); box-shadow: none !important; }
+/* Data-heavy pages: predictable horizontal scrolling on small screens. */
+.overflow-x-auto { max-width: 100%; overscroll-behavior-x: contain; }
+.overflow-x-auto table { min-width: 640px; }
+table th { white-space: nowrap; }
+table td { line-height: 1.45; }
+/* Avoid tiny utility copy being hard to read. */
+.text-\[9px\] { font-size: 10px !important; }
+.text-\[10px\] { font-size: 11px !important; }
+/* Distinguish the main UDA action from secondary filters without changing logic. */
+#section-step-2 button, #view-transporter button { line-height: 1.35; }
+#uda-live-search, #uda-live-status, #uda-live-school,
+#start-date, #end-date, #uda-cardholder-type { min-height: 42px; }
+/* Modals and floating panels should fit the viewport and scroll internally. */
+#student-card-modal, #session-detail-modal,
+#usm-notifications-panel, #usm-requests-panel {
+  max-height: 92dvh;
+  overscroll-behavior: contain;
+}
+@media (max-width: 900px) {
+  body > header > div { align-items: flex-start; }
+  #nav-tabs { order: 3; width: 100%; }
+  #nav-tabs button, #nav-tabs a { flex: 0 0 auto; }
+  body > header > div > div:last-child { max-width: 100%; flex-wrap: wrap; }
+}
+@media (max-width: 640px) {
+  body > header > div { padding-left: 12px !important; padding-right: 12px !important; }
+  main.flex-grow { padding-left: 12px !important; padding-right: 12px !important; }
+  .overflow-x-auto table { min-width: 620px; }
+  /* Avoid the header's utility controls squeezing the brand/navigation. */
+  body > header > div > div:last-child { gap: 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
+
+
+/* ===== base ===== */
+#usm-requests-panel{display:none;position:fixed;inset:5vh 4vw;z-index:1300;background:var(--panel,#fff);color:var(--text,#111827);border:1px solid var(--border,#e5e7eb);border-radius:18px;box-shadow:0 25px 80px rgba(15,23,42,.3);overflow:hidden;flex-direction:column}
+#usm-requests-panel.open{display:flex}.usm-requests-header{padding:16px 20px;background:#4f46e5;color:white;display:flex;align-items:center;gap:12px}.usm-requests-header button{margin-left:auto;background:#ffffff22;color:white;border:0;border-radius:9px;padding:7px 12px;cursor:pointer}.usm-requests-body{padding:16px;overflow:auto}.usm-request-row{border:1px solid var(--border,#e5e7eb);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;justify-content:space-between}.usm-request-meta{font-size:11px;opacity:.7;margin-top:5px}.usm-request-actions{display:flex;gap:6px;flex-wrap:wrap}.usm-request-actions button{border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer}.usm-approve{background:#dcfce7;color:#166534;border:1px solid #86efac}.usm-reject{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}.usm-resubmit{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd}
+.usm-rejection-reason{margin-top:10px;padding:11px 12px;border:1px solid #f3b4b4;border-left:4px solid #dc2626;border-radius:9px;background:#fff7f7;color:#7f1d1d;font-size:12px;line-height:1.5}.usm-rejection-reason strong{display:block;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:.04em}@media(prefers-color-scheme:dark){.usm-rejection-reason{background:rgba(127,29,29,.18);border-color:#7f1d1d;border-left-color:#f87171;color:#fecaca}}
+.usm-request-status{display:inline-flex;margin-top:8px;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.04em;background:#e5e7eb;color:#374151}.usm-status-pending{background:#fef3c7;color:#92400e}.usm-status-approved{background:#dcfce7;color:#166534}.usm-status-rejected{background:#fee2e2;color:#991b1b}
+.usm-proposal-details{margin-top:12px;border:1px solid var(--border,#e5e7eb);border-radius:11px;overflow:hidden}.usm-proposal-details summary{cursor:pointer;list-style:none;padding:10px 12px;font-weight:750;font-size:12px;background:var(--surface,#f9fafb)}.usm-proposal-details summary::-webkit-details-marker{display:none}.usm-proposal-details summary:after{content:'＋';float:right}.usm-proposal-details[open] summary:after{content:'−'}.usm-proposal-content{padding:12px}.usm-proposal-action{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 12px;border-radius:9px;background:rgba(99,102,241,.08);font-size:12px;margin-bottom:12px}.usm-proposal-action span{text-align:right;font-weight:750}.usm-proposal-subtitle{font-size:12px;font-weight:800;margin:12px 0 8px}.usm-proposal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.usm-proposal-field{min-width:0;border:1px solid var(--border,#e5e7eb);border-radius:9px;padding:9px 10px}.usm-proposal-field>span{display:block;font-size:10px;opacity:.7;margin-bottom:5px}.usm-proposal-field strong{font-size:12px;overflow-wrap:anywhere;font-weight:650}.usm-proposal-json{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;margin:4px 0}.usm-proposal-table-wrap{overflow:auto;max-width:100%}.usm-proposal-table{width:100%;border-collapse:collapse;font-size:11px}.usm-proposal-table th,.usm-proposal-table td{text-align:left;vertical-align:top;padding:8px;border-bottom:1px solid var(--border,#e5e7eb);overflow-wrap:anywhere}.usm-proposal-table th{font-weight:800;background:var(--surface,#f9fafb)}.usm-proposal-note{font-size:11px;line-height:1.5;opacity:.72;margin:12px 0 0}
+@media(max-width:600px){.usm-proposal-grid{grid-template-columns:1fr}.usm-proposal-action{align-items:flex-start;flex-direction:column}.usm-proposal-action span{text-align:left}.usm-proposal-table{min-width:560px}}
+
+#usm-notifications-panel{display:none;position:fixed;top:64px;right:22px;z-index:1350;width:min(370px,calc(100vw - 28px));max-height:min(520px,calc(100vh - 90px));overflow:hidden;border:1px solid var(--border,#e5e7eb);border-radius:15px;background:var(--panel,#fff);color:var(--text,#111827);box-shadow:0 20px 60px rgba(15,23,42,.22)}#usm-notifications-panel.open{display:block}#usm-notifications-panel>header{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;background:#4f46e5;color:#fff}#usm-notifications-panel>header button{border:0;border-radius:7px;padding:4px 9px;background:#ffffff22;color:#fff;cursor:pointer;font-size:18px}#usm-notifications-body{padding:10px;overflow:auto;max-height:440px}.usm-notification-item{padding:11px 12px;border-bottom:1px solid var(--border,#e5e7eb);font-size:12px;line-height:1.5}.usm-notification-item:last-child{border-bottom:0}.usm-notification-item.unread{background:rgba(99,102,241,.08);border-radius:9px}.usm-notification-time{font-size:10px;opacity:.65;margin-top:5px}.usm-notification-empty{padding:24px 10px;text-align:center;font-size:12px;opacity:.7}
+@media(max-width:600px){#usm-requests-panel{inset:2vh 2vw;border-radius:14px}.usm-request-row{display:block}.usm-request-actions{margin-top:10px}}
+/* Accessibility and readability refresh for approval requests */
+#usm-requests-panel{
+  inset:5vh max(16px,calc((100vw - 1180px)/2));
+  border-radius:18px;
+  box-shadow:0 24px 70px rgba(15,23,42,.28);
+  background:#f8fafc;color:#111827;
+}
+.usm-requests-header{padding:18px 24px;background:#4338ca;min-height:76px}
+.usm-requests-header strong{font-size:19px;letter-spacing:-.02em}
+.usm-requests-header>div>div{font-size:13px!important;line-height:1.45;opacity:1!important;color:#eef2ff}
+.usm-requests-header button{font-size:14px;font-weight:700;padding:9px 15px;background:#ffffff24;border:1px solid #ffffff66}
+.usm-requests-body{padding:20px 22px;background:#f8fafc}
+.usm-request-row{background:#fff;border:1px solid #dbe2ea;border-radius:14px;padding:18px;margin-bottom:14px;gap:18px;box-shadow:0 2px 5px rgba(15,23,42,.035)}
+.usm-request-row>div:first-child{flex:1;min-width:0;font-size:15px;line-height:1.5;color:#111827}
+.usm-request-meta{font-size:12px;line-height:1.5;opacity:1;color:#5b6472;margin-top:6px}
+.usm-request-status{font-size:11px;padding:5px 10px;letter-spacing:.025em}
+.usm-status-pending{background:#fef3c7;color:#78350f;border:1px solid #fcd34d}
+.usm-status-approved{background:#dcfce7;color:#14532d;border:1px solid #86efac}
+.usm-status-rejected{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.usm-proposal-details{margin-top:14px;border-color:#d6dee8;background:#fff}
+.usm-proposal-details summary{font-size:13px;padding:12px 14px;background:#f1f5f9;color:#172033;line-height:1.45}
+.usm-proposal-details summary:hover{background:#e8edf5}
+.usm-proposal-content{padding:15px;color:#1f2937}
+.usm-proposal-action{font-size:13px;padding:12px 14px;color:#312e81;background:#eef2ff;border:1px solid #c7d2fe}
+.usm-proposal-subtitle{font-size:13px;color:#111827}
+.usm-proposal-field{background:#fff;border-color:#dbe2ea;padding:12px}
+.usm-proposal-field>span{font-size:11px;opacity:1;color:#596579}
+.usm-proposal-field strong{font-size:13px;color:#111827;line-height:1.5}
+.usm-proposal-table{font-size:12px}
+.usm-proposal-table th{background:#eef2f7;color:#111827}
+.usm-proposal-table td{color:#273449}
+.usm-proposal-note{font-size:12px;opacity:1;color:#596579}
+.usm-rejection-reason{margin-top:12px;padding:14px 16px;background:#fff1f2!important;border:1px solid #fda4af!important;border-left:5px solid #dc2626!important;border-radius:10px;color:#881337!important;font-size:14px;line-height:1.6}
+.usm-rejection-reason strong{font-size:12px;letter-spacing:.045em;color:#9f1239!important;margin-bottom:6px}
+.usm-rejection-reason>div{font-size:14px;color:#881337!important;overflow-wrap:anywhere}
+.usm-request-actions{gap:8px;align-self:flex-start}
+.usm-request-actions button{font-size:13px;padding:9px 13px;min-height:38px}
+.usm-approve{background:#dcfce7;color:#14532d;border-color:#86efac}
+.usm-reject{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+.usm-resubmit{background:#ede9fe;color:#4c1d95;border-color:#c4b5fd}
+.usm-request-actions button:focus-visible,.usm-proposal-details summary:focus-visible,#usm-requests-close:focus-visible{outline:3px solid #818cf8;outline-offset:3px}
+@media(prefers-color-scheme:dark){.usm-rejection-reason{background:#fff1f2!important;color:#881337!important;border-color:#fda4af!important}.usm-rejection-reason strong,.usm-rejection-reason>div{color:#881337!important}}
+@media(max-width:700px){#usm-requests-panel{inset:2vh 10px;border-radius:14px}.usm-requests-header{padding:14px 16px}.usm-requests-header strong{font-size:17px}.usm-requests-body{padding:12px}.usm-request-row{display:block;padding:14px}.usm-request-actions{margin-top:12px}.usm-proposal-grid{grid-template-columns:1fr}.usm-proposal-action{align-items:flex-start;flex-direction:column}.usm-proposal-action span{text-align:left}.usm-proposal-table{min-width:560px}}
+
+
+/* Pending Approvals 2.0: quick filters, readable summaries, and responsive controls */
+.usm-approval-tools{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:minmax(180px,1.5fr) minmax(140px,.8fr) minmax(140px,.8fr);gap:10px;padding:14px;margin:-2px 0 16px;background:#f8fafc;border:1px solid #dbe2ea;border-radius:13px}
+.usm-approval-tools input,.usm-approval-tools select{width:100%;min-width:0;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:9px;padding:11px 12px;background:#fff;color:#111827;font:inherit;font-size:13px;min-height:42px}
+.usm-approval-tools input:focus,.usm-approval-tools select:focus{outline:3px solid #c7d2fe;outline-offset:1px;border-color:#6366f1}
+.usm-approval-summary{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.usm-approval-count{display:inline-flex;align-items:center;gap:6px;border:1px solid #dbe2ea;background:#fff;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:750;color:#334155}
+.usm-approval-count b{font-size:13px;color:#111827}
+.usm-approval-empty{padding:28px 16px;text-align:center;border:1px dashed #cbd5e1;background:#fff;border-radius:12px;color:#475569;line-height:1.6}
+.usm-request-row{align-items:flex-start}
+.usm-request-row:focus-within{outline:2px solid #a5b4fc;outline-offset:1px}
+.usm-request-status{display:inline-flex;align-items:center;gap:4px;margin-top:9px;border-radius:999px;font-weight:800}
+.usm-request-actions{display:flex;flex-wrap:wrap}
+.usm-request-actions button{cursor:pointer;border-radius:9px;font-weight:800;transition:transform .12s ease,box-shadow .12s ease}
+.usm-request-actions button:hover{transform:translateY(-1px);box-shadow:0 4px 10px #0f172a12}
+.usm-request-actions button:disabled{opacity:.55;cursor:wait;transform:none}
+@media(max-width:700px){.usm-approval-tools{position:static;grid-template-columns:1fr;padding:10px;margin-bottom:12px}.usm-approval-count{font-size:11px}.usm-request-actions{display:grid;grid-template-columns:1fr 1fr}.usm-request-actions button{width:100%}}
+
+
+/* ===== base ===== */
+#usm-messages-page{display:none;position:fixed;inset:3vh 3vw;z-index:1400;background:var(--panel,#fff);color:var(--text,#111827);border:1px solid var(--border,#e5e7eb);border-radius:18px;box-shadow:0 25px 80px rgba(15,23,42,.32);overflow:hidden;flex-direction:column}#usm-messages-page.open{display:flex}
+.usm-msg-head{display:flex;align-items:center;gap:12px;padding:16px 20px;background:#5b35b5;color:#fff}.usm-msg-head button{margin-left:auto;border:0;border-radius:9px;padding:7px 12px;background:#ffffff22;color:#fff;cursor:pointer}.usm-msg-layout{display:grid;grid-template-columns:minmax(240px,34%) minmax(0,1fr);min-height:0;flex:1}.usm-msg-sidebar{border-right:1px solid var(--border,#e5e7eb);overflow:auto;padding:12px}.usm-msg-start{border:1px solid var(--border,#e5e7eb);border-radius:12px;padding:12px;margin-bottom:12px}.usm-msg-start input,.usm-msg-start select,.usm-msg-start textarea,.usm-msg-compose textarea{width:100%;box-sizing:border-box;margin:5px 0 8px;border:1px solid var(--border,#d1d5db);border-radius:9px;padding:9px;background:var(--panel,#fff);color:var(--text,#111827);font:inherit;font-size:12px}.usm-msg-start button,.usm-msg-compose button{border:0;border-radius:9px;background:#5b35b5;color:#fff;font-weight:700;padding:9px 12px;cursor:pointer}.usm-msg-list-item{display:block;width:100%;text-align:left;padding:12px;border:1px solid var(--border,#e5e7eb);border-radius:10px;background:transparent;color:inherit;margin-bottom:8px;cursor:pointer}.usm-msg-list-item.active{border-color:#8b5cf6;background:rgba(139,92,246,.10)}.usm-msg-list-item strong{display:block;font-size:12px}.usm-msg-list-item span{display:block;font-size:11px;opacity:.7;margin-top:4px;overflow-wrap:anywhere}.usm-msg-thread{display:flex;flex-direction:column;min-width:0;min-height:0}.usm-msg-thread-title{padding:14px 16px;border-bottom:1px solid var(--border,#e5e7eb);font-weight:800}.usm-msg-thread-title small{display:block;font-weight:400;opacity:.7;margin-top:4px}.usm-msg-feed{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--surface,#f9fafb)}.usm-msg-bubble{max-width:82%;padding:10px 12px;border-radius:13px;border:1px solid var(--border,#e5e7eb);background:var(--panel,#fff);white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.5}.usm-msg-bubble.mine{align-self:flex-end;background:#5b35b5;color:#fff;border-color:#5b35b5}.usm-msg-bubble small{display:block;font-size:10px;opacity:.7;margin-top:5px}.usm-msg-compose{display:flex;align-items:flex-end;gap:8px;padding:12px;border-top:1px solid var(--border,#e5e7eb)}.usm-msg-compose textarea{flex:1;resize:vertical;min-height:40px;max-height:120px;margin:0}.usm-msg-empty{padding:28px 16px;text-align:center;opacity:.7;font-size:12px}.usm-msg-link{font-size:10px;display:inline-block;margin-top:4px;border-radius:999px;padding:3px 7px;background:rgba(139,92,246,.13)}
+@media(max-width:700px){.usm-msg-layout{grid-template-columns:1fr;grid-template-rows:minmax(150px,38%) minmax(0,1fr)}.usm-msg-sidebar{border-right:0;border-bottom:1px solid var(--border,#e5e7eb)}.usm-msg-start{display:grid;grid-template-columns:1fr 1fr;gap:4px}.usm-msg-start h3,.usm-msg-start button{grid-column:1/-1}.usm-msg-start textarea{grid-column:1/-1}}
+
+
+/* ===== base ===== */
+/* Health diagnostics lives below the header, away from page content and floating AI. */
+#usm-health-panel{position:fixed;right:18px;top:112px;z-index:1190;width:min(340px,calc(100vw - 32px));max-height:min(480px,calc(100vh - 130px));overflow:auto;display:none;background:var(--panel,#fff);color:var(--text,#111827);border:1px solid var(--border,#e5e7eb);border-radius:16px;padding:16px;box-shadow:0 18px 50px rgba(15,23,42,.18);font-size:13px}
+#usm-health-panel.open{display:block}#usm-health-items{display:grid;gap:9px;margin-top:12px}.usm-health-item{border:1px solid var(--border,#e5e7eb);border-radius:10px;padding:9px 10px}.usm-health-top{display:flex;justify-content:space-between;gap:8px;font-weight:600}.usm-health-detail{margin-top:4px;color:var(--muted,#6b7280);font-size:12px}.usm-health-state{font-size:10px;text-transform:uppercase;letter-spacing:.04em}.usm-health-state.ok{color:#15803d}.usm-health-state.warning{color:#b45309}.usm-health-state.error{color:#b91c1c}
+
+
+/* ===== base ===== */
+#usmsmart-ai-launcher{position:fixed;right:24px;bottom:24px;z-index:1200;width:58px;height:58px;border:0;border-radius:18px;background:#6d28d9;color:#fff;box-shadow:0 12px 30px rgba(76,29,149,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;transition:transform .18s,background .18s}
+#usmsmart-ai-launcher:hover{transform:translateY(-2px);background:#5b21b6}
+#usmsmart-ai-panel{position:fixed;right:24px;bottom:94px;z-index:1200;width:min(390px,calc(100vw - 28px));height:min(570px,calc(100vh - 125px));background:var(--panel,#fff);color:var(--text,#111827);border:1px solid var(--border,#e5e7eb);border-radius:20px;box-shadow:0 24px 70px rgba(15,23,42,.22);display:none;overflow:hidden;font-family:inherit}
+#usmsmart-ai-panel.open{display:flex;flex-direction:column}
+.usm-ai-head{padding:16px 18px;background:#6d28d9;color:white;display:flex;align-items:center;gap:11px}
+.usm-ai-head .sub{font-size:12px;opacity:.85;margin-top:2px}.usm-ai-status{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.14);font-size:10px;letter-spacing:.02em}.usm-ai-status:before{content:'';width:6px;height:6px;border-radius:50%;background:#86efac;box-shadow:0 0 0 3px rgba(134,239,172,.14)}
+.usm-ai-close{margin-left:auto;border:0;background:rgba(255,255,255,.15);color:white;border-radius:9px;width:32px;height:32px;cursor:pointer;font-size:19px}
+#usmsmart-ai-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--surface,#f9fafb)}
+.usm-ai-msg{max-width:90%;padding:10px 12px;border-radius:14px;font-size:13px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.usm-ai-msg.bot{align-self:flex-start;background:var(--panel,#fff);border:1px solid var(--border,#e5e7eb)}
+.usm-ai-msg.user{align-self:flex-end;background:#6d28d9;color:white;border-bottom-right-radius:5px}.usm-ai-msg.bot{border-bottom-left-radius:5px}.usm-ai-msg:focus{outline:2px solid #8b5cf6;outline-offset:2px}.usm-ai-typing{display:inline-flex;align-items:center;gap:4px;min-width:58px}.usm-ai-typing span{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.45;animation:usm-ai-pulse 1.1s infinite ease-in-out}.usm-ai-typing span:nth-child(2){animation-delay:.15s}.usm-ai-typing span:nth-child(3){animation-delay:.3s}@keyframes usm-ai-pulse{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-3px);opacity:1}}@media(prefers-reduced-motion:reduce){.usm-ai-typing span{animation:none}}
+.usm-ai-suggestions{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 12px;background:var(--panel,#fff)}
+.usm-ai-suggestions button{font-size:11px;border:1px solid var(--border,#ddd6fe);background:transparent;color:var(--text,#4c1d95);border-radius:999px;padding:7px 9px;cursor:pointer}
+.usm-ai-compose{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border,#e5e7eb);background:var(--panel,#fff)}
+#usmsmart-ai-input{min-width:0;flex:1;resize:none;max-height:100px;border:1px solid var(--border,#d1d5db);border-radius:12px;padding:10px 11px;background:var(--panel,#fff);color:var(--text,#111827);font:inherit;font-size:13px;outline:none}
+#usmsmart-ai-input:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.12)}
+#usmsmart-ai-send{border:0;border-radius:12px;padding:0 14px;background:#6d28d9;color:#fff;cursor:pointer;font-weight:600}
+#usmsmart-ai-send:disabled{opacity:.55;cursor:wait}#usmsmart-ai-send:focus-visible,.usm-ai-close:focus-visible,#usmsmart-ai-launcher:focus-visible,.usm-ai-suggestions button:focus-visible{outline:3px solid #c4b5fd;outline-offset:3px}.usm-ai-suggestions button:hover{border-color:#8b5cf6;background:rgba(139,92,246,.07)}#usmsmart-ai-messages::-webkit-scrollbar{width:7px}#usmsmart-ai-messages::-webkit-scrollbar-thumb{background:rgba(107,114,128,.35);border-radius:999px}
+.usm-ai-footnote{font-size:10px;color:var(--muted,#6b7280);padding:0 14px 10px;background:var(--panel,#fff)}
+@media(max-width:480px){#usmsmart-ai-launcher{right:14px;bottom:14px}#usmsmart-ai-panel{right:8px;bottom:82px;width:calc(100vw - 16px);height:min(620px,calc(100vh - 100px))}}
+
+
+/* ===== usmsmart-directory-actions-final-fix ===== */
+/* Final directory toolbar layout: enforce equal-width grid against utility classes. */
+html body #view-directory-page #student-directory-actions {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin-top: 2px !important;
+}
+html body #view-directory-page #student-directory-actions > button {
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 10px 8px !important;
+  gap: 7px !important;
+  border-radius: 10px !important;
+  white-space: normal !important;
+  text-align: center !important;
+  line-height: 1.25 !important;
+  overflow-wrap: anywhere !important;
+}
+html body #view-directory-page #student-directory-actions > button span {
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+html body #view-directory-page #student-directory-actions > #csv-import-modal { grid-column: 1 / -1 !important; }
+@media (max-width: 900px) {
+  html body #view-directory-page #student-directory-actions { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 480px) {
+  html body #view-directory-page #student-directory-actions { grid-template-columns: minmax(0, 1fr) !important; }
+  html body #view-directory-page #student-directory-actions > button { justify-content: flex-start !important; text-align: left !important; }
+}
+
+
+/* ===== usmsmart-sysweb-clean-table-ui ===== */
+/* Sysweb: clearer category separation, consistent spacing and readable wide data table. */
+#sysweb-seg-all, #sysweb-seg-student, #sysweb-seg-staff, #sysweb-seg-crud {
+  min-height: 40px !important; padding: 10px 14px !important; border-radius: 10px !important;
+  line-height: 1.35 !important; white-space: nowrap !important; letter-spacing: .01em;
+}
+#sysweb-seg-student { border: 1px solid #bfdbfe !important; }
+#sysweb-seg-staff { border: 1px solid #ddd6fe !important; }
+#sysweb-seg-student:hover { background: #eff6ff !important; }
+#sysweb-seg-staff:hover { background: #f5f3ff !important; }
+#sysweb-seg-crud { margin-left: 6px !important; border: 1px solid #059669 !important; }
+#sysweb-seg-all-count, #sysweb-seg-student-count, #sysweb-seg-staff-count {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 24px; min-height: 20px;
+  padding: 1px 5px; border-radius: 999px; background: rgba(148,163,184,.14);
+}
+#sysweb-saved-thead th {
+  padding: 14px 16px !important; vertical-align: middle !important; line-height: 1.45 !important;
+  white-space: normal !important; min-width: 105px; letter-spacing: .045em; font-size: 10px !important;
+  border-bottom: 1px solid #e2e8f0;
+}
+#sysweb-saved-thead th:nth-child(1) { min-width: 44px; width: 48px; }
+#sysweb-saved-thead th:nth-child(2) { min-width: 210px; }
+#sysweb-saved-thead th:nth-child(3) { min-width: 160px; }
+#sysweb-saved-thead th:nth-child(5) { min-width: 190px; }
+#sysweb-saved-thead th:nth-child(9), #sysweb-saved-thead th:nth-child(10) { min-width: 175px; }
+#sysweb-saved-thead th:nth-child(11) { min-width: 185px; }
+#sysweb-saved-thead th:nth-child(12) { min-width: 175px; }
+#sysweb-saved-tbody td {
+  padding: 15px 16px !important; vertical-align: middle !important; line-height: 1.5 !important;
+  overflow-wrap: normal; word-break: normal;
+}
+#sysweb-saved-tbody tr { transition: background-color .15s ease; }
+#sysweb-saved-tbody tr:hover { background: #f8fafc; }
+#sysweb-saved-tbody td:nth-child(1) { color: #94a3b8; }
+#sysweb-saved-tbody td:nth-child(2) { min-width: 210px; max-width: 280px; white-space: normal; overflow-wrap: anywhere; font-family: Inter, system-ui, sans-serif; }
+#sysweb-saved-tbody td:nth-child(3), #sysweb-saved-tbody td:nth-child(7),
+#sysweb-saved-tbody td:nth-child(9), #sysweb-saved-tbody td:nth-child(10),
+#sysweb-saved-tbody td:nth-child(11) { white-space: nowrap; }
+#sysweb-saved-tbody td:nth-child(5) { min-width: 190px; max-width: 250px; white-space: normal; overflow-wrap: anywhere; }
+#sysweb-saved-tbody td:nth-child(4) span { padding: 6px 10px !important; border-radius: 999px !important; font-size: 10px !important; letter-spacing: .025em; }
+#sysweb-saved-tbody td:nth-child(10) span, #sysweb-saved-tbody td:nth-child(11) span { letter-spacing: .04em; }
+#sysweb-saved-tbody td button { min-width: 28px; min-height: 28px; }
+#sysweb-saved-tbody td p { line-height: 1.45 !important; }
+#sysweb-saved-tbody td p + p { margin-top: 5px !important; }
+#sysweb-saved-tbody tr:has(td:nth-child(4) span[class*="blue"]) { border-left: 3px solid #60a5fa; }
+#sysweb-saved-tbody tr:has(td:nth-child(4) span[class*="purple"]) { border-left: 3px solid #a78bfa; }
+#sysweb-saved-thead th, #sysweb-saved-tbody td { box-sizing: border-box; }
+#sysweb-saved-tbody td[colspan] { white-space: normal !important; }
+@media (prefers-color-scheme: dark) {
+  #sysweb-saved-tbody tr:hover { background: rgba(63,63,70,.35); }
+  #sysweb-saved-thead th { border-bottom-color: #3f3f46; }
+}
+@media (max-width: 760px) {
+  #sysweb-seg-all, #sysweb-seg-student, #sysweb-seg-staff, #sysweb-seg-crud { padding: 9px 11px !important; font-size: 10px !important; }
+  #sysweb-seg-crud { margin-left: 0 !important; }
+  #sysweb-saved-thead th { padding: 12px !important; }
+  #sysweb-saved-tbody td { padding: 12px !important; }
+}
+
+
+/* ===== usmsmart-sysweb-phase1-workspace ===== */
+#sysweb-quality-centre { box-shadow: 0 8px 24px rgba(15,23,42,.035); }
+#sysweb-workspace-context { box-shadow: 0 3px 12px rgba(15,23,42,.035); }
+#sysweb-saved-tbody tr { min-height: 68px; }
+#sysweb-saved-tbody td { padding-top: 17px !important; padding-bottom: 17px !important; }
+#sysweb-saved-tbody td button[onclick^="openSyswebDetail"] { max-width: 260px; overflow-wrap: anywhere; }
+#sysweb-seg-student[aria-pressed="true"] { box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+#sysweb-seg-staff[aria-pressed="true"] { box-shadow: 0 0 0 3px rgba(139,92,246,.12); }
+@media(max-width:760px){#sysweb-workspace-context{margin-left:12px;margin-right:12px}#sysweb-quality-centre{padding:13px}}
+
+
+/* ===== usmsmart-ui-tokens-v1 ===== */
+/* ================= USMSmart UI tokens =================
+   One place owns the appearance of a control. Markup says only which intent it carries
+   (primary / secondary / danger ...), never a colour, radius or size of its own, because the
+   pre-token file had 131 distinct button class strings and five conflicting --usm-accent
+   declarations, and whichever <style> loaded last decided how a screen looked. */
+:root{
+  --usm-accent:#6d28d9;--usm-accent-hover:#5b21b6;--usm-accent-soft:#f5f3ff;--usm-accent-ring:rgba(109,40,217,.20);
+  --usm-ink:#172033;--usm-muted:#64748b;--usm-line:#e5e7eb;--usm-line-strong:#cbd5e1;
+  --usm-surface:#ffffff;--usm-surface-soft:#f8fafc;
+  --usm-danger:#e11d48;--usm-danger-hover:#be123c;--usm-success:#059669;--usm-success-hover:#047857;
+  --usm-warning:#d97706;--usm-warning-hover:#b45309;--usm-info:#0284c7;--usm-info-hover:#0369a1;
+  --usm-r-sm:8px;--usm-r-md:10px;--usm-r-lg:14px;
+  --usm-shadow-sm:0 1px 2px rgba(15,23,42,.05);--usm-shadow:0 4px 16px rgba(15,23,42,.045);
+}
+html.dark{
+  --usm-accent:#8b5cf6;--usm-accent-hover:#a78bfa;--usm-accent-soft:#241f3d;--usm-accent-ring:rgba(139,92,246,.30);
+  --usm-ink:#e4e4e7;--usm-muted:#a1a1aa;--usm-line:#27272a;--usm-line-strong:#3f3f46;
+  --usm-surface:#18181b;--usm-surface-soft:#121214;
+  --usm-danger:#e11d48;--usm-danger-hover:#f43f5e;--usm-success:#059669;--usm-success-hover:#10b981;
+  --usm-warning:#d97706;--usm-warning-hover:#f59e0b;--usm-info:#0284c7;--usm-info-hover:#0ea5e9;
+  --usm-shadow-sm:0 1px 2px rgba(0,0,0,.35);--usm-shadow:0 4px 16px rgba(0,0,0,.30);
+}
+/* Buttons ---------------------------------------------------------------- */
+.usm-btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:.42em;
+  font-family:inherit;font-weight:600;line-height:1.1;white-space:nowrap;cursor:pointer;text-decoration:none;
+  border:1px solid transparent;border-radius:var(--usm-r-md);padding:9px 14px;font-size:12.5px;min-height:34px;
+  transition:background-color .14s ease,border-color .14s ease,color .14s ease,box-shadow .14s ease,transform .06s ease;
+  -webkit-tap-highlight-color:transparent}
+.usm-btn>i,.usm-btn>svg{font-size:.92em;line-height:1}
+.usm-btn:active{transform:translateY(1px)}
+.usm-btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring)}
+.usm-btn:disabled,.usm-btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;transform:none}
+.usm-btn .usm-btn-count{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;opacity:.85}
+.usm-btn-xs{padding:6px 10px;font-size:11px;min-height:28px;border-radius:var(--usm-r-sm)}
+.usm-btn-sm{padding:7px 12px;font-size:11.5px;min-height:31px;border-radius:var(--usm-r-sm)}
+.usm-btn-lg{padding:11px 18px;font-size:13.5px;min-height:40px}
+.usm-btn-block{width:100%}
+.usm-btn-primary{background:var(--usm-accent);color:#fff}
+.usm-btn-primary:hover{background:var(--usm-accent-hover)}
+.usm-btn-secondary{background:var(--usm-surface);color:var(--usm-ink);border-color:var(--usm-line-strong)}
+.usm-btn-secondary:hover{background:var(--usm-surface-soft);border-color:var(--usm-muted)}
+.usm-btn-quiet{background:var(--usm-surface-soft);color:var(--usm-ink);border-color:var(--usm-line)}
+.usm-btn-quiet:hover{background:var(--usm-line);border-color:var(--usm-line-strong)}
+.usm-btn-ghost{background:transparent;color:var(--usm-muted)}
+.usm-btn-ghost:hover{background:var(--usm-surface-soft);color:var(--usm-ink)}
+.usm-btn-danger{background:var(--usm-danger);color:#fff}
+.usm-btn-danger:hover{background:var(--usm-danger-hover)}
+.usm-btn-outline-danger{background:transparent;color:var(--usm-danger);border-color:currentColor}
+.usm-btn-outline-danger:hover{background:var(--usm-danger);color:#fff}
+.usm-btn-success{background:var(--usm-success);color:#fff}
+.usm-btn-success:hover{background:var(--usm-success-hover)}
+.usm-btn-warning{background:var(--usm-warning);color:#fff}
+.usm-btn-warning:hover{background:var(--usm-warning-hover)}
+.usm-btn-info{background:var(--usm-info);color:#fff}
+.usm-btn-info:hover{background:var(--usm-info-hover)}
+/* Icon-only ---------------------------------------------------------------- */
+.usm-icon-btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:34px;height:34px;padding:0;font-size:12.5px;cursor:pointer;
+  background:var(--usm-surface);color:var(--usm-muted);border:1px solid var(--usm-line-strong);border-radius:var(--usm-r-md);
+  transition:background-color .14s ease,border-color .14s ease,color .14s ease,transform .06s ease}
+.usm-icon-btn:hover{background:var(--usm-surface-soft);color:var(--usm-ink);border-color:var(--usm-muted)}
+.usm-icon-btn:active{transform:translateY(1px)}
+.usm-icon-btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring)}
+.usm-icon-btn:disabled{opacity:.45;cursor:not-allowed}
+.usm-icon-btn-sm{width:28px;height:28px;font-size:11px;border-radius:var(--usm-r-sm)}
+.usm-icon-btn-lg{width:40px;height:40px;font-size:14px}
+.usm-icon-btn.is-ghost{background:transparent;border-color:transparent}
+.usm-icon-btn.is-ghost:hover{background:var(--usm-surface-soft);border-color:transparent}
+/* Tabs, pills, fields ------------------------------------------------------ */
+.usm-tabbar{display:flex;align-items:center;gap:2px;padding:3px;min-width:0;
+  background:var(--usm-surface-soft);border:1px solid var(--usm-line);border-radius:var(--usm-r-md);
+  overflow-x:auto;scrollbar-width:none}
+.usm-tabbar::-webkit-scrollbar{display:none}
+.usm-tab{appearance:none;flex:none;display:inline-flex;align-items:center;gap:.42em;border:0;background:transparent;
+  padding:7px 13px;min-height:30px;border-radius:var(--usm-r-sm);font-family:inherit;font-size:11.5px;font-weight:600;
+  line-height:1.1;white-space:nowrap;cursor:pointer;color:var(--usm-muted);transition:background-color .14s ease,color .14s ease}
+.usm-tab:hover{color:var(--usm-ink);background:var(--usm-surface)}
+.usm-tab:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring)}
+.usm-tab.is-active{background:var(--usm-surface);color:var(--usm-accent);font-weight:700;box-shadow:var(--usm-shadow-sm)}
+html.dark .usm-tab.is-active{background:var(--usm-line);color:var(--usm-accent-hover)}
+.usm-pill{appearance:none;display:inline-flex;align-items:center;gap:.42em;cursor:pointer;font-family:inherit;
+  padding:6px 11px;min-height:29px;border-radius:var(--usm-r-sm);font-size:11px;font-weight:600;line-height:1.1;
+  background:var(--usm-surface);color:var(--usm-ink);border:1px solid var(--usm-line-strong);
+  transition:background-color .14s ease,border-color .14s ease,color .14s ease}
+.usm-pill:hover{background:var(--usm-surface-soft);border-color:var(--usm-muted)}
+.usm-pill:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring)}
+.usm-pill[aria-pressed="true"],.usm-pill.is-active{background:var(--usm-accent);border-color:transparent;color:#fff;font-weight:700}
+.usm-card{background:var(--usm-surface);border:1px solid var(--usm-line);border-radius:var(--usm-r-lg);box-shadow:var(--usm-shadow)}
+.usm-input{width:100%;font-family:inherit;font-size:12.5px;line-height:1.4;color:var(--usm-ink);
+  background:var(--usm-surface-soft);border:1px solid var(--usm-line-strong);border-radius:var(--usm-r-md);
+  padding:9px 12px;outline:none;transition:border-color .14s ease,box-shadow .14s ease,background-color .14s ease}
+.usm-input::placeholder{color:var(--usm-muted)}
+.usm-input:hover{border-color:var(--usm-muted)}
+.usm-input:focus{background:var(--usm-surface);border-color:var(--usm-accent);box-shadow:0 0 0 3px var(--usm-accent-ring)}
+.usm-input:disabled{opacity:.55;cursor:not-allowed}
+.usm-label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--usm-muted);margin-bottom:5px}
+/* Section headers ---------------------------------------------------------- */
+.usm-section-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;
+  padding:15px 18px;background:var(--usm-surface);border:1px solid var(--usm-line);border-radius:var(--usm-r-lg);box-shadow:var(--usm-shadow)}
+.usm-section-lead{display:flex;align-items:center;gap:12px;min-width:0}
+.usm-section-icon{flex:none;width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;
+  font-size:15px;background:var(--usm-accent-soft);color:var(--usm-accent)}
+.usm-section-eyebrow{margin:0;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--usm-muted)}
+.usm-section-title{margin:2px 0 0;font-size:15px;font-weight:700;line-height:1.25;color:var(--usm-ink)}
+.usm-section-sub{margin:3px 0 0;font-size:11.5px;line-height:1.45;color:var(--usm-muted)}
+.usm-section-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-left:auto}
+.tone-emerald .usm-section-icon{background:#ecfdf5;color:#047857}
+.tone-sky .usm-section-icon{background:#f0f9ff;color:#0369a1}
+.tone-amber .usm-section-icon{background:#fffbeb;color:#b45309}
+.tone-rose .usm-section-icon{background:#fff1f2;color:#be123c}
+.tone-slate .usm-section-icon{background:var(--usm-surface-soft);color:var(--usm-ink)}
+html.dark .tone-emerald .usm-section-icon{background:#052e26;color:#34d399}
+html.dark .tone-sky .usm-section-icon{background:#082f49;color:#38bdf8}
+html.dark .tone-amber .usm-section-icon{background:#2b1806;color:#fbbf24}
+html.dark .tone-rose .usm-section-icon{background:#2d0a12;color:#fb7185}
+.usm-empty{padding:26px 16px;text-align:center;font-size:12px;color:var(--usm-muted);
+  background:var(--usm-surface-soft);border:1px dashed var(--usm-line-strong);border-radius:var(--usm-r-lg)}
+@media(max-width:640px){
+  .usm-section-head{padding:13px 14px}
+  .usm-section-actions{margin-left:0;width:100%}
+  .usm-section-actions>.usm-btn{flex:1 1 auto}
+  .usm-btn{font-size:12px}
+}
+/* Nav rules carry the #nav-tabs id prefix because three legacy blocks styled "#nav-tabs button"
+   with element selectors that outrank a plain class. Those pins are retired in the same build, so
+   this is now the only place the tab bar and its tabs are described. */
+#nav-tabs.usm-tabbar{display:flex;align-items:center;gap:3px;padding:3px;border:1px solid var(--usm-line);
+  border-radius:var(--usm-r-md);background:var(--usm-surface-soft);max-width:100%}
+#nav-tabs .usm-tab{flex:0 0 auto;padding:8px 14px;min-height:34px;border-radius:var(--usm-r-sm);
+  font-size:12px;letter-spacing:0;color:var(--usm-muted);background:transparent;box-shadow:none}
+#nav-tabs .usm-tab i{font-size:11px;line-height:1}
+#nav-tabs .usm-tab:hover{color:var(--usm-ink);background:var(--usm-surface)}
+#nav-tabs .usm-tab.is-active{background:var(--usm-surface);color:var(--usm-accent);font-weight:700;box-shadow:var(--usm-shadow-sm)}
+html.dark #nav-tabs.usm-tabbar{background:var(--usm-surface);border-color:var(--usm-line)}
+html.dark #nav-tabs .usm-tab.is-active{background:var(--usm-line);color:var(--usm-accent-hover)}
+@media(max-width:640px){#nav-tabs.usm-tabbar{flex-wrap:wrap}
+  #nav-tabs .usm-tab{flex:1 1 32%;justify-content:center;min-height:40px}}
+/* Left navigation rail ----------------------------------------------------
+   The 56px top row used to hold the brand, three tabs and eight utility controls at the same time,
+   so all of them competed for one line of 1100px. Navigation owns a permanent rail now; the header
+   keeps only account-level controls. */
+body{padding-left:216px}
+#usm-rail{position:fixed;top:0;left:0;bottom:0;z-index:45;width:216px;display:flex;flex-direction:column;
+  gap:13px;padding:14px 12px;overflow-y:auto;overscroll-behavior:contain;
+  background:var(--usm-surface);border-right:1px solid var(--usm-line)}
+.usm-rail-brand{display:flex;align-items:center;gap:9px;padding:0 4px}
+.usm-rail-mark{flex:none;display:flex;align-items:center;justify-content:center;width:32px;height:32px;
+  border-radius:var(--usm-r-md);background:var(--usm-accent);color:#fff;font-size:10px;font-weight:700;
+  letter-spacing:.06em;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.usm-rail-name{font-size:13px;font-weight:700;line-height:1.15;color:var(--usm-ink)}
+.usm-rail-sub{font-size:9px;letter-spacing:.04em;color:var(--usm-muted);
+  font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.usm-rail-group{display:flex;flex-direction:column;gap:2px}
+.usm-rail-eyebrow{padding:0 9px 4px;font-size:9.5px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--usm-muted)}
+.usm-rail-link{appearance:none;display:flex;align-items:center;gap:9px;width:100%;min-height:34px;padding:8px 9px;
+  border:0;border-radius:var(--usm-r-sm);background:transparent;color:var(--usm-muted);
+  font-family:inherit;font-size:12px;font-weight:600;line-height:1.15;text-align:left;cursor:pointer;
+  text-decoration:none;transition:background-color .14s ease,color .14s ease}
+.usm-rail-link:hover{background:var(--usm-surface-soft);color:var(--usm-ink)}
+.usm-rail-link:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring)}
+.usm-rail-link>i{flex:none;width:16px;text-align:center;font-size:12.5px}
+/* A picture takes the 22px column the icon chip already owns, so the label of this row starts in
+   exactly the same column as every other rail row. */
+#usm-rail .usm-rail-link .usm-avatar{flex:none;width:22px;height:22px;border-width:1px;font-size:8px}
+.usm-rail-link.is-active{background:var(--usm-accent-soft);color:var(--usm-accent)}
+html.dark .usm-rail-link.is-active{color:var(--usm-accent-hover)}
+.usm-rail-spacer{flex:1 1 auto;min-height:4px}
+/* Inside the rail the tab strip is a vertical list. The ids stay untouched so setMainTabState()
+   remains the only writer of the active tab. */
+.usm-rail #nav-tabs.usm-tabbar{display:flex;flex-direction:column;align-items:stretch;flex-wrap:nowrap;
+  gap:2px;padding:0;border:0;background:transparent;overflow:visible;max-width:none}
+.usm-rail #nav-tabs .usm-tab{width:100%;justify-content:flex-start;min-height:34px;padding:8px 9px}
+.usm-rail #nav-tabs .usm-tab.is-active{background:var(--usm-accent-soft);color:var(--usm-accent);box-shadow:none}
+html.dark .usm-rail #nav-tabs .usm-tab.is-active{color:var(--usm-accent-hover)}
+@media(max-width:900px){
+  body{padding-left:56px}
+  #usm-rail{width:56px;padding:12px 8px;gap:11px}
+  #usm-rail .usm-rail-eyebrow,#usm-rail .usm-rail-label,#usm-rail .usm-rail-brand-text{display:none}
+  #usm-rail .usm-rail-link,.usm-rail #nav-tabs .usm-tab{justify-content:center;padding:8px 0}
+}
+@media print{body{padding-left:0!important}#usm-rail{display:none!important}}
+/* Rail segment identity -----------------------------------------------
+   Each entry carries one hue so the rail reads at a glance even in the 56px icon-only mode where
+   the words are gone. The Alat group stays neutral on purpose: those are actions, not destinations. */
+.seg-transporter{--seg:#6d28d9;--seg-soft:rgba(109,40,217,.10)}
+.seg-analytics{--seg:#0284c7;--seg-soft:rgba(2,132,199,.11)}
+.seg-sysweb{--seg:#047857;--seg-soft:rgba(4,120,87,.11)}
+.seg-directory{--seg:#b45309;--seg-soft:rgba(180,83,9,.12)}
+.seg-staff{--seg:#0f766e;--seg-soft:rgba(15,118,110,.11)}
+.seg-audit{--seg:#475569;--seg-soft:rgba(71,85,105,.11)}
+.seg-users{--seg:#86198f;--seg-soft:rgba(134,25,143,.10)}
+.seg-quality{--seg:#be123c;--seg-soft:rgba(190,18,60,.10)}
+html.dark .seg-transporter{--seg:#c4b5fd;--seg-soft:rgba(139,92,246,.20)}
+html.dark .seg-analytics{--seg:#7dd3fc;--seg-soft:rgba(14,165,233,.22)}
+html.dark .seg-sysweb{--seg:#6ee7b7;--seg-soft:rgba(16,185,129,.20)}
+html.dark .seg-directory{--seg:#fcd34d;--seg-soft:rgba(217,119,6,.22)}
+html.dark .seg-staff{--seg:#5eead4;--seg-soft:rgba(20,184,166,.20)}
+html.dark .seg-audit{--seg:#cbd5e1;--seg-soft:rgba(148,163,184,.18)}
+html.dark .seg-users{--seg:#f0abfc;--seg-soft:rgba(217,70,239,.20)}
+html.dark .seg-quality{--seg:#fda4af;--seg-soft:rgba(244,63,94,.20)}
+#usm-rail .usm-rail-link>i,#usm-rail #nav-tabs .usm-tab>i{flex:none;width:22px;height:22px;border-radius:7px;
+  display:inline-flex;align-items:center;justify-content:center;font-size:11px;line-height:1;
+  background:var(--seg-soft,rgba(100,116,139,.12));color:var(--seg,var(--usm-muted))}
+#usm-rail #nav-tabs .usm-tab.is-active,#usm-rail .usm-rail-link.is-active{background:var(--seg-soft,var(--usm-accent-soft));
+  color:var(--usm-ink);box-shadow:inset 2px 0 0 var(--seg,var(--usm-accent))}
+#usm-rail #nav-tabs .usm-tab.is-active>i,#usm-rail .usm-rail-link.is-active>i{background:var(--seg,var(--usm-accent));color:#fff}
+html.dark #usm-rail #nav-tabs .usm-tab.is-active>i,html.dark #usm-rail .usm-rail-link.is-active>i{color:#111827}
+/* Notifications, Messages, Requests and System health -----------------------------------------
+   These four launchers floated down the right edge, styled by four separate inline blocks, so they
+   landed on whatever a page put there: the Segmen Sysweb button, the Messages sheet's own Close, the
+   AI assistant's send button. They are in-flow header tools now, so they can only ever sit beside
+   each other. The two popovers still float - they are transient and close on click-away - but they
+   are pinned under the header's content column instead of the viewport corner, only one surface is
+   open at a time, and the page-sized Requests and Messages overlays start below the header and to
+   the right of the rail, so they never bury the navigation or the AI FAB. */
+.usm-header-tools{display:flex;align-items:center;gap:5px;flex:none}
+.usm-header-tools>button{position:relative;flex:none;width:32px;height:32px;display:inline-flex;
+  align-items:center;justify-content:center;border:1px solid var(--usm-line-strong);border-radius:9px;
+  background:var(--usm-surface);color:var(--usm-muted);font-family:inherit;font-size:12.5px;line-height:1;
+  cursor:pointer;transition:background-color .14s ease,border-color .14s ease,color .14s ease}
+.usm-header-tools>button:hover{background:var(--usm-accent-soft);border-color:var(--usm-accent);color:var(--usm-accent)}
+.usm-header-tools>button:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring)}
+#usm-requests-launch{border-color:var(--usm-accent);background:var(--usm-accent);color:#fff}
+#usm-requests-launch:hover{background:var(--usm-accent-hover);border-color:var(--usm-accent-hover);color:#fff}
+.usm-header-sep{flex:none;width:1px;height:20px;margin:0 3px;background:var(--usm-line)}
+#usm-notifications-badge:not([hidden]),#usm-messages-unread:not([hidden]){position:absolute;top:-5px;right:-5px;
+  display:inline-flex;align-items:center;justify-content:center;min-width:15px;height:15px;padding:0 3px;
+  border-radius:999px;background:var(--usm-danger);color:#fff;font-size:9.5px;font-weight:700;line-height:1;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;box-shadow:0 0 0 2px var(--usm-surface)}
+/* The header owns the popovers' stacking order so page content cannot paint over them. */
+body>header.sticky{z-index:1300}
+#usm-notifications-panel,#usm-health-panel{position:fixed;left:auto;bottom:auto;top:68px;z-index:1350;
+  right:calc(max(0px, (100vw - 1316px) / 2) + 20px);
+  width:min(372px,calc(100vw - 40px));max-height:min(520px,calc(100vh - 84px));overflow:hidden;display:none;
+  border:1px solid var(--usm-line);border-radius:var(--usm-r-lg);background:var(--usm-surface);
+  color:var(--usm-ink);box-shadow:0 18px 50px rgba(15,23,42,.16);font-size:12.5px;line-height:1.5;padding:0}
+#usm-notifications-panel.open,#usm-health-panel.open{display:block}
+/* Page-sized overlays stay inside the chrome: below the 65px header, right of the rail. */
+#usm-requests-panel,#usm-messages-page{inset:68px 20px 20px 228px}
+@media(max-width:900px){
+  #usm-notifications-panel,#usm-health-panel{right:calc(max(0px, (100vw - 1156px) / 2) + 20px)}
+  #usm-requests-panel,#usm-messages-page{inset:68px 16px 16px 68px}
+}
+/* Panel headers: one quiet bar with a tinted icon chip -------------------------------------------
+   Violet marks content (the unread dot, your own bubbles) instead of painting a solid bar over every
+   popover. Requests and System health share the treatment because they are the same family of surface. */
+#usm-notifications-panel>header,.usm-panel-head,.usm-requests-header,.usm-msg-head{
+  flex:none;display:flex;align-items:center;gap:9px;padding:10px 13px;background:var(--usm-surface);
+  color:var(--usm-ink);border-bottom:1px solid var(--usm-line)}
+#usm-notifications-panel>header>div,#usm-notifications-panel>header>strong,.usm-panel-head>div,
+.usm-panel-head>strong,.usm-requests-header>div,.usm-msg-head>div,.usm-panel-title{flex:1 1 auto;min-width:0}
+/* A legacy page-header rule reaches every header > div with a 48px floor and .65rem padding, which
+   made these panel titles 74px tall; the panel family owns its own box. */
+.usm-panel-title{min-height:0;padding:0}
+#usm-notifications-panel>header>i,.usm-panel-head>i,.usm-requests-header>i,.usm-msg-head>i{
+  flex:none;display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;
+  border-radius:var(--usm-r-sm);background:var(--usm-accent-soft);color:var(--usm-accent);
+  font-size:11.5px;line-height:1}
+#usm-notifications-panel>header strong,.usm-panel-head strong,.usm-requests-header strong,.usm-msg-head strong{
+  display:block;font-size:12.5px;font-weight:700;letter-spacing:-.01em;line-height:1.3;color:var(--usm-ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usm-panel-sub{margin-top:2px;font-size:10.5px;font-weight:500;line-height:1.35;color:var(--usm-muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usm-panel-count{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:20px;
+  padding:2px 7px;border-radius:999px;background:var(--usm-accent-soft);color:var(--usm-accent);font-size:10px;
+  font-weight:700;line-height:1.35;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.usm-panel-count[hidden]{display:none}
+#usm-notifications-panel>header button,.usm-panel-head button,.usm-requests-header button,.usm-msg-head button{
+  flex:none;margin-left:0;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:26px;
+  padding:0 11px;border:1px solid var(--usm-line-strong);border-radius:999px;background:var(--usm-surface);
+  color:var(--usm-muted);font:inherit;font-size:11px;font-weight:650;line-height:1;cursor:pointer;
+  transition:background-color .14s ease,border-color .14s ease,color .14s ease}
+#usm-notifications-panel>header button:hover,.usm-panel-head button:hover,
+.usm-requests-header button:hover,.usm-msg-head button:hover{
+  border-color:var(--usm-accent);background:var(--usm-accent-soft);color:var(--usm-accent)}
+#usm-notifications-panel>header button:focus-visible,.usm-panel-head button:focus-visible,
+.usm-requests-header button:focus-visible,.usm-msg-head button:focus-visible{
+  outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring)}
+#usm-notifications-panel>header button>i,.usm-panel-head button>i{font-size:10px}
+#usm-notifications-panel>header #usm-notifications-close{width:26px;padding:0;font-size:12px}
+.usm-panel-head button:disabled{opacity:.55;cursor:wait}
+/* Notifications ------------------------------------------------------------------ */
+@keyframes usm-panel-in{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+#usm-notifications-panel{flex-direction:column;box-shadow:0 22px 60px rgba(15,23,42,.20)}
+#usm-notifications-panel.open{display:flex;animation:usm-panel-in .15s ease-out}
+#usm-notifications-body{flex:1 1 auto;min-height:0;max-height:none;padding:8px;overflow:auto;
+  scrollbar-width:thin;scrollbar-color:var(--usm-line-strong) transparent}
+#usm-notifications-panel>footer{flex:none;display:flex;align-items:center;gap:7px;padding:8px 13px;
+  border-top:1px solid var(--usm-line);background:var(--usm-surface-soft);color:var(--usm-muted);
+  font-size:10.5px;font-weight:600;line-height:1.3}
+#usm-notifications-panel>footer>i{flex:none;font-size:11px;color:var(--usm-success)}
+.usm-notification-item{display:grid;grid-template-columns:11px minmax(0,1fr);gap:2px 7px;padding:9px 10px;
+  margin-bottom:5px;border:1px solid transparent;border-radius:var(--usm-r-md);background:transparent;
+  font-size:12px;line-height:1.5;transition:background-color .14s ease,border-color .14s ease,box-shadow .14s ease}
+.usm-notification-item:last-child{margin-bottom:0}
+.usm-notification-item:hover{background:var(--usm-surface-soft);border-color:var(--usm-line);box-shadow:var(--usm-shadow-sm)}
+.usm-notification-item.unread{background:var(--usm-accent-soft);border-color:var(--usm-line)}
+.usm-nt-mark{grid-row:1/3;align-self:start;justify-self:center;width:7px;height:7px;margin-top:6px;
+  border-radius:50%;background:var(--usm-accent);box-shadow:0 0 0 3px rgba(109,40,217,.12)}
+.usm-notification-item:not(.unread) .usm-nt-mark{width:5px;height:5px;background:var(--usm-line-strong);box-shadow:none}
+.usm-nt-main{min-width:0}
+.usm-nt-top{display:flex;align-items:baseline;gap:8px;min-width:0}
+.usm-nt-top strong{flex:1 1 auto;min-width:0;font-size:12px;font-weight:650;line-height:1.4;color:var(--usm-ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usm-notification-time{flex:none;font-size:9.5px;font-weight:500;color:var(--usm-muted);letter-spacing:-.02em;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.usm-nt-text{margin:0;font-size:11.5px;line-height:1.5;color:var(--usm-muted);display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.usm-notification-item.unread .usm-nt-text{color:var(--usm-ink)}
+.usm-nt-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.usm-chip{flex:none;display:inline-flex;align-items:center;padding:1px 7px;border:1px solid var(--usm-line);
+  border-radius:999px;background:var(--usm-surface);color:var(--usm-muted);font-size:9.5px;font-weight:650;
+  line-height:1.5;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.usm-chip.is-link{border-color:var(--usm-accent-ring);background:var(--usm-accent-soft);color:var(--usm-accent)}
+.usm-notification-empty,#usm-messages-page .usm-msg-empty{display:flex;flex-direction:column;align-items:center;
+  gap:5px;padding:26px 16px;text-align:center;border:1px dashed var(--usm-line-strong);border-radius:var(--usm-r-md);
+  background:var(--usm-surface);color:var(--usm-muted);font-size:11.5px;line-height:1.5}
+.usm-notification-empty strong,#usm-messages-page .usm-msg-empty strong{font-size:12.5px;font-weight:650;color:var(--usm-ink)}
+.usm-empty-ico{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:10px;background:var(--usm-accent-soft);color:var(--usm-accent);font-size:13px;line-height:1}
+.usm-notification-empty.is-error .usm-empty-ico,#usm-messages-page .usm-msg-empty.is-error .usm-empty-ico{
+  background:rgba(225,29,72,.10);color:var(--usm-danger)}
+/* System health keeps the shared chrome but stays a scrolling block. */
+.usm-panel-body{padding:12px 14px;overflow:auto;max-height:min(471px,calc(100vh - 165px))}
+#usm-health-summary{display:block;margin:0;font-size:12px;color:var(--usm-muted)}
+#usm-health-items{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.usm-health-item{border:1px solid var(--usm-line);border-radius:var(--usm-r-md);background:var(--usm-surface-soft);
+  padding:9px 11px;box-shadow:none}
+.usm-health-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;
+  font-weight:650;color:var(--usm-ink)}
+.usm-health-state{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--usm-muted)}
+.usm-health-state::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--usm-line-strong)}
+.usm-health-state.ok{color:var(--usm-success)}.usm-health-state.ok::before{background:var(--usm-success)}
+.usm-health-state.warning{color:var(--usm-warning)}.usm-health-state.warning::before{background:var(--usm-warning)}
+.usm-health-state.error{color:var(--usm-danger)}.usm-health-state.error::before{background:var(--usm-danger)}
+.usm-health-detail{margin-top:4px;font-size:11.5px;color:var(--usm-muted)}
+#usm-health-checked{margin-top:10px;padding-top:9px;border-top:1px solid var(--usm-line);font-size:10.5px;
+  color:var(--usm-muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+/* Messages workspace ---------------------------------------------------------------
+   The sidebar held a full always-open form above the conversation list, which read as a settings
+   page rather than an inbox; the form now sits behind a disclosure and each conversation gets an
+   avatar, a one-line preview and a quiet meta row. */
+#usm-messages-page{border:1px solid var(--usm-line);border-radius:var(--usm-r-lg);background:var(--usm-surface);
+  color:var(--usm-ink);box-shadow:0 30px 80px rgba(15,23,42,.22)}
+#usm-messages-page .usm-msg-layout{grid-template-columns:minmax(262px,29%) minmax(0,1fr)}
+#usm-messages-page .usm-msg-sidebar{padding:12px;border-right:1px solid var(--usm-line);
+  background:var(--usm-surface-soft);scrollbar-width:thin;scrollbar-color:var(--usm-line-strong) transparent}
+#usm-messages-page .usm-msg-new{margin-bottom:12px;border:1px solid var(--usm-line);border-radius:var(--usm-r-md);
+  background:var(--usm-surface);box-shadow:var(--usm-shadow-sm);overflow:hidden}
+#usm-messages-page .usm-msg-new>summary{display:flex;align-items:center;gap:8px;padding:9px 11px;cursor:pointer;
+  list-style:none;font-size:12px;font-weight:650;color:var(--usm-accent);user-select:none;
+  transition:background-color .14s ease}
+#usm-messages-page .usm-msg-new>summary::-webkit-details-marker{display:none}
+#usm-messages-page .usm-msg-new>summary>i{display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:6px;background:var(--usm-accent-soft);font-size:9.5px;line-height:1;
+  transition:transform .14s ease}
+#usm-messages-page .usm-msg-new>summary:hover{background:var(--usm-accent-soft)}
+#usm-messages-page .usm-msg-new[open]>summary{background:var(--usm-accent-soft);
+  border-bottom:1px solid var(--usm-line)}
+#usm-messages-page .usm-msg-new[open]>summary>i{transform:rotate(45deg)}
+#usm-messages-page .usm-msg-new .usm-msg-start{margin:0;padding:12px;border:0;border-radius:0;
+  background:var(--usm-surface)}
+#usm-messages-page .usm-msg-start label{display:block;margin:0 0 3px;font-size:10.5px;font-weight:650;
+  letter-spacing:.01em;color:var(--usm-muted)}
+#usm-messages-page .usm-msg-start input,#usm-messages-page .usm-msg-start select,
+#usm-messages-page .usm-msg-start textarea,#usm-messages-page .usm-msg-compose textarea{
+  width:100%;box-sizing:border-box;margin:0 0 9px;padding:8px 10px;min-height:34px;
+  border:1px solid var(--usm-line-strong);border-radius:var(--usm-r-sm);background:var(--usm-surface);
+  color:var(--usm-ink);font:inherit;font-size:12.5px;line-height:1.5;
+  transition:border-color .14s ease,box-shadow .14s ease}
+#usm-messages-page .usm-msg-start input:focus,#usm-messages-page .usm-msg-start select:focus,
+#usm-messages-page .usm-msg-start textarea:focus{outline:none;border-color:var(--usm-accent);
+  box-shadow:0 0 0 3px var(--usm-accent-ring)}
+#usm-messages-page .usm-msg-start button{display:inline-flex;align-items:center;justify-content:center;
+  width:100%;min-height:34px;border:0;border-radius:var(--usm-r-sm);background:var(--usm-accent);color:#fff;
+  font:inherit;font-size:12px;font-weight:650;cursor:pointer;transition:background-color .14s ease,transform .06s ease}
+#usm-messages-page .usm-msg-start button:hover{background:var(--usm-accent-hover)}
+#usm-messages-page .usm-msg-start button:active{transform:translateY(1px)}
+#usm-messages-page .usm-msg-eyebrow{display:flex;align-items:center;gap:8px;margin:0 2px 8px;
+  font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--usm-muted)}
+#usm-messages-page .usm-msg-eyebrow .usm-panel-count{margin-left:auto;background:var(--usm-surface);
+  border:1px solid var(--usm-line);color:var(--usm-muted);font-size:9.5px}
+#usm-messages-page .usm-msg-list-item{display:grid;grid-template-columns:28px minmax(0,1fr);gap:0 9px;
+  width:100%;text-align:left;padding:9px 10px;margin-bottom:7px;border:1px solid var(--usm-line);
+  border-radius:var(--usm-r-md);background:var(--usm-surface);color:var(--usm-ink);cursor:pointer;
+  box-shadow:var(--usm-shadow-sm);transition:border-color .14s ease,background-color .14s ease,box-shadow .14s ease}
+#usm-messages-page .usm-msg-list-item:hover{border-color:var(--usm-accent-ring);background:var(--usm-accent-soft)}
+#usm-messages-page .usm-msg-list-item:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring)}
+#usm-messages-page .usm-msg-list-item.active{border-color:var(--usm-accent);background:var(--usm-accent-soft);
+  box-shadow:inset 2px 0 0 var(--usm-accent)}
+#usm-messages-page .usm-msg-avatar{grid-row:1/3;align-self:start;display:inline-flex;align-items:center;
+  justify-content:center;width:28px;height:28px;border-radius:9px;background:var(--usm-accent-soft);
+  color:var(--usm-accent);font-size:10px;font-weight:700;letter-spacing:.01em;text-transform:uppercase;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+/* The message chips keep the square geometry S11 chose for them - a picture simply fills the box
+   the initials sat in, and the img inherits the radius so a crop is never a square inside a round
+   chip. The inner span is what holds the initials, so it must not pick up the list's generic
+   "span" rule (display:block, 11px, 70% opacity) that styles the preview text. */
+#usm-messages-page .usm-msg-avatar{position:relative;overflow:hidden}
+#usm-messages-page .usm-msg-avatar>img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+#usm-messages-page .usm-msg-avatar>span{margin:0;opacity:1;font:inherit;line-height:1}
+#usm-messages-page .usm-msg-li-main{display:block;min-width:0}
+#usm-messages-page .usm-msg-list-item strong{display:block;font-size:12px;font-weight:650;line-height:1.35;
+  color:var(--usm-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#usm-messages-page .usm-msg-list-item.unread strong{font-weight:700}
+#usm-messages-page .usm-msg-prev{display:block;margin-top:1px;font-size:11px;line-height:1.45;
+  color:var(--usm-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#usm-messages-page .usm-msg-meta{display:flex;align-items:center;gap:6px;margin-top:5px;min-width:0}
+#usm-messages-page .usm-msg-meta time{flex:none;font-size:9.5px;color:var(--usm-muted);letter-spacing:-.02em;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+#usm-messages-page .usm-msg-unread{flex:none;margin-left:auto;display:inline-flex;align-items:center;
+  justify-content:center;min-width:17px;height:17px;padding:0 5px;border-radius:999px;
+  background:var(--usm-danger);color:#fff;font-size:9.5px;font-weight:700;font-style:normal;line-height:1;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+#usm-messages-page .usm-msg-thread{min-width:0;background:var(--usm-surface)}
+#usm-messages-page .usm-msg-thread-title{position:sticky;top:0;z-index:2;padding:12px 18px;
+  border-bottom:1px solid var(--usm-line);background:var(--usm-surface);color:var(--usm-ink);
+  font-size:13.5px;font-weight:700;letter-spacing:-.01em;line-height:1.4}
+#usm-messages-page .usm-msg-thread-title small{display:block;margin-top:3px;font-size:10px;font-weight:500;
+  color:var(--usm-muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+#usm-messages-page .usm-msg-feed{gap:12px;padding:18px;background:var(--usm-surface-soft);
+  background-image:radial-gradient(rgba(100,116,139,.16) .7px,transparent .7px);background-size:18px 18px;
+  scrollbar-width:thin;scrollbar-color:var(--usm-line-strong) transparent}
+#usm-messages-page .usm-msg-day{display:flex;align-items:center;gap:10px;margin:2px 0}
+#usm-messages-page .usm-msg-day::before,#usm-messages-page .usm-msg-day::after{content:"";flex:1 1 auto;
+  height:1px;background:var(--usm-line)}
+#usm-messages-page .usm-msg-day span{padding:2px 9px;border:1px solid var(--usm-line);border-radius:999px;
+  background:var(--usm-surface);color:var(--usm-muted);font-size:9.5px;font-weight:650;letter-spacing:.04em;
+  text-transform:uppercase;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+#usm-messages-page .usm-msg-row{display:flex;align-items:flex-end;gap:8px;min-width:0}
+#usm-messages-page .usm-msg-row.mine{justify-content:flex-end}
+#usm-messages-page .usm-msg-row .usm-msg-avatar{grid-row:auto;width:24px;height:24px;border-radius:8px;
+  font-size:9px;background:var(--usm-surface);border:1px solid var(--usm-line);color:var(--usm-muted)}
+#usm-messages-page .usm-msg-bubble{max-width:min(76%,640px);padding:9px 12px;border:1px solid var(--usm-line);
+  border-radius:14px 14px 14px 5px;background:var(--usm-surface);color:var(--usm-ink);
+  box-shadow:var(--usm-shadow-sm);font-size:12.5px;line-height:1.6}
+#usm-messages-page .usm-msg-bubble.mine{border-color:var(--usm-accent);border-radius:14px 14px 5px 14px;
+  background:var(--usm-accent);color:#fff;box-shadow:0 3px 10px rgba(109,40,217,.18)}
+#usm-messages-page .usm-msg-bubble small{display:block;margin-top:4px;font-size:9.5px;opacity:.75;
+  letter-spacing:-.02em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+#usm-messages-page .usm-msg-bubble.mine small{opacity:.85}
+/* The composer floats over the feed and rings on focus, so the workspace has one obvious next move. */
+#usm-messages-page .usm-msg-compose{align-items:center;gap:9px;margin:0 16px 14px;padding:7px 7px 7px 12px;
+  border:1px solid var(--usm-line-strong);border-radius:14px;background:var(--usm-surface);
+  box-shadow:var(--usm-shadow);transition:border-color .14s ease,box-shadow .14s ease}
+#usm-messages-page .usm-msg-compose:focus-within{border-color:var(--usm-accent);
+  box-shadow:0 0 0 3px var(--usm-accent-ring)}
+#usm-messages-page .usm-msg-compose-field{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
+#usm-messages-page .usm-msg-compose textarea{flex:none;margin:0;padding:2px 0;min-height:32px;max-height:120px;
+  border:0;background:transparent;box-shadow:none;font-size:12.5px;line-height:1.55;resize:none;
+  field-sizing:content}
+#usm-messages-page .usm-msg-compose textarea:focus{outline:none;border:0;box-shadow:none}
+#usm-messages-page .usm-msg-hint{padding-left:2px;font-size:9.5px;color:var(--usm-muted)}
+#usm-messages-page .usm-msg-compose:has(#usm-msg-reply:disabled) .usm-msg-hint{visibility:hidden}
+#usm-messages-page .usm-msg-compose button{flex:none;min-width:76px;display:inline-flex;align-items:center;
+  justify-content:center;gap:6px;border:0;border-radius:10px;background:var(--usm-accent);color:#fff;
+  font:inherit;font-size:12px;font-weight:650;cursor:pointer;
+  transition:background-color .14s ease,transform .06s ease}
+#usm-messages-page .usm-msg-compose button:hover{background:var(--usm-accent-hover)}
+#usm-messages-page .usm-msg-compose button:active{transform:translateY(1px)}
+#usm-messages-page .usm-msg-compose button>i{font-size:10.5px}
+#usm-messages-page .usm-msg-compose button:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+#usm-notifications-body::-webkit-scrollbar,#usm-messages-page .usm-msg-feed::-webkit-scrollbar,
+#usm-messages-page .usm-msg-sidebar::-webkit-scrollbar{width:9px}
+#usm-notifications-body::-webkit-scrollbar-thumb,#usm-messages-page .usm-msg-feed::-webkit-scrollbar-thumb,
+#usm-messages-page .usm-msg-sidebar::-webkit-scrollbar-thumb{border:2px solid var(--usm-surface);
+  border-radius:999px;background:var(--usm-line-strong)}
+#usm-notifications-body::-webkit-scrollbar-track,#usm-messages-page .usm-msg-feed::-webkit-scrollbar-track,
+#usm-messages-page .usm-msg-sidebar::-webkit-scrollbar-track{background:transparent}
+html.dark #usm-messages-page .usm-msg-feed{background-image:radial-gradient(rgba(148,163,184,.13) .7px,transparent .7px)}
+html.dark .usm-nt-mark{box-shadow:0 0 0 3px rgba(139,92,246,.22)}
+@media(max-width:700px){
+  /* An auto row let the conversation list eat the whole sheet and leave the thread 28px tall. */
+  #usm-messages-page .usm-msg-layout{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(150px,34%) minmax(0,1fr)}
+  #usm-messages-page .usm-msg-sidebar{padding:10px;border-right:0;border-bottom:1px solid var(--usm-line)}
+  #usm-messages-page .usm-msg-feed{padding:14px 12px}
+  #usm-messages-page .usm-msg-compose{margin:0 10px 10px}
+  #usm-messages-page .usm-msg-bubble{max-width:88%}
+  #usm-messages-page .usm-msg-thread-title{padding:11px 14px}
+  /* The start form is 313px tall, so a 150px pane hides its own submit button below the fold.
+     The thread pane keeps its title and composer but drops the feed while the sheet is open. */
+  #usm-messages-page .usm-msg-layout:has(.usm-msg-new[open]){grid-template-rows:minmax(360px,72%) minmax(0,1fr)}
+  #usm-messages-page .usm-msg-layout:has(.usm-msg-new[open]) .usm-msg-thread>.usm-msg-feed{display:none}
+}
+@media(max-width:640px){
+  #usm-notifications-panel,#usm-health-panel{width:min(340px,calc(100vw - 24px))}
+  #usm-requests-panel,#usm-messages-page{inset:68px 10px 10px 64px}
+}
+/* The AI FAB lives in the bottom-right corner that the Requests and Messages sheets now fill, so it
+   stands down while one of them is open rather than sitting underneath it as a dead control. */
+body.usm-panel-open #usmsmart-ai-launcher{display:none}
+@media(max-width:520px){
+  .usm-header-tools{gap:3px}
+  .usm-header-tools>button{width:28px;height:28px;font-size:11.5px}
+  .usm-header-sep{display:none}
+}
+/* The header pill is the one place that answers "are we live right now?" without opening anything.
+   Its colour is the worst source, so a fallback to the local snapshot shows up in the chrome instead
+   of hiding inside the reconciliation results. It is a real flex child, never positioned, so it
+   cannot overlap a button the way the old floating dock did. Every rule is written as
+   .usm-header-tools>button.usm-db-status because the shared tool rule is (0,1,1) and a bare class
+   would silently lose to it - the pill would then render as a clipped 32px circle. The pre-token
+   header stylesheet is carved out with :not(.usm-db-status) for the same reason; see below.
+   The heights are 34px, not the 32px/28px first drafted here, because the older redesign block's
+   global button:not(.unstyled){min-height:34px} clamps anything smaller and the row would have
+   painted a size the stylesheet never claimed. Saying 34px keeps the rule and the render in
+   agreement, and the narrow variant stays a true circle even if stage S5 retires that min-height. */
+.usm-header-tools>button.usm-db-status{--usm-db-ink:var(--usm-muted);
+  --usm-db-ring:rgba(148,163,184,.18);width:auto;max-width:196px;height:34px;gap:6px;padding:0 11px;
+  justify-content:flex-start;border:1px solid var(--usm-line);border-radius:999px;
+  background:var(--usm-surface);color:var(--usm-db-ink);font-size:11px;font-weight:700;
+  letter-spacing:-.01em;white-space:nowrap}
+.usm-header-tools>button.usm-db-status:hover{border-color:var(--usm-line-strong);
+  background:var(--usm-surface-soft);color:var(--usm-db-ink)}
+.usm-header-tools>button.usm-db-status:focus-visible{box-shadow:0 0 0 3px var(--usm-accent-ring)}
+.usm-header-tools>button.usm-db-status.ok{--usm-db-ink:var(--usm-success);--usm-db-ring:rgba(5,150,105,.16)}
+.usm-header-tools>button.usm-db-status.warning{--usm-db-ink:var(--usm-warning);--usm-db-ring:rgba(217,119,6,.18)}
+.usm-header-tools>button.usm-db-status.error{--usm-db-ink:var(--usm-danger);--usm-db-ring:rgba(225,29,72,.18)}
+.usm-db-dot{flex:none;width:8px;height:8px;border-radius:999px;background:var(--usm-db-ink);
+  box-shadow:0 0 0 3px var(--usm-db-ring)}
+.usm-db-label{min-width:0;overflow:hidden;text-overflow:ellipsis}
+html.dark .usm-header-tools>button.usm-db-status{background:transparent}
+@media(max-width:900px){.usm-header-tools>button.usm-db-status{height:34px;max-width:170px;padding:0 9px;gap:5px;font-size:10.5px}}
+@media(max-width:560px){.usm-header-tools>button.usm-db-status{width:34px;padding:0;justify-content:center}
+  .usm-header-tools>button.usm-db-status .usm-db-label{display:none}}
+/* One class owns every avatar in the product, at every size: the same violet chip behind a
+   circular crop, so a picture in the header, the rail, the profile modal and the message thread reads
+   as one control set. Sizes are modifier classes rather than per-surface rules, and the img fills its
+   chip with object-fit so a non-square upload cannot distort. The file input is opacity-0 rather than
+   display:none so it stays in the tab order, and the label picks up its focus ring through :has(). */
+.usm-avatar{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:none;
+  overflow:hidden;border-radius:999px;background:var(--usm-accent-soft);color:var(--usm-accent);
+  border:1px solid var(--usm-line);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-weight:700;letter-spacing:.01em;line-height:1;text-transform:uppercase}
+.usm-avatar>img{display:block;width:100%;height:100%;object-fit:cover}
+.usm-avatar-20{width:20px;height:20px;font-size:8px}
+.usm-avatar-24{width:24px;height:24px;font-size:9px}
+.usm-avatar-28{width:28px;height:28px;font-size:10px}
+.usm-avatar-72{width:72px;height:72px;font-size:22px;border-width:2px}
+.usm-avatar-row{display:flex;align-items:flex-start;gap:14px;padding:16px;border-radius:14px;
+  border:1px solid var(--usm-line);background:var(--usm-surface-soft)}
+.usm-avatar-side{min-width:0;flex:1 1 auto}
+.usm-avatar-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;position:relative}
+.usm-avatar-input{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0}
+.usm-avatar-tools:has(.usm-avatar-input:focus-visible) .usm-avatar-pick{box-shadow:0 0 0 3px var(--usm-accent-ring)}
+.usm-avatar-hint{margin:8px 0 0;font-size:10.5px;line-height:1.5;color:var(--usm-muted)}
+.usm-avatar-hint.busy{color:var(--usm-info)}
+.usm-avatar-hint.failed{color:var(--usm-danger)}
+/* While the canvas and the POST run, the picker cannot be clicked again - a second pick would race
+   the first and store the wrong picture. */
+.usm-avatar-pick.is-busy{opacity:.55;pointer-events:none}
+/* A chip with a picture in it needs no chip: the img fills the circle on its own. */
+.usm-avatar.has-picture{background:transparent;border-color:var(--usm-line-strong)}
+.usm-avatar.has-picture>span{display:none}
+@media(max-width:700px){.usm-avatar-row{gap:12px;padding:13px}.usm-avatar-72{width:60px;height:60px;font-size:19px}}
+/* Breadcrumb: every deep segment says which owner tab it belongs to and how to get back. */
+.usm-crumb{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:10.5px;font-weight:600;color:var(--usm-muted)}
+.usm-crumb a,.usm-crumb button{appearance:none;background:none;border:0;padding:0;margin:0;font:inherit;color:var(--usm-accent);cursor:pointer;text-decoration:none}
+.usm-crumb a:hover,.usm-crumb button:hover{text-decoration:underline}
+.usm-crumb .usm-crumb-here{color:var(--usm-ink);font-weight:700}
+
+
+/* ===== usmsmart-alat-and-row-actions ===== */
+/* Rail tools ----------------------------------------------------------------
+   Panduan, Profil Saya, Imbas Kad and Cetak act on the current screen instead of switching
+   segment, so they keep the neutral icon wells and never borrow a --seg hue. What they lacked was
+   any structure of their own: four bare rows floating under eight coloured destinations looked
+   like leftovers. The group is a recessed panel now, and each row's chip lifts out of it. */
+#usm-rail .usm-rail-tools{gap:3px;padding:7px 6px 8px;border:1px solid var(--usm-line);
+  border-radius:var(--usm-r-lg);background:var(--usm-surface-soft);box-shadow:var(--usm-shadow-sm)}
+/* The eyebrow becomes a labelled rule rather than a floating word, so the panel reads as a
+   titled section at a glance. The hairline is a flex child, not generated content, because the
+   markup can carry the icon and stay legible if a font fails to load. */
+#usm-rail .usm-rail-tools .usm-rail-eyebrow{display:flex;align-items:center;gap:6px;padding:0 4px 6px;
+  font-size:9px;letter-spacing:.1em;color:var(--usm-muted)}
+#usm-rail .usm-rail-tools .usm-rail-eyebrow>i{flex:none;font-size:9.5px;color:var(--usm-accent)}
+#usm-rail .usm-rail-tools .usm-rail-eyebrow::after{content:"";flex:1 1 auto;height:1px;background:var(--usm-line)}
+#usm-rail .usm-rail-tools .usm-rail-link{padding:7px 8px}
+#usm-rail .usm-rail-tools .usm-rail-link:hover{background:var(--usm-surface);color:var(--usm-ink);
+  box-shadow:var(--usm-shadow-sm)}
+#usm-rail .usm-rail-tools .usm-rail-link>i{background:var(--usm-surface);border:1px solid var(--usm-line);
+  color:var(--usm-muted)}
+#usm-rail .usm-rail-tools .usm-rail-link:hover>i{background:var(--usm-accent-soft);
+  border-color:var(--usm-accent);color:var(--usm-accent)}
+#usm-rail .usm-rail-tools .usm-rail-link:hover .usm-avatar{border-color:var(--usm-accent)}
+html.dark #usm-rail .usm-rail-tools .usm-rail-eyebrow>i,
+html.dark #usm-rail .usm-rail-tools .usm-rail-link:hover>i{color:var(--usm-accent-hover)}
+/* Collapsed rail: the panel keeps its border so the tools still separate from the destinations,
+   but the label and the eyebrow go with every other word in the 56px mode. The eyebrow needs its
+   own hide rule because the flex above out-specifies the shared one in the rail block. */
+@media(max-width:900px){
+  #usm-rail .usm-rail-tools{padding:5px 3px 6px}
+  #usm-rail .usm-rail-tools .usm-rail-eyebrow{display:none}
+  #usm-rail .usm-rail-tools .usm-rail-link{padding:8px 0}
+}
+/* Card directory row actions ------------------------------------------------
+   One size, one radius, one tint mechanism. An action declares its colours as custom properties
+   and the shared rule paints rest, hover and focus from them, so the row cannot drift out of
+   agreement again the way five hand-written Tailwind strings did. Nothing wraps: the chips are
+   34px squares and the table scrolls instead of stacking a row's actions 3+2. */
+.usm-row-actions{display:inline-flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:6px}
+.usm-row-actions .usm-act{background:var(--act-soft);border-color:var(--act-line);color:var(--act-ink)}
+.usm-row-actions .usm-act:hover{background:var(--act-fill);border-color:var(--act-fill);color:var(--act-on);
+  transform:translateY(-1px)}
+.usm-row-actions .usm-act:active{transform:translateY(0)}
+.usm-row-actions .usm-act:focus-visible{box-shadow:0 0 0 3px var(--act-ring)}
+.usm-act-view{--act-soft:var(--usm-accent-soft);--act-line:rgba(109,40,217,.26);--act-ink:var(--usm-accent);
+  --act-fill:var(--usm-accent-hover);--act-ring:var(--usm-accent-ring);--act-on:#fff}
+.usm-act-sysweb{--act-soft:rgba(5,150,105,.09);--act-line:rgba(5,150,105,.26);--act-ink:var(--usm-success);
+  --act-fill:var(--usm-success-hover);--act-ring:rgba(5,150,105,.24);--act-on:#fff}
+/* Printing the card is what this table exists for, so it is the row's one solid button: the same
+   variables, filled rather than tinted, and no extra selector. */
+.usm-act-card{--act-soft:var(--usm-accent);--act-line:var(--usm-accent);--act-ink:#fff;
+  --act-fill:var(--usm-accent-hover);--act-ring:var(--usm-accent-ring);--act-on:#fff}
+.usm-act-edit{--act-soft:rgba(217,119,6,.10);--act-line:rgba(217,119,6,.28);--act-ink:var(--usm-warning);
+  --act-fill:var(--usm-warning-hover);--act-ring:rgba(217,119,6,.26);--act-on:#fff}
+.usm-act-delete{--act-soft:rgba(225,29,72,.08);--act-line:rgba(225,29,72,.24);--act-ink:var(--usm-danger);
+  --act-fill:var(--usm-danger-hover);--act-ring:rgba(225,29,72,.22);--act-on:#fff}
+/* Dark mode inks the filled hover with the panel's own ink instead of white, because every hue
+   here lightens rather than darkens for the contrast to hold. */
+html.dark .usm-row-actions .usm-act{--act-on:#111827}
+html.dark .usm-act-view{--act-soft:var(--usm-accent-soft);--act-line:rgba(139,92,246,.40);--act-ink:#c4b5fd;
+  --act-fill:var(--usm-accent-hover)}
+html.dark .usm-act-sysweb{--act-soft:rgba(16,185,129,.14);--act-line:rgba(16,185,129,.34);--act-ink:#6ee7b7;
+  --act-fill:var(--usm-success-hover);--act-ring:rgba(16,185,129,.42)}
+html.dark .usm-act-card{--act-soft:var(--usm-accent);--act-line:var(--usm-accent);--act-ink:#111827;
+  --act-fill:var(--usm-accent-hover)}
+html.dark .usm-act-edit{--act-soft:rgba(217,119,6,.16);--act-line:rgba(217,119,6,.36);--act-ink:#fcd34d;
+  --act-fill:var(--usm-warning-hover);--act-ring:rgba(245,158,11,.42)}
+html.dark .usm-act-delete{--act-soft:rgba(244,63,94,.14);--act-line:rgba(244,63,94,.34);--act-ink:#fda4af;
+  --act-fill:var(--usm-danger-hover);--act-ring:rgba(244,63,94,.42)}
+
+
+/* ===== usmsmart-chrome-colour-v1 ===== */
+/* Stage VH: colour for the frame, not only for the cards.
+   Three parts, every value taken from something that already exists in this file.
+     A The eight --seg hues move up onto the chrome. The rail seam, the brand band, the eyebrow of whichever group
+       is open, the header hairline and the separator between the header's controls all take the colour of the
+       segment currently on screen. Driven by html:has() rules only: no JavaScript, and setMainTabState() and
+       usmRailSync() stay the only writers of .is-active. A browser without :has() keeps the violet default,
+       which is what the rail already uses today, so the fallback is the current design rather than a broken one.
+     B The header's own controls gain tints in the row-action language the card table already uses (soft .08-.16,
+       line .24-.40, filled hover, dark ink #111827). The database pill is untouched because it already paints
+       from its own ok/warning/error state, and Requests is untouched because it is the header's one solid button.
+     C The rail keeps one constant identity underneath the changing segment hue: a 3px violet-cyan-rose strip on
+       its inner edge and a two-stop brand mark, both from the Stage VG twelve.
+   What is deliberately NOT done: the rail column is not washed with colour. Its labels are --usm-muted #64748b on
+   #ffffff, 4.7:1, and a tint deep enough to read as colour pulls them under 4.5:1 - the whole column can carry
+   roughly 3% alpha. So colour lives on edges, bands and wells, where nothing is asked to stay legible on it.
+   Nothing here changes a page background or a card surface, so the Stage VD elevation budget is untouched. */
+
+/* A - the hue of the segment in view --------------------------------------
+   Both the tab rules and the destination rules carry three classes inside :has(), so they tie and source order
+   decides. Destinations are declared last on purpose: usmRailSync() lights a rail link without clearing a tab,
+   so on the directory screen both are active and the screen actually showing wins. */
+html:has(.usm-tab.seg-transporter.is-active){--usm-chrome-hue:#6d28d9;--usm-chrome-soft:rgba(109,40,217,.10);--usm-chrome-line:rgba(109,40,217,.30)}
+html:has(.usm-tab.seg-analytics.is-active){--usm-chrome-hue:#0284c7;--usm-chrome-soft:rgba(2,132,199,.11);--usm-chrome-line:rgba(2,132,199,.34)}
+html:has(.usm-tab.seg-sysweb.is-active){--usm-chrome-hue:#047857;--usm-chrome-soft:rgba(4,120,87,.11);--usm-chrome-line:rgba(4,120,87,.32)}
+html:has(.usm-rail-link.seg-directory.is-active){--usm-chrome-hue:#b45309;--usm-chrome-soft:rgba(180,83,9,.12);--usm-chrome-line:rgba(180,83,9,.34)}
+html:has(.usm-rail-link.seg-staff.is-active){--usm-chrome-hue:#0f766e;--usm-chrome-soft:rgba(15,118,110,.11);--usm-chrome-line:rgba(15,118,110,.34)}
+html:has(.usm-rail-link.seg-audit.is-active){--usm-chrome-hue:#475569;--usm-chrome-soft:rgba(71,85,105,.11);--usm-chrome-line:rgba(71,85,105,.38)}
+html:has(.usm-rail-link.seg-users.is-active){--usm-chrome-hue:#86198f;--usm-chrome-soft:rgba(134,25,143,.10);--usm-chrome-line:rgba(134,25,143,.34)}
+html:has(.usm-rail-link.seg-quality.is-active){--usm-chrome-hue:#be123c;--usm-chrome-soft:rgba(190,18,60,.10);--usm-chrome-line:rgba(190,18,60,.32)}
+/* Each dark rule carries one more class than any light rule, so a segment hue can never paint a dark rail with a
+   low-contrast deep ink. The dark hues are the existing html.dark --seg tints, and the soft values are the
+   existing --seg-soft alphas, the same ones the active icon well already uses. */
+html.dark{--usm-chrome-hue:#c4b5fd;--usm-chrome-soft:rgba(139,92,246,.20);--usm-chrome-line:rgba(196,181,253,.42)}
+html.dark:has(.usm-tab.seg-transporter.is-active){--usm-chrome-hue:#c4b5fd;--usm-chrome-soft:rgba(139,92,246,.20);--usm-chrome-line:rgba(196,181,253,.42)}
+html.dark:has(.usm-tab.seg-analytics.is-active){--usm-chrome-hue:#7dd3fc;--usm-chrome-soft:rgba(14,165,233,.22);--usm-chrome-line:rgba(125,211,252,.44)}
+html.dark:has(.usm-tab.seg-sysweb.is-active){--usm-chrome-hue:#6ee7b7;--usm-chrome-soft:rgba(16,185,129,.20);--usm-chrome-line:rgba(110,231,183,.42)}
+html.dark:has(.usm-rail-link.seg-directory.is-active){--usm-chrome-hue:#fcd34d;--usm-chrome-soft:rgba(217,119,6,.22);--usm-chrome-line:rgba(252,211,77,.44)}
+html.dark:has(.usm-rail-link.seg-staff.is-active){--usm-chrome-hue:#5eead4;--usm-chrome-soft:rgba(20,184,166,.20);--usm-chrome-line:rgba(94,234,212,.42)}
+html.dark:has(.usm-rail-link.seg-audit.is-active){--usm-chrome-hue:#cbd5e1;--usm-chrome-soft:rgba(148,163,184,.18);--usm-chrome-line:rgba(203,213,225,.40)}
+html.dark:has(.usm-rail-link.seg-users.is-active){--usm-chrome-hue:#f0abfc;--usm-chrome-soft:rgba(217,70,239,.20);--usm-chrome-line:rgba(240,171,252,.42)}
+html.dark:has(.usm-rail-link.seg-quality.is-active){--usm-chrome-hue:#fda4af;--usm-chrome-soft:rgba(244,63,94,.20);--usm-chrome-line:rgba(253,164,175,.42)}
+
+/* A - where that hue is painted. The rail rule restates nothing it does not change: background-image does not
+   reset the background-color the rail block already set, so the column stays --usm-surface in both themes. */
+#usm-rail{border-right:1px solid var(--usm-chrome-line);
+  background-image:linear-gradient(180deg,#7c3aed,#06b6d4 42%,#ec4899 78%,rgba(236,72,153,0));
+  background-repeat:no-repeat;background-position:right 0 top 0;background-size:3px 100%}
+html.dark #usm-rail{background-image:linear-gradient(180deg,#a78bfa,#22d3ee 42%,#f472b6 78%,rgba(244,114,182,0))}
+/* The band bleeds 8px past the rows on both sides so it reads as the rail's own header, and its horizontal insets
+   are set so the mark still starts in the same column as every row: 12px rail padding - 8px margin + 12px padding
+   = 16px, exactly where it was. The cost is 10px of vertical shift for everything below it. */
+#usm-rail .usm-rail-brand{margin:0 -8px;padding:5px 12px;border-radius:var(--usm-r-md);
+  background:linear-gradient(180deg,var(--usm-chrome-soft),rgba(255,255,255,0))}
+/* The band's own label and role line sit on the wash, not on the rail, so the wash has to be paid for: the muted
+   role line measured 4.05:1 on it, under AA at its size, while the same ink on the plain rail is 4.7:1. Darkening
+   that one line inside the band gives 6.4:1 and leaves every other muted label on the rail alone. Dark mode needs
+   no change - the same line reads 5.5:1 there - so the rule is scoped away from it; unscoped, this same fix pushed
+   the dark role line down to 1.9:1. */
+html:not(.dark) #usm-rail .usm-rail-brand .usm-rail-sub{color:#475569}
+#usm-rail .usm-rail-group:has(.is-active)>.usm-rail-eyebrow{color:var(--usm-chrome-hue)}
+/* The header's own hairline is set !important because the rule it replaces is !important (body > header
+   border-bottom-color, the Stage BG block); anything weaker loses to it regardless of order. */
+body > header{border-bottom-color:var(--usm-chrome-line) !important}
+/* That same block also carries a dark variant (.dark body > header, border-bottom-color #272b38, !important)
+   worth one class plus two elements. Two !important rules are settled on specificity alone, so the dark seam needs
+   the same class hook plus one more element to win; without it the header stays grey in dark while the rail
+   follows the segment. */
+html.dark body > header{border-bottom-color:var(--usm-chrome-line) !important}
+.usm-header-sep{background:var(--usm-chrome-line)}
+/* C - the brand mark. Both stops are dark enough that the white USM letters hold: #6d28d9 gives 7.1:1 and
+   #0e7490 5.4:1, so the gradient cannot drop the mark under 4.5:1 at any point along it. In dark the mark keeps
+   the panel's own ink, exactly the convention the row actions use for a filled hue. */
+#usm-rail .usm-rail-mark{background:linear-gradient(140deg,#6d28d9 42%,#0e7490);color:#fff;
+  box-shadow:0 2px 8px rgba(109,40,217,.24)}
+html.dark #usm-rail .usm-rail-mark{background:linear-gradient(140deg,#a78bfa,#22d3ee);color:#111827;
+  box-shadow:0 2px 8px rgba(139,92,246,.32)}
+
+/* B - the header's controls, each with one hue of its own ----------------------------------------------- */
+#usm-notifications-launch{--usm-tool-soft:rgba(2,132,199,.10);--usm-tool-line:rgba(2,132,199,.28);--usm-tool-ink:#0284c7;--usm-tool-fill:#0369a1}
+#usm-messages-launch{--usm-tool-soft:rgba(15,118,110,.10);--usm-tool-line:rgba(15,118,110,.28);--usm-tool-ink:#0f766e;--usm-tool-fill:#115e59}
+#usm-health-launch{--usm-tool-soft:rgba(225,29,72,.08);--usm-tool-line:rgba(225,29,72,.24);--usm-tool-ink:#be123c;--usm-tool-fill:#e11d48}
+html.dark #usm-notifications-launch{--usm-tool-soft:rgba(14,165,233,.16);--usm-tool-line:rgba(125,211,252,.36);--usm-tool-ink:#7dd3fc;--usm-tool-fill:#0ea5e9}
+html.dark #usm-messages-launch{--usm-tool-soft:rgba(20,184,166,.14);--usm-tool-line:rgba(94,234,212,.34);--usm-tool-ink:#5eead4;--usm-tool-fill:#14b8a6}
+html.dark #usm-health-launch{--usm-tool-soft:rgba(244,63,94,.14);--usm-tool-line:rgba(253,164,175,.34);--usm-tool-ink:#fda4af;--usm-tool-fill:#f43f5e}
+#usm-notifications-launch,#usm-messages-launch,#usm-health-launch{background:var(--usm-tool-soft);
+  border-color:var(--usm-tool-line);color:var(--usm-tool-ink)}
+#usm-notifications-launch:hover,#usm-messages-launch:hover,#usm-health-launch:hover{background:var(--usm-tool-fill);
+  border-color:var(--usm-tool-fill);color:#fff}
+html.dark #usm-notifications-launch:hover,html.dark #usm-messages-launch:hover,html.dark #usm-health-launch:hover{color:#111827}
+/* A badge is punched out of the well it sits on, so its halo has to take that well's tint; left on --usm-surface
+   it would read as a white nick in a coloured circle. The custom property is inherited from the button. */
+#usm-notifications-badge:not([hidden]),#usm-messages-unread:not([hidden]){box-shadow:0 0 0 2px var(--usm-tool-soft,var(--usm-surface))}
+/* Theme and Log out are the header's two controls that were never given a well in the same language as the other
+   three: they are raw utility classes, and an earlier block paints them with body.font-sans + !important, worth
+   (0,2,3). A bare header button[onclick] rule is (0,1,2) and silently loses to it - measured, not guessed - so this
+   block hooks the same body class and ties, winning only because it is spliced last. The same earlier block also
+   carries dark variants under body.dark, but the dark class lives on <html>, so those seven rules have never applied
+   and dark mode has been showing a pale amber chip on a near-black header. Colour only: no height or padding is
+   restated, because these two already sit at the row height the tools use. */
+/* Ink and fill are deliberately the darker pair first: #b45309 on the pale amber well measured 4.49:1, which is
+   under AA for 11px text, so the well carries #92400e (6.2:1) and only the hover fill uses #b45309 (white on it is
+   5.0:1). */
+header button[onclick="toggleDarkMode()"]{--usm-tool-soft:rgba(217,119,6,.10);--usm-tool-line:rgba(217,119,6,.28);--usm-tool-ink:#92400e;--usm-tool-fill:#b45309}
+header button[onclick="logoutUSMSmart()"]{--usm-tool-soft:rgba(134,25,143,.09);--usm-tool-line:rgba(134,25,143,.26);--usm-tool-ink:#86198f;--usm-tool-fill:#701a75}
+html.dark header button[onclick="toggleDarkMode()"]{--usm-tool-soft:rgba(217,119,6,.16);--usm-tool-line:rgba(252,211,77,.36);--usm-tool-ink:#fcd34d;--usm-tool-fill:#f59e0b}
+html.dark header button[onclick="logoutUSMSmart()"]{--usm-tool-soft:rgba(217,70,239,.14);--usm-tool-line:rgba(240,171,252,.34);--usm-tool-ink:#f0abfc;--usm-tool-fill:#d946ef}
+body.font-sans header button[onclick="toggleDarkMode()"],body.font-sans header button[onclick="logoutUSMSmart()"]{
+  border:1px solid var(--usm-tool-line) !important;border-radius:9px;background:var(--usm-tool-soft) !important;
+  color:var(--usm-tool-ink) !important;
+  transition:background-color .14s ease,border-color .14s ease,color .14s ease}
+body.font-sans header button[onclick="toggleDarkMode()"]:hover,body.font-sans header button[onclick="logoutUSMSmart()"]:hover{
+  background:var(--usm-tool-fill) !important;border-color:var(--usm-tool-fill) !important;color:#fff !important}
+html.dark body.font-sans header button[onclick="toggleDarkMode()"]:hover,html.dark body.font-sans header button[onclick="logoutUSMSmart()"]:hover{color:#111827 !important}
+#usm-health-launch:focus-visible,#usm-notifications-launch:focus-visible,#usm-messages-launch:focus-visible,
+header button[onclick="toggleDarkMode()"]:focus-visible,header button[onclick="logoutUSMSmart()"]:focus-visible{
+  box-shadow:0 0 0 3px var(--usm-accent-ring)}
+
+
+/* ===== usmsmart-header-wash-v1 ===== */
+/* Stage IX: carry the segment hue across the empty centre of the header, and pay for it.
+   Variant A of the two previews the operator chose. Two traps had to be cleared before this rule could be live at all.
+     1 The header's surface is painted by the "background" SHORTHAND at !important in both themes, and that shorthand
+       resets background-image to none. A plain background-image rule here measures as none - dead CSS, the same failure
+       VH hit twice. So it is !important, and because two !important rules settle on specificity alone, each branch
+       carries one more class than the shorthand it has to beat: html:not(.dark) / html.dark, the move VH used for the
+       header hairline.
+     2 The wash costs contrast exactly where the username label sits - the fade runs to 58% and the label is inside it,
+       while every other header ink is not (the avatar chip paints an opaque well, and each tool button carries its own
+       tint). That label measured 2.55:1 light / 3.03:1 dark BEFORE this stage existed, already under AA at 10px, so
+       darkening it is part of the wash rather than an extra on top: #475569 and #b4b4bd hold 6.5:1 light and 5.4:1
+       dark at the WORST point of the sweep the gate runs - every segment hue in this file, eight header widths, and
+       both backdrop brackets. That sweep is why these are not the obvious pair: Tailwind's own zinc-400 sits at
+       4.30:1 under the Analytics cyan hue on a 1100px header, so the token that looks right fails the maths. The
+       selector names both utility classes of that span, so it outranks Tailwind's ".dark .dark\:text-zinc-500"
+       without touching the 14 other elements sharing that pair.
+   Nothing is stored and no markup moves: deleting this block returns the header to the plain Stage VH surface.
+   The hue follows the segment, so Analytics washes cyan and Sysweb green just like the rail already does. */
+html:not(.dark) body > header,html.dark body > header{background-image:linear-gradient(97deg,var(--usm-chrome-soft) 0%,rgba(255,255,255,0) 58%) !important}
+html:not(.dark) body > header span.font-mono.truncate{color:#475569}
+html.dark body > header span.font-mono.truncate{color:#b4b4bd}
+
+
+/* ===== usmsmart-header-ink-v1 ===== */
+/* Stage X: the header's status inks, measured instead of named.
+   Two controls carried text the eye could not read, and both were inherited rather than introduced - they predate
+   the wash, and the wash only made the pill's amber worse. Nothing here retints a token: --usm-success,
+   --usm-warning and --usm-danger are painted on dozens of surfaces, and re-pointing one of them to buy legibility
+   for a single 11px label would move half the product. Each ink is re-declared inside the pill's own selectors
+   through --usm-db-ink, the variable S12 already routes both the label and the dot through, so the dot follows
+   automatically and nothing outside these rules can notice.
+   WHY LIGHT AND DARK NEED DIFFERENT INKS - and it is the surface, not the hue. The pill paints itself opaque in
+   light (background:var(--usm-surface) = #ffffff, and on hover --usm-surface-soft = #f8fafc), so the segment wash
+   behind it is irrelevant and a deep ink is free. In dark the pill is deliberately transparent
+   (html.dark .usm-header-tools>button.usm-db-status{background:transparent}), so its label sits directly on the
+   header: a 90%-opaque sheet over whatever the page shows behind a sticky header, with VH's --usm-chrome-soft wash
+   on top. That composite is 9 segment hues x 2 backdrop brackets x full-strength and fully-faded = 36 surfaces, and
+   the mid-tone hues the tokens carry now measure as low as 2.21:1 on it. So light goes DOWN the scale and dark goes
+   UP it, and the sweep is what decides by how much - not a token name, which is how the shipped pair got to 3.04:1.
+   THE SIX STATE INKS ARE STAGE VII'S, VERBATIM. The source badge one screen below the header already paints
+   ok/warn/bad for the same question ("is the source live?") and its dark pair survived review: #047857/#92400e/
+   #be123c light, #6ee7b7/#fcd34d/#fda4af dark. Adopting them is not a shortcut - two controls that report the same
+   state in the same product should not be two different greens - and they clear AA on all 36 dark surfaces with
+   6.80/7.19/5.48:1 to spare, while the tokens they replace fail at 3.60/3.04/4.49 and 2.75/3.26/2.21. The gate
+   re-reads both blocks from the artifact and asserts they still agree, so the pair cannot drift apart later.
+   NEUTRAL ("Checking", before the probe answers) keeps the light value and pays in dark: --usm-muted #a1a1aa
+   reaches only 4.05:1 here. The badge's own neutral is the same #a1a1aa but it sits in its own opaque #18181b well,
+   which is why that ink was never a problem there - the transparent pill is a different surface, not a different
+   colour choice. #b4b4bd is Stage IX's header label ink, already proven on this exact composite (5.04:1 worst case),
+   so the pill and the username beside it now match while both stay legible.
+     1 The rule is written on .is-checking rather than on the bare pill selector for a cascade reason. The neutral
+       base is (0,2,1) and the three state rules are (0,3,1); a theme-qualified base override would be (0,3,2) and
+       would BEAT every state rule - specificity counts element tokens too, so html.dark adds one - silently
+       pinning the pill to grey for every state. Naming .is-checking makes it (0,4,2) and, more importantly, it
+       cannot collide: usm-db-status-probe removes is-checking in the same statement that adds a state, so the two
+       never sit on one element. Same lesson for the states: html:not(.dark)/html.dark + the full pill chain is
+       (0,4,2), which strictly beats the shipped (0,3,1) that a bare extra class would only tie.
+   THE AVATAR CHIP IS FIXED GLOBALLY, NOT IN THE HEADER. .usm-avatar's comment says one class owns every avatar in
+   the product, and the failing pair is the chip itself - #8b5cf6 on the #241f3d --usm-accent-soft well, 3.71:1 -
+   which is failing in the rail, the profile modal and the thread list exactly as loudly as in the header. A
+   header-only override would make the same chip two different colours, so this is the whole class: in dark the
+   initials take --usm-accent-hover (#a78bfa, 5.77:1), the brighter step the file already defines for this hue.
+   Light needs nothing - 6.48:1 - so no light rule is written. Left alone on purpose: #usm-messages-page
+   .usm-msg-avatar repeats the same --usm-accent-on---usm-accent-soft pair at the same numbers, but it is a
+   Messages-segment control rather than the header, so it is reported and not touched here.
+   --usm-db-ring keeps its current alpha. It is a 3px halo at .16-.18 behind the dot, and a neighbouring hue at that
+   strength is not legible enough to be a contrast target or to read as a different colour.
+   Nothing is stored, no markup moves and no rule is edited: deleting this block returns the installed bytes exactly. */
+html:not(.dark) .usm-header-tools>button.usm-db-status.ok{--usm-db-ink:#047857}
+html:not(.dark) .usm-header-tools>button.usm-db-status.warning{--usm-db-ink:#92400e}
+html:not(.dark) .usm-header-tools>button.usm-db-status.error{--usm-db-ink:#be123c}
+html.dark .usm-header-tools>button.usm-db-status.ok{--usm-db-ink:#6ee7b7}
+html.dark .usm-header-tools>button.usm-db-status.warning{--usm-db-ink:#fcd34d}
+html.dark .usm-header-tools>button.usm-db-status.error{--usm-db-ink:#fda4af}
+html.dark .usm-header-tools>button.usm-db-status.is-checking{--usm-db-ink:#b4b4bd}
+html.dark .usm-avatar{color:var(--usm-accent-hover)}
+
+
+/* ===== usmsmart-header-profile-v1 ===== */
+/* Stage XI: the signed-in identity in the header becomes a control - bigger, in its own colour, clickable.
+   The operator asked for three things and each has a different reason behind it, so they are separate rules rather
+   than one lump: SIZE (24px chip -> a new 32px step, label 10px -> 12px), COLOUR (brand violet, filled, white
+   initials, in BOTH themes), and CLICK (the chip and the name are one button that opens the existing Profil Saya
+   modal through the openMyProfile() the rail already calls - no new JS, no new modal).
+   WHY THE FILL IS DEEPER THAN THE DARK ACCENT. A filled disc means the initials are the text and the disc is the
+   surface, so the pair is decided by the disc, not by the theme token. #8b5cf6 - the dark --usm-accent - is a
+   mid-tone: white on it measures 4.23:1, under AA for the 12px initials, and near-black on it only reaches 4.96
+   with pure #000. #7c3aed is the deepest step that still reads as a bright disc on the dark header while white
+   clears AA at 5.70:1, and light keeps the token itself: #6d28d9 with white is 7.10:1. Both hover states are
+   inherited, not invented - the pill background and the label's accent-on-hover are exactly what
+   .usm-header-tools>button:hover already does one column over, so the profile and the five tool buttons share one
+   hover language, and the label on that well measures 6.48:1 light / 5.77:1 dark. The resting label ink is NOT
+   restated here: Stage IX's #475569 / #b4b4bd pair is the measured one, this stage leaves those two rules
+   byte-identical (the gate asserts it), and they keep working because the span is still a descendant of
+   body > header after the wrap - which is why IX's selectors name the classes rather than a child chain that a new
+   parent could break.
+     1 The dark ring is #a78bfa, not the fill. WCAG 1.4.11 wants 3:1 on a component boundary, and the violet FILL
+       only separates 1.82:1 from the brightest of the 36 washed dark header surfaces - the fill cannot both carry
+       white initials at 4.5:1 and clear 3:1 against a surface that bright, the two pull opposite ways, so the ring
+       does the boundary job at 3.81:1 worst-case while the fill does the brand. Light needs no ring: #6d28d9 on the
+       opaque white header is 7.10:1 on its own.
+     2 Specificity, because this is the third time the header has bitten. The chip rules are written as
+       "header button.usm-header-profile .usm-avatar" = (0,2,2): it beats .usm-avatar.has-picture's
+       {background:transparent;border-color:...} at (0,2,0) and Stage X's html.dark .usm-avatar{color:...} at
+       (0,2,1) WITHOUT !important - so nothing here adds one, and a photo keeps a violet ring instead of the grey
+       --usm-line-strong. The dark branch is (0,3,3) and only re-declares background and border, letting the base
+       rule keep color:#fff. The hover label rules name .font-mono.truncate to outrank IX's (0,3,4) at (0,5,4);
+       if they did not, the label would sit on the accent token but paint IX's grey and look like a dead rule.
+     3 aria-hidden on the chip wrapper, because the button's accessible name comes from its content and the initials
+       span would be read: the name would be "II administrator" instead of "administrator". The picture is already
+       alt="", the initials are decorative next to the visible username, and the tooltip plus aria-haspopup say what
+       it does. The id stays on the CHIP span, not the button - paintAvatar() looks up document.getElementById
+       ('usm-header-avatar') after an upload and only toggles classes and its own children, so it keeps repainting
+       in place; the new 32px step therefore survives a picture change.
+     4 There is deliberately NO focus rule, and that is a correction rather than an omission. An earlier draft gave
+       the control its own ring with header button.usm-header-profile:focus-visible{outline:none;box-shadow:0 0 0 3px
+       var(--usm-accent-ring)}. On the served page that rule is dead CSS: five product-wide rules set an outline on
+       this button while it is focused and all five use !important, so a plain outline:none cannot touch them - the
+       pill would paint the app's outline AND this box-shadow, two halos at once. Escalating to !important would win
+       the fight and break the rule this stage states above (nothing here adds one), so focus is handed back to the
+       outline every other header button already gets. Measured on the live document, not reasoned from the cascade:
+       the focused pill keeps outline 2.4px solid rgba(109,40,217,.28) at offset 2px with no box-shadow, and the
+       gate asserts this block ships no focus-visible rule and no ring token at all.
+   The .usm-avatar-32 step is declared here rather than inside the size family at .usm-avatar-20/-24/-28/-72 so the
+   whole stage stays deletable; moving it into the family is S5 work, not this stage's.
+   Nothing is stored and no handler is added: deleting this block plus the two edits above returns the installed
+   bytes exactly. The chip goes back to 24px grey-violet, the label to 11px, and the header stops opening Profil
+   Saya - the rail entry keeps working, it always did. */
+.usm-avatar-32{width:32px;height:32px;font-size:12px}
+.usm-header-profile-mark{display:inline-flex;flex:none;line-height:0}
+header button.usm-header-profile{display:inline-flex;align-items:center;gap:9px;min-width:0;max-width:100%;
+  padding:4px 10px 4px 4px;border:1px solid transparent;border-radius:999px;background:transparent;
+  color:inherit;font-family:inherit;text-align:left;cursor:pointer;
+  transition:background-color .14s ease,border-color .14s ease}
+header button.usm-header-profile:hover{background:var(--usm-accent-soft);border-color:var(--usm-accent)}
+header button.usm-header-profile .usm-avatar{background:var(--usm-accent);border-color:var(--usm-accent);color:#fff}
+html.dark header button.usm-header-profile .usm-avatar{background:#7c3aed;border-color:#a78bfa}
+html:not(.dark) header button.usm-header-profile:hover span.font-mono.truncate{color:var(--usm-accent)}
+html.dark header button.usm-header-profile:hover span.font-mono.truncate{color:var(--usm-accent-hover)}
+
+
+/* ===== usmsmart-source-badge-v1 ===== */
+/* Stage VII. Every rule hangs off #uda-source-badge, so the ID outranks the single-class Tailwind utilities
+   it replaced and no state rule can be quietly outspecific'd by them (the trap VH found with !important).
+   prefers-reduced-motion repeats the full state selectors for the same reason: a bare
+   #uda-source-badge .usm-src-dot there would lose to #uda-source-badge.is-ok .usm-src-dot below it. */
+#uda-source-badge{border-color:#e2e8f0;background:#f1f5f9;color:#475569;white-space:nowrap;max-width:100%;min-width:0}
+/* min-width:0 is load-bearing, not decoration: a nowrap flex item's automatic minimum is its full text width,
+   so without it a long DB_NAME() answer cannot shrink and spills past the header row instead of ellipsising. */
+#uda-source-badge .usm-src-text{overflow:hidden;text-overflow:ellipsis}
+#uda-source-badge .usm-src-dot{background:#94a3b8;opacity:.55;flex:none}
+#uda-source-badge.is-checking .usm-src-dot{animation:usm-src-breathe 2.4s ease-in-out infinite}
+#uda-source-badge.is-ok{border-color:rgba(5,150,105,.32);background:rgba(16,185,129,.12);color:#047857}
+#uda-source-badge.is-ok .usm-src-dot{background:#10b981;opacity:1;animation:usm-src-blink 1.4s ease-in-out infinite}
+#uda-source-badge.is-warn{border-color:rgba(217,119,6,.36);background:rgba(245,158,11,.14);color:#92400e}
+#uda-source-badge.is-warn .usm-src-dot{background:#f59e0b;opacity:1;animation:usm-src-blink 2.8s ease-in-out infinite}
+#uda-source-badge.is-bad{border-color:rgba(225,29,72,.36);background:rgba(225,29,72,.12);color:#be123c}
+#uda-source-badge.is-bad .usm-src-dot{background:#e11d48;opacity:1;animation:usm-src-blink 2.8s ease-in-out infinite}
+@keyframes usm-src-blink{0%,100%{opacity:1}50%{opacity:.16}}
+@keyframes usm-src-breathe{0%,100%{opacity:.55}50%{opacity:.22}}
+html.dark #uda-source-badge{border-color:#3f3f46;background:#18181b;color:#a1a1aa}
+html.dark #uda-source-badge .usm-src-dot{background:#52525b}
+html.dark #uda-source-badge.is-ok{border-color:rgba(52,211,153,.34);background:rgba(6,95,70,.34);color:#6ee7b7}
+html.dark #uda-source-badge.is-ok .usm-src-dot{background:#34d399}
+html.dark #uda-source-badge.is-warn{border-color:rgba(252,211,77,.34);background:rgba(120,53,15,.36);color:#fcd34d}
+html.dark #uda-source-badge.is-warn .usm-src-dot{background:#fbbf24}
+html.dark #uda-source-badge.is-bad{border-color:rgba(251,113,133,.36);background:rgba(136,19,55,.36);color:#fda4af}
+html.dark #uda-source-badge.is-bad .usm-src-dot{background:#fb7185}
+@media(prefers-reduced-motion:reduce){
+  #uda-source-badge.is-checking .usm-src-dot,#uda-source-badge.is-ok .usm-src-dot,
+  #uda-source-badge.is-warn .usm-src-dot,#uda-source-badge.is-bad .usm-src-dot{animation:none;opacity:.9}
+}
+
+/* ===== Mobile header + hero balance (2026-11-05) =====
+   At <=560px the header wraps into two rows. Keep the signed-in profile on the
+   left of row one and centre the tool strip on row two, instead of centring a
+   short profile block in the middle of an otherwise empty row. */
+@media (max-width:560px){
+  body.font-sans header.sticky > div.max-w-\[1100px\]{justify-content:space-between;gap:6px;padding:8px 12px;}
+  body.font-sans header.sticky > div.max-w-\[1100px\] > div:last-child{width:100%;justify-content:center;}
+}
+
+/* The decorative network tile in the Sysweb hero takes 60px of a 246px phone
+   row; hide it below 640px so the heading keeps a readable measure. */
+.usm-hero-ico{display:none}
+@media(min-width:640px){.usm-hero-ico{display:flex}}

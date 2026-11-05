@@ -1,0 +1,13 @@
+# USMSmart — block direct HTTP access to data files. PHP reads these from the filesystem,
+# so application traffic is unaffected; only browser/curl fetches are refused.
+<FilesMatch "\.(json|sql|log|sha256|ini|md)$">
+    Require all denied
+</FilesMatch>
+
+# Do not list application files if a request resolves to the directory itself.
+Options -Indexes
+
+# Compress text responses (the dashboard HTML, its CSS and JS are large).
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml text/javascript application/javascript application/x-javascript application/json application/xml image/svg+xml
+</IfModule>
