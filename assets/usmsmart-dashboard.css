@@ -1989,3 +1989,12 @@ html.dark #uda-source-badge.is-bad .usm-src-dot{background:#fb7185}
    row; hide it below 640px so the heading keeps a readable measure. */
 .usm-hero-ico{display:none}
 @media(min-width:640px){.usm-hero-ico{display:flex}}
+
+/* --- Keyboard and reduced-motion affordances --------------------------- */
+.usm-skip{position:fixed;left:16px;top:-64px;z-index:3000;padding:10px 16px;border-radius:10px;background:#4f46e5;color:#fff;font-size:13px;font-weight:600;text-decoration:none;box-shadow:0 8px 20px rgba(79,70,229,.35);transition:top .15s ease}
+.usm-skip:focus{top:14px}
+#usm-main:focus{outline:none}
+[role="dialog"]:focus{outline:none}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}

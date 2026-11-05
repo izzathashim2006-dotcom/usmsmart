@@ -1,0 +1,2 @@
+# Internal PHP includes: never serve them directly.
+Require all denied

@@ -25,16 +25,14 @@
 
     <link rel="manifest" href="index.php?action=manifest">
     <meta name="theme-color" content="#6366f1">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="font" type="font/woff2" href="assets/vendor/fonts/plus-jakarta-sans-latin.woff2" crossorigin>
     <script>
         // Prevent dark-mode flash before paint (also re-applied in JS at bottom)
         if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
     </script>
     <script src="assets/vendor/chart-4.6.1.umd.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/vendor/fonts.css?v=<?php echo @filemtime(__DIR__ . '/../assets/vendor/fonts.css'); ?>">
+    <link rel="stylesheet" href="assets/vendor/font-awesome.css?v=<?php echo @filemtime(__DIR__ . '/../assets/vendor/font-awesome.css'); ?>">
     <link rel="stylesheet" href="assets/tailwind.css?v=<?php echo @filemtime(__DIR__ . '/../assets/tailwind.css'); ?>">
         <link rel="stylesheet" href="assets/usmsmart-dashboard.css?v=<?php echo @filemtime(__DIR__ . '/../assets/usmsmart-dashboard.css'); ?>">
 
@@ -47,6 +45,7 @@
 
 </head>
 <body class="font-sans antialiased min-h-screen flex flex-col bg-[#F8FAFC] text-[#0F172A] dark:bg-[#09090B] dark:text-[#F4F4F5] transition-colors duration-200">
+    <a href="#usm-main" class="usm-skip">Langkau ke kandungan utama</a>
 
     <!-- LEFT RAIL: brand plus every segment entry. Moved out of the top row (see usmsmart-ui-tokens-v1). -->
     <aside id="usm-rail" class="usm-rail" aria-label="Navigasi utama">
@@ -94,7 +93,7 @@
         <div class="max-w-[1100px] mx-auto px-5 flex items-center justify-between h-14">
             <!-- Left: who is signed in. The brand and all navigation now live in #usm-rail. -->
             <div class="flex items-center gap-2 min-w-0">
-                <button type="button" id="usm-header-profile" class="usm-header-profile" onclick="openMyProfile()" title="Profil Saya" aria-haspopup="dialog" aria-controls="my-profile-modal"><span class="usm-header-profile-mark" aria-hidden="true"><?php echo usmsmartAvatarChipHtml('usm-header-avatar', (int)($_SESSION['user_id'] ?? 0), (string)($_SESSION['avatar_updated_at'] ?? ''), (string)($_SESSION['username'] ?? ''), 'usm-avatar-32', $usmTabToken); ?></span><span class="truncate text-[12px] font-medium font-mono tracking-wide text-slate-400 dark:text-zinc-500"><?php echo htmlspecialchars((string)($_SESSION['username'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></span></button>
+                <button type="button" id="usm-header-profile" class="usm-header-profile" onclick="openMyProfile()" title="Profil Saya" aria-haspopup="dialog" aria-controls="my-profile-modal"><span class="usm-header-profile-mark" aria-hidden="true"><?php echo usmsmartAvatarChipHtml('usm-header-avatar', (int)($_SESSION['user_id'] ?? 0), (string)($_SESSION['avatar_updated_at'] ?? ''), (string)($_SESSION['username'] ?? ''), 'usm-avatar-32', $usmTabToken); ?></span><span class="truncate text-[12px] font-medium font-mono tracking-wide text-slate-400 dark:text-zinc-400"><?php echo htmlspecialchars((string)($_SESSION['username'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></span></button>
             </div>
             <!-- Right: information panels, theme and session. Everything is in flow: a floating dock landed on top of page buttons. -->
             <div class="flex items-center gap-1.5 text-[11px]">
@@ -121,7 +120,7 @@
         </div>
     </header>
 
-    <main class="flex-grow max-w-[1100px] w-full mx-auto px-5 py-7 space-y-5">
+    <main id="usm-main" tabindex="-1" class="flex-grow max-w-[1100px] w-full mx-auto px-5 py-7 space-y-5">
         
         <!-- HALAMAN UTAMA: TRANSPORTER -->
         <div id="view-transporter" class="space-y-5">
@@ -133,14 +132,14 @@
                     </div>
                     <div>
                         <h3 class="font-semibold text-xs text-slate-800 dark:text-zinc-100 uppercase tracking-wide">Modul Direktori Pelajar (Master CRUD Page)</h3>
-                        <p class="text-[10px] text-slate-400 dark:text-zinc-500 mt-0.5">Pengurusan data pelajar Kampus Kejuruteraan USM.</p>
+                        <p class="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">Pengurusan data pelajar Kampus Kejuruteraan USM.</p>
                     </div>
                 </div>
                 <button onclick="navigateToDirectoryPage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-graduation-cap"></i><span>Buka Direktori Pelajar</span>
                     <i class="fa-solid fa-arrow-right text-[9px]"></i>
                 </button>
-                <button type="button" onclick="navigateToStaffDirectory()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer">
+                <button type="button" onclick="navigateToStaffDirectory()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-id-badge"></i><span>Buka Direktori Staf</span><i class="fa-solid fa-arrow-right text-[9px]"></i>
                 </button>
                 <button type="button" onclick="navigateToSyswebSegment('transporter')" class="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer" title="Buka Segmen Integrasi Sysweb">
@@ -214,7 +213,7 @@
                     </div>
 
                     <div class="border-t border-slate-100 pt-5 dark:border-zinc-800">
-                        <div class="mb-3 flex items-center gap-2"><span class="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300"><i class="fa-solid fa-filter text-[10px]"></i></span><h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-zinc-200">Penapis rekod</h3><span class="text-[10px] text-slate-400">Pilihan</span></div>
+                        <div class="mb-3 flex items-center gap-2"><span class="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300"><i class="fa-solid fa-filter text-[10px]"></i></span><h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-zinc-200">Penapis rekod</h3><span class="text-[10px] text-slate-500 dark:text-slate-400">Pilihan</span></div>
                         <div class="grid min-w-0 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                             <div class="min-w-0"><label for="uda-live-search" class="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Carian pantas</label><div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i><input id="uda-live-search" type="search" maxlength="120" placeholder="Nama, matrik, no. staf atau UID" class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-9 pr-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"></div></div>
                             <div class="min-w-0"><label for="uda-live-status" class="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Status kad</label><select id="uda-live-status" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"><option value="">Semua status</option><option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option><option value="Hilang">Hilang</option></select></div>
@@ -245,21 +244,21 @@
 
             <section id="dashboard-metrics" class="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono hidden page-transition">
                 <div class="bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-clean">
-                    <div class="flex items-center justify-between text-slate-400 dark:text-zinc-500 mb-2">
+                    <div class="flex items-center justify-between text-slate-400 dark:text-zinc-400 mb-2">
                         <span class="text-[11px] uppercase tracking-wider font-semibold">Jumlah Rekod Sesi</span>
                         <i class="fa-solid fa-folder-open text-indigo-500 text-sm"></i>
                     </div>
                     <div id="metric-total-records" class="text-2xl font-bold text-slate-900 dark:text-white">0</div>
                 </div>
                 <div class="bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-clean">
-                    <div class="flex items-center justify-between text-slate-400 dark:text-zinc-500 mb-2">
+                    <div class="flex items-center justify-between text-slate-400 dark:text-zinc-400 mb-2">
                         <span class="text-[11px] uppercase tracking-wider font-semibold">Pusat Pengajian</span>
                         <i class="fa-solid fa-building-columns text-indigo-500 text-sm"></i>
                     </div>
                     <div id="metric-total-schools" class="text-2xl font-bold text-slate-900 dark:text-white">0</div>
                 </div>
                 <div class="bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-clean">
-                    <div class="flex items-center justify-between text-slate-400 dark:text-zinc-500 mb-2">
+                    <div class="flex items-center justify-between text-slate-400 dark:text-zinc-400 mb-2">
                         <span class="text-[11px] uppercase tracking-wider font-semibold">Status Enjin</span>
                         <i class="fa-solid fa-microchip text-emerald-500 text-sm"></i>
                     </div>
@@ -292,7 +291,7 @@
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs font-mono">
-                        <thead class="bg-slate-50/80 dark:bg-zinc-900 text-slate-400 dark:text-zinc-500 border-b border-slate-200 dark:border-zinc-800 text-[10px] uppercase tracking-wider">
+                        <thead class="bg-slate-50/80 dark:bg-zinc-900 text-slate-400 dark:text-zinc-400 border-b border-slate-200 dark:border-zinc-800 text-[10px] uppercase tracking-wider">
                             <tr>
                                 <th class="p-3.5 text-center"><input type="checkbox" checked id="select-all" onclick="toggleSelectAll(this)" class="rounded accent-indigo-600"></th>
                                 <th class="p-3.5">Bil</th>
@@ -328,7 +327,7 @@
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs font-mono">
-                        <thead class="bg-slate-50/80 dark:bg-zinc-900 text-slate-400 dark:text-zinc-500 border-b border-slate-200 dark:border-zinc-800 text-[10px] uppercase tracking-wider">
+                        <thead class="bg-slate-50/80 dark:bg-zinc-900 text-slate-400 dark:text-zinc-400 border-b border-slate-200 dark:border-zinc-800 text-[10px] uppercase tracking-wider">
                             <tr>
                                 <th class="p-3.5">Bil</th>
                                 <th class="p-3.5">Nama & Matrik</th>
@@ -410,7 +409,7 @@
 
                 <div class="overflow-x-auto rounded-lg border border-slate-200/60 dark:border-zinc-800/50">
                     <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-50/80 dark:bg-zinc-900/60 text-slate-400 dark:text-zinc-500 border-b border-slate-200/60 dark:border-zinc-800/50 text-[10px] uppercase tracking-wider">
+                        <thead class="bg-slate-50/80 dark:bg-zinc-900/60 text-slate-400 dark:text-zinc-400 border-b border-slate-200/60 dark:border-zinc-800/50 text-[10px] uppercase tracking-wider">
                             <tr>
                                 <th>ID / Nama Sesi</th>
                                 <th>Tarikh & Masa</th>
@@ -451,7 +450,7 @@
                         </p>
                     </div>
                     <div class="pt-2">
-                        <button id="usm-sysweb-after-uda-btn" type="button" onclick="openSyswebDemo()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white px-5 py-3 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <button id="usm-sysweb-after-uda-btn" type="button" onclick="openSyswebDemo()" class="w-full bg-emerald-700 hover:bg-emerald-800 active:scale-[0.99] text-white px-5 py-3 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-network-wired"></i>
                             <span>Teruskan ke Sysweb (Langkah Seterusnya)</span>
                             <i class="fa-solid fa-arrow-right ml-1"></i>
@@ -502,14 +501,14 @@
                             <button onclick="downloadMasterCSV()" class="bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 px-3.5 py-2 rounded-xl text-xs font-medium transition flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-file-arrow-down"></i> <span>Eksport CSV</span>
                             </button>
-                            <button type="button" onclick="exportFilteredStudentsToSysweb()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-medium transition shadow-sm flex items-center gap-1.5 cursor-pointer" title="Eksport senarai pelajar yang ditapis ke Sysweb">
+                            <button type="button" onclick="exportFilteredStudentsToSysweb()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-medium transition shadow-sm flex items-center gap-1.5 cursor-pointer" title="Eksport senarai pelajar yang ditapis ke Sysweb">
                                 <i class="fa-solid fa-network-wired"></i> <span>Eksport Sysweb</span>
                             </button>
-                            <button onclick="document.getElementById('csv-file-input').click()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-medium transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+                            <button onclick="document.getElementById('csv-file-input').click()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-medium transition shadow-sm flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-file-arrow-up"></i> <span>Import CSV</span>
                             </button>
                             <input type="file" id="csv-file-input" class="hidden" accept=".csv" onchange="uploadCsvStudents(this)">
-                            <div id="csv-import-modal" class="hidden fixed inset-0 z-[100] bg-slate-950/50 p-3 sm:p-6 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="csv-import-title">
+                            <div id="csv-import-modal" class="hidden fixed inset-0 z-[100] bg-slate-950/50 p-3 sm:p-6 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="csv-import-title" data-modal-close="closeCsvImportModal">
                                 <div class="w-full max-w-5xl max-h-[92vh] overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 shadow-2xl flex flex-col">
                                     <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-zinc-700 flex items-start justify-between gap-3"><div><h3 id="csv-import-title" class="font-semibold text-slate-900 dark:text-white">Pratonton Import CSV</h3><p id="csv-import-subtitle" class="text-xs text-slate-500 mt-1">Semak data sebelum disimpan.</p></div><button type="button" onclick="closeCsvImportModal()" class="rounded-lg border px-3 py-1.5 text-sm">Tutup</button></div>
                                     <div class="p-4 flex flex-wrap gap-2 text-xs"><span id="csv-stat-total" class="rounded-lg bg-slate-100 dark:bg-zinc-800 px-3 py-2">Jumlah: 0</span><span id="csv-stat-valid" class="rounded-lg bg-emerald-50 text-emerald-800 px-3 py-2">Sedia: 0</span><span id="csv-stat-errors" class="rounded-lg bg-rose-50 text-rose-800 px-3 py-2">Ralat: 0</span><button id="csv-download-errors" type="button" onclick="downloadCsvImportErrors()" class="ml-auto rounded-lg border px-3 py-2" disabled>Muat turun laporan ralat</button></div>
@@ -573,7 +572,7 @@
 
                     <!-- QUICK FILTER PILLS BAR -->
                     <div class="flex flex-wrap items-center gap-2 pt-2 border-b border-slate-100 dark:border-zinc-800/60 pb-3" id="quick-expiry-pills">
-                        <span class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mr-1">Tapis Pantas:</span>
+                        <span class="text-[10px] font-bold text-slate-400 dark:text-zinc-400 uppercase tracking-wider mr-1">Tapis Pantas:</span>
                         <button type="button" id="pill-filter-all" onclick="viewStudentsByExpiryStatus('')" class="pill-filter-btn active px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs">
                             <span>Semua Pelajar</span> <span id="pill-count-all" class="text-[10px] opacity-80">(0)</span>
                         </button>
@@ -692,7 +691,7 @@
 
                 <div class="overflow-x-auto min-h-[380px]">
                     <table class="w-full text-left text-xs font-mono">
-                        <thead class="bg-slate-50/80 dark:bg-zinc-900 text-slate-400 dark:text-zinc-500 border-b border-slate-200 dark:border-zinc-800 text-[10px] uppercase tracking-wider sticky top-0">
+                        <thead class="bg-slate-50/80 dark:bg-zinc-900 text-slate-400 dark:text-zinc-400 border-b border-slate-200 dark:border-zinc-800 text-[10px] uppercase tracking-wider sticky top-0">
                             <tr>
                                 <th class="p-3.5 w-10 text-center">
                                     <input type="checkbox" id="master-select-all" onchange="toggleMasterSelectAll(this)" class="rounded accent-indigo-600 cursor-pointer" title="Pilih Semua di Muka Surat Ini">
@@ -761,7 +760,7 @@
                             <div><label for="new-user-password" class="block text-[11px] font-medium text-slate-600 dark:text-zinc-400 mb-1.5">Kata laluan sementara</label><input id="new-user-password" name="password" type="password" required minlength="12" autocomplete="new-password" placeholder="Sekurang-kurangnya 12 aksara" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 text-xs text-slate-900 dark:text-white focus:border-indigo-500 outline-none"></div>
                             <div><label for="new-user-role" class="block text-[11px] font-medium text-slate-600 dark:text-zinc-400 mb-1.5">Peranan</label><select id="new-user-role" name="role" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 text-xs text-slate-900 dark:text-white focus:border-indigo-500 outline-none"><option value="viewer">Viewer — akses baca</option><option value="admin">Admin — akses pentadbir</option></select></div>
                             <button id="create-user-submit" type="submit" class="w-full px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-xs font-semibold transition shadow-sm"><i class="fa-solid fa-plus mr-1.5"></i>Cipta akaun</button>
-                            <p class="text-[10px] text-slate-500 dark:text-zinc-500 leading-relaxed">Akses Admin memberi kuasa mengurus pengguna dan fungsi pentadbiran. Berikan peranan ini hanya kepada staf yang dibenarkan.</p>
+                            <p class="text-[10px] text-slate-500 dark:text-zinc-400 leading-relaxed">Akses Admin memberi kuasa mengurus pengguna dan fungsi pentadbiran. Berikan peranan ini hanya kepada staf yang dibenarkan.</p>
                         </form>
                     </div>
                 </div>
@@ -886,7 +885,7 @@
         </div>
 
         <!-- Modal pratonton rekod pendua: membandingkan rekod semasa dengan padanan -->
-        <div id="duplicate-preview-modal" class="hidden fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="duplicate-preview-title" onclick="if(event.target===this)closeDuplicatePreview()">
+        <div id="duplicate-preview-modal" class="hidden fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="duplicate-preview-title" data-modal-close="closeDuplicatePreview" onclick="if(event.target===this)closeDuplicatePreview()">
             <div class="max-w-5xl mx-auto my-6 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-700 rounded-2xl shadow-2xl overflow-hidden">
                 <div class="flex items-start justify-between gap-4 p-5 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900">
                     <div><p class="text-[10px] uppercase tracking-[.16em] font-bold text-rose-600">SEMAKAN REKOD PENDUA</p><h3 id="duplicate-preview-title" class="text-lg font-bold text-slate-900 dark:text-white">Perbandingan rekod</h3><p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">Bandingkan rekod asal dengan rekod yang mempunyai nilai sepadan.</p></div>
@@ -1070,7 +1069,7 @@
         </div>
 
         <!-- Audit event detail modal -->
-        <div id="audit-detail-modal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="audit-detail-title" onclick="if(event.target===this) closeAuditDetail()">
+        <div id="audit-detail-modal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="audit-detail-title" data-modal-close="closeAuditDetail" onclick="if(event.target===this) closeAuditDetail()">
             <div class="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-[#121214] shadow-2xl">
                 <div class="flex items-center justify-between gap-3 border-b border-slate-200 dark:border-zinc-800 p-5">
                     <div><p class="text-[10px] uppercase tracking-widest font-bold text-violet-600 dark:text-violet-400">AUDIT EVENT</p><h3 id="audit-detail-title" class="mt-1 text-base font-bold text-slate-900 dark:text-white">Butiran aktiviti</h3></div>
@@ -1098,7 +1097,7 @@
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <button type="button" onclick="exportStaffDirectoryToSysweb()" class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-800 hover:bg-teal-900 text-white px-4 py-2.5 text-xs font-bold shadow-xs cursor-pointer" title="Eksport senarai staf ke Sysweb"><i class="fa-solid fa-network-wired"></i>Eksport ke Sysweb</button>
-                        <button type="button" onclick="openLocalStaffForm()" <?php echo (($_SESSION['role'] ?? '') !== 'admin') ? 'hidden' : ''; ?> class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 text-xs font-bold"><i class="fa-solid fa-user-plus"></i>Tambah Staf</button>
+                        <button type="button" onclick="openLocalStaffForm()" <?php echo (($_SESSION['role'] ?? '') !== 'admin') ? 'hidden' : ''; ?> class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 text-xs font-bold"><i class="fa-solid fa-user-plus"></i>Tambah Staf</button>
                         <button type="button" id="sync-live-staff-button" onclick="syncLiveStaffToLocal()" <?php echo (($_SESSION['role'] ?? '') !== 'admin') ? 'hidden' : ''; ?> class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white px-4 py-2.5 text-xs font-bold"><i class="fa-solid fa-cloud-arrow-down"></i>Import dari SQL Server</button>
                         <button type="button" onclick="loadStaffDirectory(true)" class="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-zinc-900 text-emerald-800 dark:text-emerald-300 px-4 py-2.5 text-xs font-semibold"><i class="fa-solid fa-rotate"></i>Muat Semula</button>
                     </div>
@@ -1123,7 +1122,7 @@
                             <div><label for="local-staff-joined" class="block text-[11px] font-semibold mb-1">Tarikh mula / diberi</label><input id="local-staff-joined" type="date" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
                             <div><label for="local-staff-expiry" class="block text-[11px] font-semibold mb-1">Tarikh tamat kad</label><input id="local-staff-expiry" type="date" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
                             <div class="sm:col-span-2"><label for="local-staff-notes" class="block text-[11px] font-semibold mb-1">Catatan</label><input id="local-staff-notes" maxlength="500" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm" placeholder="Catatan ringkas (pilihan)"></div>
-                            <div class="sm:col-span-2 lg:col-span-3 flex flex-wrap justify-end gap-2 pt-2"><button type="button" onclick="closeLocalStaffForm()" class="rounded-lg bg-slate-100 dark:bg-zinc-800 px-4 py-2.5 text-xs font-semibold">Batal</button><button type="submit" id="local-staff-submit" class="rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1.5"></i>Simpan Rekod</button></div>
+                            <div class="sm:col-span-2 lg:col-span-3 flex flex-wrap justify-end gap-2 pt-2"><button type="button" onclick="closeLocalStaffForm()" class="rounded-lg bg-slate-100 dark:bg-zinc-800 px-4 py-2.5 text-xs font-semibold">Batal</button><button type="submit" id="local-staff-submit" class="rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1.5"></i>Simpan Rekod</button></div>
                         </form>
                     </div>
 
@@ -1134,7 +1133,7 @@
                             <tbody id="staff-directory-tbody" class="divide-y divide-emerald-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300"><tr><td colspan="8" class="px-3 py-8 text-center text-slate-500">Belum memuatkan data staf.</td></tr></tbody>
                         </table>
                     </div>
-                    <p class="text-[10px] text-slate-500 dark:text-zinc-500">Direktori pelajar kekal dalam modul biru/indigo. Direktori staf menggunakan tema hijau dan jadual ujian MySQL yang berasingan. Hanya Admin boleh membuat perubahan.</p>
+                    <p class="text-[10px] text-slate-500 dark:text-zinc-400">Direktori pelajar kekal dalam modul biru/indigo. Direktori staf menggunakan tema hijau dan jadual ujian MySQL yang berasingan. Hanya Admin boleh membuat perubahan.</p>
                 </div>
             </section>
         </div>
@@ -1219,7 +1218,7 @@
                                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                     <span>Simulasi Aktif</span>
                                 </p>
-                                <p class="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5" id="sysweb-last-sync-time">Belum ada transaksi</p>
+                                <p class="text-[11px] text-slate-400 dark:text-zinc-400 mt-0.5" id="sysweb-last-sync-time">Belum ada transaksi</p>
                             </div>
                             <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shrink-0">
                                 <i class="fa-solid fa-satellite-dish"></i>
@@ -1279,7 +1278,7 @@
                                 <button type="button" id="sysweb-batch-toggle-btn" onclick="toggleSyswebSource()" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 text-xs font-semibold text-slate-700 dark:text-zinc-300 transition cursor-pointer flex items-center gap-1.5 shadow-xs">
                                     <i class="fa-solid fa-shuffle text-indigo-500"></i><span>Tukar ke Sampel Demo</span>
                                 </button>
-                                <button type="button" id="sysweb-segment-send-btn" onclick="sendSyswebRecordsFromSegment()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-xs font-bold transition shadow-sm hover:shadow-md cursor-pointer flex items-center gap-2">
+                                <button type="button" id="sysweb-segment-send-btn" onclick="sendSyswebRecordsFromSegment()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-[0.99] text-white text-xs font-bold transition shadow-sm hover:shadow-md cursor-pointer flex items-center gap-2">
                                     <i class="fa-solid fa-paper-plane"></i><span>Hantar Batch Ini Sekarang</span>
                                 </button>
                             </div>
@@ -1384,7 +1383,7 @@
                             </div>
                             <div class="flex items-center gap-2 self-start sm:self-auto">
                                 <?php if (($_SESSION['role'] ?? '') === 'admin') { ?>
-                                <button type="button" id="sysweb-add-record-btn" onclick="openSyswebEditDrawer(-1)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition cursor-pointer shadow-xs">
+                                <button type="button" id="sysweb-add-record-btn" onclick="openSyswebEditDrawer(-1)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-bold transition cursor-pointer shadow-xs">
                                     <i class="fa-solid fa-plus text-[10px]"></i><span>Tambah Rekod</span>
                                 </button>
                                 <?php } ?>
@@ -1479,7 +1478,7 @@
                                 <div class="flex items-center gap-2 text-xs"><span id="sysweb-bulk-count" class="font-bold text-emerald-800 dark:text-emerald-300">0 dipilih</span><button type="button" onclick="selectAllFilteredSysweb()" class="text-emerald-700 dark:text-emerald-300 underline underline-offset-2">Pilih semua hasil penapis</button><button type="button" onclick="clearSyswebSelection()" class="text-slate-500 dark:text-zinc-400 underline underline-offset-2">Nyahpilih</button></div>
                                 <div class="flex flex-wrap gap-2">
                                     <button type="button" onclick="validateSelectedSysweb()" class="px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold"> <i class="fa-solid fa-shield-check mr-1"></i>Semak semula</button>
-                                    <button type="button" onclick="exportSelectedSyswebCSV()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold"><i class="fa-solid fa-file-csv mr-1"></i>Eksport pilihan</button>
+                                    <button type="button" onclick="exportSelectedSyswebCSV()" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-bold"><i class="fa-solid fa-file-csv mr-1"></i>Eksport pilihan</button>
                                 </div>
                             </div>
                         </div>
@@ -1549,7 +1548,7 @@
         </div>
 
         <!-- Sysweb Record CRUD Drawer (slide-over) -->
-        <div id="sysweb-record-detail" class="hidden fixed inset-0 z-[2050] bg-slate-950/50 backdrop-blur-sm p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="sysweb-detail-title" onclick="if(event.target===this)closeSyswebDetail()">
+        <div id="sysweb-record-detail" class="hidden fixed inset-0 z-[2050] bg-slate-950/50 backdrop-blur-sm p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="sysweb-detail-title" data-modal-close="closeSyswebDetail" onclick="if(event.target===this)closeSyswebDetail()">
             <div class="mx-auto mt-6 max-w-2xl rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 shadow-2xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between"><div><p class="text-[10px] uppercase tracking-widest font-bold text-emerald-600">Butiran Rekod</p><h3 id="sysweb-detail-title" class="font-bold text-lg text-slate-900 dark:text-white">Maklumat Sysweb</h3></div><button type="button" onclick="closeSyswebDetail()" class="w-9 h-9 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
                 <div id="sysweb-detail-content" class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs"></div>
@@ -1557,7 +1556,7 @@
             </div>
         </div>
 
-        <div id="sysweb-edit-drawer" class="hidden fixed inset-0 z-[2100]" role="dialog" aria-modal="true" aria-labelledby="sysweb-drawer-title">
+        <div id="sysweb-edit-drawer" class="hidden fixed inset-0 z-[2100]" role="dialog" aria-modal="true" aria-labelledby="sysweb-drawer-title" data-modal-close="closeSyswebEditDrawer">
             <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onclick="closeSyswebEditDrawer()"></div>
             <div class="absolute right-0 top-0 h-full w-full sm:w-[540px] bg-white dark:bg-[#121214] shadow-2xl flex flex-col border-l border-slate-200 dark:border-zinc-800">
                 <div class="px-5 py-4 border-b border-slate-200 dark:border-zinc-800 flex items-start justify-between gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-zinc-900">
@@ -1668,7 +1667,7 @@
                         <i class="fa-solid fa-trash-can"></i><span>Padam</span>
                     </button>
                     <button type="button" onclick="closeSyswebEditDrawer()" class="ml-auto px-4 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700 transition cursor-pointer">Batal</button>
-                    <button type="submit" form="sysweb-edit-form" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer shadow-sm">
+                    <button type="submit" form="sysweb-edit-form" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition cursor-pointer shadow-sm">
                         <i class="fa-solid fa-floppy-disk"></i><span id="sysweb-drawer-save-label">Simpan Perubahan</span>
                     </button>
                 </div>
@@ -1894,11 +1893,11 @@
     </main>
 
     <!-- MODAL SCANNER KAMERA -->
-    <div id="scanner-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+    <div id="scanner-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="scanner-modal-title" data-modal-close="closeScannerModal">
         <div class="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full mx-4 space-y-4 font-mono shadow-2xl page-transition">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
-                <h3 class="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider"><i class="fa-solid fa-camera text-indigo-500 mr-1.5"></i> Imbas Kod QR / Barcode</h3>
-                <button onclick="closeScannerModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
+                <h3 id="scanner-modal-title" class="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider"><i class="fa-solid fa-camera text-indigo-500 mr-1.5" aria-hidden="true"></i> Imbas Kod QR / Barcode</h3>
+                <button type="button" onclick="closeScannerModal()" aria-label="Tutup pengimbas" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-base" aria-hidden="true"></i></button>
             </div>
             <div id="reader" class="w-full overflow-hidden rounded-xl"></div>
             <div id="scan-result-container" class="text-xs text-center text-slate-600 dark:text-zinc-300 font-mono">
@@ -1911,7 +1910,7 @@
     </div>
 
     <!-- PANEL PROFIL PELAJAR -->
-    <div id="student-profile-modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="student-profile-title" onclick="if(event.target===this)closeStudentProfile()">
+    <div id="student-profile-modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="student-profile-title" data-modal-close="closeStudentProfile" onclick="if(event.target===this)closeStudentProfile()">
         <section class="w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl dark:border-zinc-800 dark:bg-[#121214] sm:p-6">
             <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4 dark:border-zinc-800">
                 <div><p class="text-[10px] font-bold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400">PROFIL PELAJAR</p><h2 id="student-profile-title" class="mt-1 text-lg font-bold text-slate-900 dark:text-white">Butiran pelajar</h2><p id="profile-matric-subtitle" class="mt-1 text-xs font-mono text-slate-500"></p></div>
@@ -1945,11 +1944,11 @@
     </div>
 
     <!-- MODAL CETAK KAD PELAJAR -->
-    <div id="student-card-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+    <div id="student-card-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="card-modal-title" data-modal-close="closeCardModal">
         <div class="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full mx-4 space-y-5 font-mono shadow-2xl page-transition">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
-                <h3 class="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider"><i class="fa-solid fa-id-card text-indigo-500 mr-1.5"></i> Kad Akses Pelajar</h3>
-                <button onclick="closeCardModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
+                <h3 id="card-modal-title" class="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider"><i class="fa-solid fa-id-card text-indigo-500 mr-1.5" aria-hidden="true"></i> Kad Akses Pelajar</h3>
+                <button type="button" onclick="closeCardModal()" aria-label="Tutup kad pelajar" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-base" aria-hidden="true"></i></button>
             </div>
             
             <div class="print-card-box bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-6 rounded-2xl space-y-4 shadow-lg border border-indigo-500/30 relative overflow-hidden">
@@ -1994,11 +1993,11 @@
     </div>
 
     <!-- MODAL DETAILS SESI -->
-    <div id="session-detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+    <div id="session-detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="modal-session-title" data-modal-close="closeDetailModal">
         <div class="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 max-w-xl w-full mx-4 space-y-4 font-mono shadow-2xl page-transition">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
                 <h3 class="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider" id="modal-session-title">Senarai Pelajar</h3>
-                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
+                <button type="button" onclick="closeDetailModal()" aria-label="Tutup senarai pelajar" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-base" aria-hidden="true"></i></button>
             </div>
             <div class="max-h-72 overflow-y-auto rounded-xl border border-slate-200 dark:border-zinc-800">
                 <table class="w-full text-left text-xs">
@@ -2019,13 +2018,13 @@
     </div>
 
     <!-- MODAL PENGESAHAN -->
-    <div id="confirm-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+    <div id="confirm-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" data-modal-close="closeConfirmModal">
         <div class="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 max-w-sm w-full mx-4 space-y-4 font-mono shadow-2xl page-transition">
             <div class="flex items-center space-x-3 text-amber-500">
                 <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/50 flex items-center justify-center">
-                    <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                    <i class="fa-solid fa-triangle-exclamation text-base" aria-hidden="true"></i>
                 </div>
-                <h3 class="font-bold text-sm text-slate-900 dark:text-white">Pengesahan</h3>
+                <h3 id="confirm-modal-title" class="font-bold text-sm text-slate-900 dark:text-white">Pengesahan</h3>
             </div>
             <p class="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">Adakah anda pasti mahu menyimpan dan memindahkan rekod ini ke Live Database UDA?</p>
             <div class="flex justify-end space-x-2.5 pt-2">
@@ -2159,17 +2158,17 @@
     </div>
 
     <!-- ===== NEW: MODAL PROFIL SAYA ===== -->
-    <div id="my-profile-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+    <div id="my-profile-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4" role="dialog" aria-modal="true" aria-labelledby="my-profile-title" data-modal-close="closeMyProfile">
         <div class="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-lg w-full font-mono shadow-2xl page-transition max-h-[92vh] overflow-y-auto">
 
             <!-- Header -->
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 p-5 sticky top-0 bg-white dark:bg-[#121214] z-10">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/40 flex items-center justify-center">
-                        <i class="fa-solid fa-user-circle"></i>
+                        <i class="fa-solid fa-user-circle" aria-hidden="true"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-wider">Profil Saya</h3>
+                        <h3 id="my-profile-title" class="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-wider">Profil Saya</h3>
                         <p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">Urus maklumat akaun dan kata laluan anda.</p>
                     </div>
                 </div>
@@ -2180,7 +2179,7 @@
             <div class="px-5 pt-4">
                 <div class="flex bg-slate-100 dark:bg-zinc-900 rounded-xl p-1 gap-1 text-xs">
                     <button type="button" id="profile-tab-info" onclick="switchProfileTab('info')" class="flex-1 px-3 py-2 rounded-lg font-medium transition bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-clean">Maklumat</button>
-                    <button type="button" id="profile-tab-password" onclick="switchProfileTab('password')" class="flex-1 px-3 py-2 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition">Kata Laluan</button>
+                    <button type="button" id="profile-tab-password" onclick="switchProfileTab('password')" class="flex-1 px-3 py-2 rounded-lg text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition">Kata Laluan</button>
                 </div>
             </div>
 
@@ -2212,14 +2211,14 @@
                     <label for="profile-display-name" class="block text-[11px] font-medium text-slate-600 dark:text-zinc-400 mb-1.5">Nama paparan</label>
                     <input id="profile-display-name" name="display_name" type="text" maxlength="100" placeholder="Contoh: Ahmad bin Ali"
                            class="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition">
-                    <p class="text-[10px] text-slate-500 dark:text-zinc-500 mt-1">Nama mesra untuk paparan. Boleh dikosongkan.</p>
+                    <p class="text-[10px] text-slate-500 dark:text-zinc-400 mt-1">Nama mesra untuk paparan. Boleh dikosongkan.</p>
                 </div>
 
                 <div>
                     <label for="profile-email" class="block text-[11px] font-medium text-slate-600 dark:text-zinc-400 mb-1.5">Alamat e-mel</label>
                     <input id="profile-email" name="email" type="email" maxlength="190" placeholder="nama@usm.my"
                            class="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition">
-                    <p class="text-[10px] text-slate-500 dark:text-zinc-500 mt-1">Digunakan untuk notifikasi akaun (pilihan).</p>
+                    <p class="text-[10px] text-slate-500 dark:text-zinc-400 mt-1">Digunakan untuk notifikasi akaun (pilihan).</p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -2263,14 +2262,14 @@
                     <div class="mt-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-zinc-800 overflow-hidden">
                         <div id="profile-password-strength" class="h-full w-0 bg-slate-400 transition-all"></div>
                     </div>
-                    <p id="profile-password-strength-label" class="text-[10px] text-slate-500 dark:text-zinc-500 mt-1">Kekuatan kata laluan</p>
+                    <p id="profile-password-strength-label" class="text-[10px] text-slate-500 dark:text-zinc-400 mt-1">Kekuatan kata laluan</p>
                 </div>
 
                 <div>
                     <label for="profile-confirm-password" class="block text-[11px] font-medium text-slate-600 dark:text-zinc-400 mb-1.5">Sahkan kata laluan baharu</label>
                     <input id="profile-confirm-password" name="confirm_password" type="password" required minlength="12" maxlength="72" autocomplete="new-password"
                            class="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition">
-                    <p id="profile-password-match" class="text-[10px] mt-1 text-slate-500 dark:text-zinc-500"></p>
+                    <p id="profile-password-match" class="text-[10px] mt-1 text-slate-500 dark:text-zinc-400"></p>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
@@ -2285,7 +2284,7 @@
     <!-- ===== END NEW ===== -->
 
     <!-- ===== MODAL INTEGRASI SYSWEB (LANGKAH SETERUSNYA SELEPAS EKSPORT UDA) ===== -->
-    <div id="usm-sysweb-demo-modal" class="hidden fixed inset-0 z-[2000] bg-slate-950/60 backdrop-blur-xs p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="usm-sysweb-demo-title">
+    <div id="usm-sysweb-demo-modal" class="hidden fixed inset-0 z-[2000] bg-slate-950/60 backdrop-blur-xs p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="usm-sysweb-demo-title" data-modal-close="closeSyswebDemo">
         <div class="w-full max-w-4xl max-h-[92vh] overflow-hidden flex flex-col rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 shadow-2xl">
             <!-- Header -->
             <div class="flex items-center justify-between border-b border-slate-200 dark:border-zinc-800 p-5 bg-white dark:bg-zinc-900">
@@ -2368,7 +2367,7 @@
                     <button type="button" onclick="closeSyswebDemo()" class="rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-300 transition cursor-pointer">
                         Tutup
                     </button>
-                    <button type="button" id="usm-sysweb-send-btn" onclick="sendSyswebRecords()" class="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer">
+                    <button type="button" id="usm-sysweb-send-btn" onclick="sendSyswebRecords()" class="rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2 text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-paper-plane"></i> <span>Hantar ke Sysweb</span>
                     </button>
                 </div>
@@ -2526,7 +2525,7 @@ launch.addEventListener('click',()=>{panel.classList.add('open');panel.setAttrib
       <div class="flex-1"><h2 id="usmsmart-manual-title" class="text-lg font-bold text-slate-900 dark:text-white">Panduan Pengguna USMSmart</h2><p id="usmsmart-manual-intro" class="text-sm text-slate-500 dark:text-zinc-400 mt-1">Rujukan ringkas untuk menggunakan sistem dengan selamat.</p></div>
       <button type="button" onclick="closeUserManual()" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800" aria-label="Tutup panduan" title="Tutup"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div class="overflow-y-auto p-5 space-y-5 text-sm text-slate-700 dark:text-zinc-300">
+    <div role="region" aria-label="Kandungan panduan pengguna" tabindex="0" class="overflow-y-auto p-5 space-y-5 text-sm text-slate-700 dark:text-zinc-300">
       <div class="rounded-xl border border-sky-200 bg-sky-50 dark:bg-sky-950/30 dark:border-sky-900 p-4"><h3 class="font-bold text-sky-900 dark:text-sky-200 mb-1"><i class="fa-solid fa-circle-info mr-1" aria-hidden="true"></i> Mula di sini</h3><p>Gunakan tab <strong>Transporter Utama</strong> untuk modul pengurusan dan <strong>Analisis Grafik</strong> untuk ringkasan serta carta. Butang <strong>Panduan</strong> di bahagian atas boleh dibuka bila-bila masa.</p></div>
       <div><h3 class="font-bold text-base text-slate-900 dark:text-white mb-2">1. Cari dan tapis rekod pelajar</h3><ol class="list-decimal pl-5 space-y-1"><li>Buka <strong>Direktori Pelajar</strong>.</li><li>Taip kata kunci dalam kotak carian; gunakan penapis yang tersedia untuk mengecilkan hasil.</li><li>Pilih cip penapis untuk melihat keadaan tertentu. Kosongkan carian atau penapis jika hasil tiada.</li><li>Klik tajuk lajur yang boleh diisih untuk menukar susunan. Gunakan kawalan halaman untuk bergerak antara halaman.</li><li>Pilih saiz halaman yang sesuai; pilihan mungkin diingati oleh pelayar pada peranti yang sama.</li></ol></div>
       <div><h3 class="font-bold text-base text-slate-900 dark:text-white mb-2">2. Tambah atau kemas kini rekod</h3><ul class="list-disc pl-5 space-y-1"><li>Gunakan tindakan tambah atau edit yang tersedia dalam modul berkenaan.</li><li>Semak nombor matrik/kad dan butiran pelajar sebelum menyimpan untuk mengelakkan rekod pendua atau kesilapan.</li><li>Jika akaun anda berperanan Viewer, perubahan mungkin perlu dihantar sebagai permintaan dan diluluskan oleh Admin.</li><li>Semak mesej pengesahan atau ralat selepas setiap tindakan; jangan anggap perubahan berjaya jika tiada pengesahan.</li></ul></div>
@@ -2536,7 +2535,7 @@ launch.addEventListener('click',()=>{panel.classList.add('open');panel.setAttrib
       <div><h3 class="font-bold text-base text-slate-900 dark:text-white mb-2">6. Pembantu AI dan penyelesaian masalah</h3><ul class="list-disc pl-5 space-y-1"><li>Pembantu AI tempatan boleh membantu menerangkan statistik agregat; semak jawapan penting dengan data sebenar kerana AI boleh tersilap.</li><li>Jika AI tidak memberi respons, pastikan Ollama berjalan dan model tempatan telah dipasang.</li><li>Jika halaman tidak dikemas kini, cuba muat semula dengan <strong>Ctrl + F5</strong>. Jika masalah berterusan, catat mesej ralat dan hubungi pentadbir.</li><li>Jangan lakukan pemulihan sandaran pada pangkalan data sebenar sebagai ujian. Uji pemulihan pada pangkalan data berasingan terlebih dahulu.</li></ul></div>
       <div class="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/25 dark:border-amber-900 p-4"><h3 class="font-bold text-amber-900 dark:text-amber-200 mb-1"><i class="fa-solid fa-shield-halved mr-1" aria-hidden="true"></i> Amalan selamat</h3><p>Pastikan sandaran terkini sebelum perubahan besar. Hadkan akses kepada data pelajar, sahkan rekod sebelum menyimpan atau memadam, dan laporkan sebarang data yang tidak tepat kepada Admin.</p></div>
     </div>
-    <div class="flex justify-end gap-2 p-4 border-t border-slate-200 dark:border-zinc-700"><button type="button" onclick="closeUserManual()" class="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-semibold">Saya faham</button></div>
+    <div class="flex justify-end gap-2 p-4 border-t border-slate-200 dark:border-zinc-700"><button type="button" onclick="closeUserManual()" class="px-4 py-2 rounded-lg bg-sky-700 hover:bg-sky-800 text-white font-semibold">Saya faham</button></div>
   </section>
 </div>
 <script>

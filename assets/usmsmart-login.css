@@ -22,7 +22,9 @@
         .submit:hover{background:var(--indigo-hover);box-shadow:0 7px 16px #4F46E52b}.submit:active{transform:translateY(1px)}.submit:disabled{opacity:.65;cursor:wait}
         #msg{display:none;margin-top:15px;padding:11px 12px;border:1px solid #FECACA;border-radius:10px;background:#FEF2F2;color:var(--danger);font-size:12px;line-height:1.5}#msg.visible{display:block}
         .security-note{display:flex;align-items:flex-start;gap:9px;margin-top:20px;padding-top:17px;border-top:1px solid #F1F5F9;color:#64748B;font-size:11px;line-height:1.6}.security-note i{margin-top:2px;color:#64748B}
-        footer{padding:0 16px 22px;text-align:center;color:#94A3B8;font:10px 'JetBrains Mono',monospace;letter-spacing:.03em}
+        /* The footer stands on the photograph, which no contrast checker can measure. An explicit
+   scrim behind it makes the ratio a property of the stylesheet instead of the picture. */
+footer{align-self:center;margin:0 16px 22px;padding:6px 14px 7px;border-radius:999px;background:rgba(15,23,42,.72);color:#e8eef7;text-align:center;font:10px 'JetBrains Mono',monospace;letter-spacing:.03em}
         @media(max-width:760px){.shell{grid-template-columns:1fr;gap:28px;width:min(100% - 28px,430px);padding:32px 0}.intro{display:none}.brand{margin-bottom:0}.card{padding:25px 22px;border-radius:19px}.shell{align-content:center}.card-icon{margin-bottom:15px}}
         @media(prefers-reduced-motion:reduce){*{transition:none!important}
     }
@@ -480,7 +482,7 @@ html.dark .usm-login-bg::after{background:linear-gradient(97deg,rgba(9,12,22,.78
 .intro-copy{color:#e2e8f0}
 .feature-list{color:#e6ecf5}
 .feature i{color:#b6c4ff}
-footer{color:#e2e8f0}
+html.dark footer{background:rgba(9,12,22,.78);color:#e8eef7}
 /* A soft shadow under the words is what buys the last margin: the patch of sky behind the headline
    is the one region no acceptable scrim darkens enough on its own. The eyebrow is a light pill, so
    it takes the shadow back off. */

@@ -223,6 +223,31 @@ async function main() {
   const scannerLoaded = await evaluate(`typeof window.Html5Qrcode !== 'undefined'`);
   check('scanner library loads when scanner opens', scannerLoaded);
 
+  // --- Dialog keyboard behaviour -----------------------------------------
+  const keyboard = await evaluate(`(async () => {
+    const trigger = document.getElementById('usm-header-profile');
+    const dialog = document.getElementById('my-profile-modal');
+    trigger.focus();
+    window.openMyProfile();
+    await new Promise(r => setTimeout(r, 400));
+    const opened = !dialog.classList.contains('hidden');
+    const focusInside = dialog.contains(document.activeElement);
+    const focusables = dialog.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])');
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    last.focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+    const wrapped = document.activeElement === first;
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    await new Promise(r => setTimeout(r, 400));
+    return { opened, focusInside, wrapped, closed: dialog.classList.contains('hidden'), returned: document.activeElement === trigger };
+  })()`);
+  check('dialog takes focus when it opens', keyboard.opened && keyboard.focusInside);
+  check('Tab wraps inside the dialog', keyboard.wrapped);
+  check('Escape closes the dialog', keyboard.closed);
+  check('focus returns to the trigger', keyboard.returned);
+  check('skip link is keyboard reachable', await evaluate(`(()=>{const a=document.querySelector('.usm-skip');if(!a)return false;a.focus();return document.activeElement===a;})()`));
+
   // --- Mobile ------------------------------------------------------------
   // Apply the phone metrics first, then reload: a fresh navigation is what a
   // real phone performs, and it lets Chrome apply the page's viewport meta at

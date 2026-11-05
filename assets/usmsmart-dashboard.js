@@ -514,8 +514,8 @@
             rows.forEach(r => { const key = String(r.card_source || 'skip'); tally[key] = (tally[key] || 0) + 1; });
             text.innerHTML = Object.keys(SYSWEB_CARD_SOURCE_META).filter(key => tally[key]).map(key =>
                 '<span class="font-semibold ' + SYSWEB_CARD_SOURCE_META[key].cls + '">' + SYSWEB_CARD_SOURCE_META[key].label
-                + ' <span class="font-mono">' + tally[key] + '</span></span>').join('<span class="text-slate-300 dark:text-zinc-600 mx-1">·</span>')
-                + '<span class="text-slate-300 dark:text-zinc-600 mx-1">·</span>'
+                + ' <span class="font-mono">' + tally[key] + '</span></span>').join('<span class="text-slate-300 dark:text-zinc-400 mx-1">·</span>')
+                + '<span class="text-slate-300 dark:text-zinc-400 mx-1">·</span>'
                 + '<span class="text-[11px] font-semibold ' + ((syswebCardSourceInfo || {}).mode === 'live' ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300') + '">'
                 + escapeHtml(((syswebCardSourceInfo || {}).mode) === 'live' ? 'rekod kad: Sysweb langsung' : 'rekod kad: salinan tempatan') + '</span>';
             const fillable = rows.filter(r => r.can_complete === true).length;
@@ -866,7 +866,7 @@
                     '<td class="p-3 text-center"><input type="checkbox" aria-label="Pilih rekod ' + escapeHtml(r.identifier || r.name || '') + '" onchange="toggleSyswebRecordSelection(' + idx + ',this.checked)" ' + (syswebSelectedIndexes.has(idx) ? 'checked' : '') + ' class="rounded accent-emerald-600"></td>',
                     '<td class="p-3 text-slate-400 text-center font-mono text-[11px]">' + (startIdx + i + 1) + '</td>',
                     '<td class="p-3 font-sans"><div class="space-y-0.5"><button type="button" onclick="openSyswebDetail(' + idx + ')" class="text-left font-semibold text-slate-900 dark:text-white hover:text-emerald-700 dark:hover:text-emerald-300 hover:underline decoration-dotted underline-offset-4">' + escapeHtml(r.name || '-') + '</button>'
-                        + (extras.length ? '<p class="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">' + escapeHtml(extras.join(' \u00b7 ')) + '</p>' : '')
+                        + (extras.length ? '<p class="text-[10px] text-slate-400 dark:text-zinc-400 font-mono">' + escapeHtml(extras.join(' \u00b7 ')) + '</p>' : '')
                         + (r.updated_at ? '<p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">Disunting ' + escapeHtml(formatSyswebDateTime(r.updated_at)) + '</p>' : '')
                         + '</div></td>',
                     '<td class="p-3 font-mono font-medium">' + escapeHtml(r.identifier || '-') + '</td>'
@@ -890,10 +890,10 @@
                         ? (revealedPw
                             ? '<span class="font-bold text-amber-600 dark:text-amber-400 tracking-widest">' + escapeHtml(revealedPw) + '</span>'
                                 + '<button type="button" onclick="hideSyswebPassword(' + idx + ')" class="text-amber-600 hover:text-amber-800 p-1 rounded transition" title="Sembunyi semula"><i class="fa-solid fa-eye-slash text-xs"></i></button>'
-                            : '<span class="text-slate-400 dark:text-zinc-500 tracking-widest">' + (r.has_password === false ? 'belum dijana' : '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022') + '</span>'
+                            : '<span class="text-slate-400 dark:text-zinc-400 tracking-widest">' + (r.has_password === false ? 'belum dijana' : '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022') + '</span>'
                                 + (r.has_password === false ? '' : '<button type="button" onclick="revealSyswebPassword(' + idx + ')" class="text-slate-400 hover:text-amber-600 p-1 rounded transition" title="Paparkan (direkod dalam audit log)"><i class="fa-regular fa-eye text-xs"></i></button>')
                                 + (r.has_password === false ? '' : '<button type="button" onclick="copySyswebPassword(' + idx + ')" class="text-slate-400 hover:text-amber-600 p-1 rounded transition" title="Salin kata laluan"><i class="fa-regular fa-copy text-xs"></i></button>'))
-                        : '<span class="text-slate-400 dark:text-zinc-500 tracking-widest">\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022</span>')
+                        : '<span class="text-slate-400 dark:text-zinc-400 tracking-widest">\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022</span>')
                     + (USM_SMART_IS_ADMIN && r.has_password !== false ? '<button type="button" onclick="resetSyswebPassword(' + idx + ')" class="text-slate-400 hover:text-rose-600 p-1 rounded transition" title="Set semula kata laluan"><i class="fa-solid fa-rotate-right text-xs"></i></button>' : '')
                     + '</div></td>');
                 cells.push('<td class="p-3 text-slate-500 font-sans text-[11px]">' + escapeHtml(r.received_at ? formatSyswebDateTime(r.received_at) : 'Sebelum ini') + '</td>');
@@ -4119,10 +4119,17 @@
         }
 
         function closeScannerModal() {
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => { html5QrCode.clear(); }).catch(err => { console.error(err); });
-            }
+            // stop() rejects, and on some browsers throws outright, when the camera
+            // never started (permission denied). Hiding first means the operator can
+            // always dismiss the dialog, whatever state the scanner is in.
             document.getElementById('scanner-modal').classList.add('hidden');
+            if (!html5QrCode) return;
+            try {
+                const stopping = html5QrCode.stop();
+                if (stopping && typeof stopping.then === 'function') {
+                    stopping.then(() => html5QrCode.clear()).catch(() => {});
+                }
+            } catch (err) { /* scanner was not running */ }
         }
 
         async function logoutUSMSmart() {
@@ -4170,7 +4177,7 @@
             const passForm = document.getElementById('profile-password-form');
             if (!infoTab || !passTab || !infoForm || !passForm) return;
             const activeCls = "flex-1 px-3 py-2 rounded-lg font-medium transition bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-clean";
-            const inactiveCls = "flex-1 px-3 py-2 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition";
+            const inactiveCls = "flex-1 px-3 py-2 rounded-lg text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition";
             if (tab === 'password') {
                 infoTab.className = inactiveCls;
                 passTab.className = activeCls;
@@ -5976,7 +5983,7 @@
                 panel = document.createElement('div');
                 panel.id = 'usm-uda-verification-modal';
                 panel.className = 'fixed inset-0 z-[2000] flex items-center justify-center bg-slate-950/60 p-3';
-                panel.innerHTML = '<section role="dialog" aria-modal="true" aria-labelledby="usm-uda-report-title" class="w-full max-w-6xl max-h-[92vh] overflow-hidden rounded-2xl bg-white text-slate-800 shadow-2xl dark:bg-zinc-950 dark:text-zinc-100"><header class="flex items-center justify-between gap-3 border-b border-slate-200 p-4 dark:border-zinc-800"><div><h2 id="usm-uda-report-title" class="text-lg font-extrabold">UDA Export Verification Report</h2><p class="text-xs opacity-70">Read-back verification from the configured MySQL database</p></div><button type="button" id="usm-uda-report-close" class="rounded-lg px-3 py-2 text-xl hover:bg-slate-100 dark:hover:bg-zinc-800" aria-label="Close report">×</button></header><div id="usm-uda-report-content" class="max-h-[calc(92vh-135px)] overflow-auto p-4"></div><footer class="flex flex-wrap justify-between items-center gap-2 border-t border-slate-200 p-4 dark:border-zinc-800"><div class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Eksport UDA Selesai & Diverifikasi</div><div class="flex flex-wrap items-center gap-2"><button type="button" id="usm-uda-report-csv" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700">Download CSV</button><button type="button" id="usm-uda-report-close-bottom" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold dark:border-zinc-700">Tutup</button><button type="button" id="usm-uda-report-goto-sysweb" class="rounded-lg bg-emerald-600 hover:bg-emerald-700 px-4 py-2 text-sm font-bold text-white shadow-sm flex items-center gap-2 cursor-pointer"><i class="fa-solid fa-network-wired"></i> Teruskan ke Sysweb (Langkah Seterusnya) <i class="fa-solid fa-arrow-right"></i></button></div></footer></section>';
+                panel.innerHTML = '<section role="dialog" aria-modal="true" aria-labelledby="usm-uda-report-title" class="w-full max-w-6xl max-h-[92vh] overflow-hidden rounded-2xl bg-white text-slate-800 shadow-2xl dark:bg-zinc-950 dark:text-zinc-100"><header class="flex items-center justify-between gap-3 border-b border-slate-200 p-4 dark:border-zinc-800"><div><h2 id="usm-uda-report-title" class="text-lg font-extrabold">UDA Export Verification Report</h2><p class="text-xs opacity-70">Read-back verification from the configured MySQL database</p></div><button type="button" id="usm-uda-report-close" class="rounded-lg px-3 py-2 text-xl hover:bg-slate-100 dark:hover:bg-zinc-800" aria-label="Close report">×</button></header><div id="usm-uda-report-content" class="max-h-[calc(92vh-135px)] overflow-auto p-4"></div><footer class="flex flex-wrap justify-between items-center gap-2 border-t border-slate-200 p-4 dark:border-zinc-800"><div class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Eksport UDA Selesai & Diverifikasi</div><div class="flex flex-wrap items-center gap-2"><button type="button" id="usm-uda-report-csv" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700">Download CSV</button><button type="button" id="usm-uda-report-close-bottom" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold dark:border-zinc-700">Tutup</button><button type="button" id="usm-uda-report-goto-sysweb" class="rounded-lg bg-emerald-700 hover:bg-emerald-800 px-4 py-2 text-sm font-bold text-white shadow-sm flex items-center gap-2 cursor-pointer"><i class="fa-solid fa-network-wired"></i> Teruskan ke Sysweb (Langkah Seterusnya) <i class="fa-solid fa-arrow-right"></i></button></div></footer></section>';
                 document.body.appendChild(panel);
                 const close = () => panel.remove();
                 panel.querySelector('#usm-uda-report-close').addEventListener('click', close);
@@ -6158,3 +6165,79 @@
             setTimeout(() => { if (t.isConnected) t.remove(); }, isError ? 6000 : 4000);
         }
     
+        /* --- Dialog keyboard layer ---------------------------------------
+           Every in-page dialog carries data-modal-close="<close function>".
+           The observer reacts to the same classList toggle the open and close
+           functions already use, so Escape, focus entry, the Tab trap and focus
+           return are added once instead of in each of those handlers. The user
+           manual manages its own focus and has no data-modal-close, so it is
+           deliberately left out. */
+        (function () {
+            if (window.__usmDialogKeys) return;
+            window.__usmDialogKeys = true;
+            const stack = [];
+            const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[contenteditable="true"],[tabindex]:not([tabindex="-1"])';
+
+            function visible(node) {
+                return node.getClientRects().length > 0 && !node.closest('[hidden]') && node.getAttribute('aria-hidden') !== 'true';
+            }
+            function focusable(dialog) {
+                return Array.prototype.filter.call(dialog.querySelectorAll(FOCUSABLE), visible);
+            }
+            function onShow(dialog) {
+                if (stack.indexOf(dialog) !== -1) return;
+                dialog.__usmReturnFocus = stack.length ? null : document.activeElement;
+                stack.push(dialog);
+                const first = focusable(dialog)[0];
+                if (first) first.focus({ preventScroll: true });
+                else {
+                    dialog.setAttribute('tabindex', '-1');
+                    dialog.focus({ preventScroll: true });
+                }
+            }
+            function onHide(dialog) {
+                const index = stack.indexOf(dialog);
+                if (index === -1) return;
+                stack.splice(index, 1);
+                const back = dialog.__usmReturnFocus;
+                dialog.__usmReturnFocus = null;
+                if (back && back.isConnected && typeof back.focus === 'function') back.focus({ preventScroll: true });
+            }
+            function close(dialog) {
+                const name = dialog.getAttribute('data-modal-close');
+                const fn = name ? window[name] : null;
+                if (typeof fn === 'function') return fn();
+                dialog.classList.add('hidden');
+                onHide(dialog);
+            }
+            document.addEventListener('keydown', function (event) {
+                const dialog = stack[stack.length - 1];
+                if (!dialog) return;
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    close(dialog);
+                    return;
+                }
+                if (event.key !== 'Tab') return;
+                const list = focusable(dialog);
+                if (!list.length) { event.preventDefault(); return; }
+                const first = list[0];
+                const last = list[list.length - 1];
+                const active = document.activeElement;
+                if (event.shiftKey && (active === first || !dialog.contains(active))) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (!event.shiftKey && (active === last || !dialog.contains(active))) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            }, true);
+
+            Array.prototype.forEach.call(document.querySelectorAll('[data-modal-close]'), function (dialog) {
+                new MutationObserver(function () {
+                    const shown = !dialog.classList.contains('hidden') && !dialog.hasAttribute('hidden');
+                    if (shown) onShow(dialog); else onHide(dialog);
+                }).observe(dialog, { attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
+            });
+        })();
