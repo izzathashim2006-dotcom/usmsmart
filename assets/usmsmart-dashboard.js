@@ -6027,7 +6027,7 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             const rows = sessionHistoryFiltered();
-            if (!rows.length) { tbody.innerHTML = '<tr><td colspan="4" class="p-5 text-center text-slate-400">Tiada sesi sepadan dengan julat, tapisan atau carian ini.</td></tr>'; return; }
+            if (!rows.length) { tbody.innerHTML = '<tr><td colspan="4" class="p-5 text-center text-slate-500 dark:text-zinc-400">Tiada sesi sepadan dengan julat, tapisan atau carian ini.</td></tr>'; return; }
             rows.forEach(s => {
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50/50 dark:hover:bg-zinc-900/50 transition-colors";
