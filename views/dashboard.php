@@ -256,6 +256,56 @@
                         <div class="rounded-xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-900/60 dark:bg-amber-950/20"><p class="text-[11px] text-amber-700 dark:text-amber-300">Tiada polisi</p><p id="live-summary-policy" class="mt-1 text-2xl font-semibold tracking-tight text-amber-700 dark:text-amber-300">0</p></div>
                         <div class="rounded-xl border border-rose-200 bg-rose-50/60 p-4 dark:border-rose-900/60 dark:bg-rose-950/20"><p class="text-[11px] text-rose-700 dark:text-rose-300">Semak UID / siri</p><p id="live-summary-invalid" class="mt-1 text-2xl font-semibold tracking-tight text-rose-700 dark:text-rose-300">0</p></div>
                     </div>
+
+                    <!-- SEMAKAN UID LAYAK EKSPORT (PELAJAR + STAF, StatusKad 02) — dalam panel tarikan yang sama -->
+                    <div id="uid-eligibility-panel" class="border-t border-slate-100 pt-5 dark:border-zinc-800">
+                        <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div class="flex items-start gap-2">
+                                <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"><i class="fa-solid fa-shield-halved text-[10px]"></i></span>
+                                <div>
+                                    <h3 id="uid-eligibility-title" class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-zinc-200">Semakan UID layak eksport</h3>
+                                    <p class="mt-1 max-w-2xl text-[11px] leading-5 text-slate-500 dark:text-zinc-400">Baca dbo.Pelajar dan dbo.Staf, StatusKad 02 sahaja. UID mesti 8 aksara hexadecimal dan unik merentas pelajar serta staf, termasuk rekod yang telah tamat tempoh.</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 self-start">
+                                <button type="button" id="uid-eligibility-csv" onclick="downloadUidEligibilityCsv()" disabled class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"><i class="fa-solid fa-file-csv"></i> Eksport CSV</button>
+                                <button type="button" id="uid-eligibility-run" onclick="checkUidEligibility()" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"><i class="fa-solid fa-rotate-right"></i> Semak UID</button>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/70" aria-live="polite">
+                                <p id="uid-eligibility-status" class="text-xs leading-5 text-slate-600 dark:text-zinc-300"><i class="fa-solid fa-circle-info mr-1.5 text-emerald-600 dark:text-emerald-400"></i>Belum disemak. Tekan “Semak UID” untuk membaca kedua-dua jadual SQL Server.</p>
+                            </div>
+                            <div id="uid-eligibility-summary" class="hidden grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"><p class="text-[11px] text-slate-500 dark:text-zinc-400">Rekod StatusKad 02</p><p id="uid-summary-scanned" class="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">0</p></div>
+                                <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald-900/60 dark:bg-emerald-950/20"><p class="text-[11px] text-emerald-700 dark:text-emerald-300">Layak dieksport</p><p id="uid-summary-eligible" class="mt-1 text-2xl font-semibold tracking-tight text-emerald-700 dark:text-emerald-300">0</p></div>
+                                <div class="rounded-xl border border-rose-200 bg-rose-50/60 p-4 dark:border-rose-900/60 dark:bg-rose-950/20"><p class="text-[11px] text-rose-700 dark:text-rose-300">Disekat</p><p id="uid-summary-blocked" class="mt-1 text-2xl font-semibold tracking-tight text-rose-700 dark:text-rose-300">0</p></div>
+                                <div class="rounded-xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-900/60 dark:bg-amber-950/20"><p class="text-[11px] text-amber-700 dark:text-amber-300">Rekod UID berulang</p><p id="uid-summary-duplicate" class="mt-1 text-2xl font-semibold tracking-tight text-amber-700 dark:text-amber-300">0</p></div>
+                            </div>
+                            <div id="uid-eligibility-eligible-wrap" class="hidden space-y-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2"><h4 class="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300"><i class="fa-solid fa-circle-check mr-1.5"></i>Layak dieksport</h4><span id="uid-eligible-count" class="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">0 rekod</span></div>
+                                <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-zinc-800">
+                                    <table class="w-full text-left text-xs">
+                                        <thead class="bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 border-b border-slate-200 dark:border-zinc-800 text-[10px] uppercase tracking-wider">
+                                            <tr><th class="p-3">Nama</th><th class="p-3">Jenis</th><th class="p-3">ID</th><th class="p-3">Pusat / Jabatan</th><th class="p-3">UID</th><th class="p-3">Tamat</th></tr>
+                                        </thead>
+                                        <tbody id="uid-eligible-tbody" class="divide-y divide-slate-100 dark:divide-zinc-900 text-slate-600 dark:text-zinc-300"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div id="uid-eligibility-blocked-wrap" class="hidden space-y-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2"><h4 class="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-300"><i class="fa-solid fa-circle-xmark mr-1.5"></i>Disekat</h4><span id="uid-blocked-count" class="text-[11px] font-semibold text-rose-700 dark:text-rose-300">0 rekod</span></div>
+                                <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-zinc-800">
+                                    <table class="w-full text-left text-xs">
+                                        <thead class="bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 border-b border-slate-200 dark:border-zinc-800 text-[10px] uppercase tracking-wider">
+                                            <tr><th class="p-3">Nama</th><th class="p-3">Jenis</th><th class="p-3">ID</th><th class="p-3">Pusat / Jabatan</th><th class="p-3">UID</th><th class="p-3">Tamat</th><th class="p-3">Sebab</th></tr>
+                                        </thead>
+                                        <tbody id="uid-blocked-tbody" class="divide-y divide-slate-100 dark:divide-zinc-900 text-slate-600 dark:text-zinc-300"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 

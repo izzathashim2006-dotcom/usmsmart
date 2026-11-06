@@ -6221,6 +6221,103 @@
             a.click();
         }
 
+        let uidEligibilityData = null;
+
+        async function checkUidEligibility() {
+            const runButton = document.getElementById('uid-eligibility-run');
+            const csvButton = document.getElementById('uid-eligibility-csv');
+            const status = document.getElementById('uid-eligibility-status');
+            if (runButton) { runButton.disabled = true; runButton.classList.add('opacity-60'); }
+            if (csvButton) csvButton.disabled = true;
+            if (status) status.innerHTML = '<i class="fa-solid fa-clock mr-1.5 text-emerald-600 dark:text-emerald-400"></i>Menyemak dbo.Pelajar dan dbo.Staf…';
+            try {
+                const res = await fetch('index.php?action=get_uid_eligibility', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
+                const data = await res.json();
+                if (!res.ok || !data || !data.success) throw new Error((data && data.message) || 'Semakan UID tidak berjaya.');
+                uidEligibilityData = data;
+                renderUidEligibility(data);
+                showToast('Semakan UID selesai: ' + ((data.totals && data.totals.eligible) || 0) + ' layak, ' + ((data.totals && data.totals.blocked) || 0) + ' disekat.');
+            } catch (err) {
+                if (status) status.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1.5 text-rose-600 dark:text-rose-400"></i>' + escapeHtml(err && err.message ? err.message : 'Semakan UID tidak berjaya.');
+                showToast('Ralat semakan UID: ' + (err && err.message ? err.message : 'Ralat rangkaian.'));
+                if (csvButton) csvButton.disabled = !(uidEligibilityData && Array.isArray(uidEligibilityData.eligible) && uidEligibilityData.eligible.length > 0);
+            } finally {
+                if (runButton) { runButton.disabled = false; runButton.classList.remove('opacity-60'); }
+            }
+        }
+
+        function renderUidEligibility(data) {
+            const totals = data.totals || {};
+            const eligibleRows = Array.isArray(data.eligible) ? data.eligible : [];
+            const blockedRows = Array.isArray(data.blocked) ? data.blocked : [];
+            const count = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = String(value); };
+            count('uid-summary-scanned', totals.scanned || 0);
+            count('uid-summary-eligible', totals.eligible || 0);
+            count('uid-summary-blocked', totals.blocked || 0);
+            count('uid-summary-duplicate', totals.duplicates || 0);
+            count('uid-eligible-count', eligibleRows.length + ' rekod');
+            count('uid-blocked-count', blockedRows.length + ' rekod');
+            const status = document.getElementById('uid-eligibility-status');
+            if (status) status.innerHTML = '<i class="fa-solid fa-circle-check mr-1.5 text-emerald-600 dark:text-emerald-400"></i>Semakan pada ' + escapeHtml(new Date(data.generatedAt).toLocaleString('ms-MY')) + '. Batas hari ini: ' + escapeHtml(data.today || '') + '.';
+            const summary = document.getElementById('uid-eligibility-summary');
+            if (summary) summary.classList.remove('hidden');
+
+            const cells = record => '<td class="p-3 font-medium text-slate-900 dark:text-white">' + escapeHtml(record.name || '-') + '</td>'
+                + '<td class="p-3">' + (record.cardholderType === 'staff' ? 'Staf' : 'Pelajar') + '</td>'
+                + '<td class="p-3 font-mono">' + escapeHtml(record.identifier || '-') + '</td>'
+                + '<td class="p-3">' + escapeHtml(record.school || '-') + '</td>'
+                + '<td class="p-3 font-mono text-slate-900 dark:text-white">' + escapeHtml(record.uid || '-') + '</td>'
+                + '<td class="p-3 font-mono">' + escapeHtml(record.expiryDate || '-') + '</td>';
+
+            const eligibleBody = document.getElementById('uid-eligible-tbody');
+            if (eligibleBody) {
+                eligibleBody.innerHTML = eligibleRows.length
+                    ? eligibleRows.map(record => '<tr>' + cells(record) + '</tr>').join('')
+                    : '<tr><td colspan="6" class="p-4 text-center text-slate-500 dark:text-zinc-400">Tiada rekod layak.</td></tr>';
+            }
+            const blockedBody = document.getElementById('uid-blocked-tbody');
+            if (blockedBody) {
+                blockedBody.innerHTML = blockedRows.length
+                    ? blockedRows.map(record => {
+                        const chips = (record.reasons || []).map(reason => '<span class="inline-flex items-center whitespace-nowrap rounded-md bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">' + escapeHtml(reason.label || reason.code || 'Disekat') + '</span>').join(' ');
+                        return '<tr>' + cells(record) + '<td class="p-3"><div class="flex flex-wrap gap-1">' + chips + '</div></td></tr>';
+                    }).join('')
+                    : '<tr><td colspan="7" class="p-4 text-center text-slate-500 dark:text-zinc-400">Tiada rekod disekat.</td></tr>';
+            }
+            ['uid-eligibility-eligible-wrap', 'uid-eligibility-blocked-wrap'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('hidden');
+            });
+            const csvButton = document.getElementById('uid-eligibility-csv');
+            if (csvButton) csvButton.disabled = eligibleRows.length === 0;
+        }
+
+        function downloadUidEligibilityCsv() {
+            const rows = uidEligibilityData && Array.isArray(uidEligibilityData.eligible) ? uidEligibilityData.eligible : [];
+            if (rows.length === 0) { showToast('Tiada rekod layak untuk dieksport.'); return; }
+            const cell = value => '"' + String(value == null ? '' : value).replace(/^[=+@\-\t\r]/, "'$&").replace(/"/g, '""') + '"';
+            const lines = [['Nama', 'Jenis', 'ID', 'Pusat / Jabatan', 'UID', 'Tarikh Luput']];
+            rows.forEach(record => lines.push([
+                record.name,
+                record.cardholderType === 'staff' ? 'Staf' : 'Pelajar',
+                record.identifier,
+                record.school,
+                record.uid,
+                record.expiryDate
+            ]));
+            const csv = '\uFEFF' + lines.map(line => line.map(cell).join(',')).join('\r\n') + '\r\n';
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.setAttribute('download', 'USMSmart_UID_Layak_' + (uidEligibilityData.today || new Date().toISOString().slice(0, 10)) + '.csv');
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast('Eksport CSV berjaya: ' + rows.length + ' rekod layak.');
+        }
+
         function downloadReportExcel() {
             const filter = (document.getElementById('session-history-filter')?.value || '').trim().toLowerCase();
             const source = Array.isArray(allSessionsData) ? allSessionsData : [];

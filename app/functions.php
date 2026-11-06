@@ -109,6 +109,45 @@ function validateCardFields($uid, $serialNo) {
     return '';
 }
 
+// Classify StatusKad 02 records for the UID export. A record is eligible only when its UID is
+// exactly eight hexadecimal characters, that UID appears nowhere else on either source table
+// (expired cards still own theirs) and its expiry date is present, valid and not in the past.
+// $records: cardholderType, sourceId, name, identifier, school, uid, expiryDate.
+// $uidUses: normalised UID => number of cards carrying it in dbo.Pelajar and dbo.Staf.
+function usmsmartClassifyUidEligibility(array $records, array $uidUses, $today) {
+    $eligible = array();
+    $blocked = array();
+    foreach ($records as $record) {
+        $uid = strtoupper(preg_replace('/\s+/', '', trim((string)($record['uid'] ?? ''))));
+        $expiry = substr(trim((string)($record['expiryDate'] ?? '')), 0, 10);
+        $reasons = array();
+        if (preg_match('/^[0-9A-F]{8}$/', $uid) !== 1) $reasons[] = array('code' => 'uid-format', 'label' => 'UID bukan 8 aksara hex');
+        $uses = isset($uidUses[$uid]) ? (int)$uidUses[$uid] : 0;
+        if ($uid !== '' && $uses > 1) $reasons[] = array('code' => 'duplicate', 'label' => 'UID berulang (' . $uses . ' rekod)');
+        if ($expiry === '') $reasons[] = array('code' => 'expiry-missing', 'label' => 'Tiada tarikh luput');
+        elseif (!isValidIsoDate($expiry)) $reasons[] = array('code' => 'expiry-invalid', 'label' => 'Tarikh luput tidak sah');
+        elseif ($expiry < $today) $reasons[] = array('code' => 'expired', 'label' => 'Kad tamat tempoh (' . $expiry . ')');
+        $record['uid'] = $uid;
+        $record['expiryDate'] = $expiry;
+        if (!empty($reasons)) { $record['reasons'] = $reasons; $blocked[] = $record; }
+        else $eligible[] = $record;
+    }
+    $order = static function ($a, $b) {
+        $typeOrder = array('student' => 0, 'staff' => 1);
+        $cmp = ($typeOrder[$a['cardholderType']] ?? 2) <=> ($typeOrder[$b['cardholderType']] ?? 2);
+        return $cmp !== 0 ? $cmp : strcasecmp((string)$a['name'], (string)$b['name']);
+    };
+    usort($eligible, $order);
+    usort($blocked, $order);
+    $duplicates = 0;
+    foreach ($blocked as $row) {
+        foreach ($row['reasons'] as $reason) {
+            if ($reason['code'] === 'duplicate') { $duplicates++; break; }
+        }
+    }
+    return array('eligible' => $eligible, 'blocked' => $blocked, 'duplicates' => $duplicates);
+}
+
 // Descriptive fields carried alongside a Sysweb record so the portal can be filtered on the
 // same details as the source directory. Students contribute school/policy/nationality, staff
 // contribute department/card status/notes; both spellings are accepted because the transport
