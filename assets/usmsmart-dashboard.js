@@ -5798,11 +5798,10 @@
             if (!startDate || !endDate || startDate > endDate) { setLivePullStatus('error', 'Julat tarikh tidak sah', 'Pilih tarikh mula dan tarikh tamat yang sah.'); showToast('Pilih julat tarikh yang sah.'); return; }
             const triggerButton = document.querySelector('button[onclick="readFromUSMSmart()"]');
             if (triggerButton) { triggerButton.disabled = true; triggerButton.classList.add('opacity-60'); }
-            setLivePullStatus('loading', 'Sedang menarik data…', 'Meminta sehingga ' + recordLimit + ' rekod mengikut penapis, kemudian menyemak rekod UDA sedia ada dan polisi palang.');
+            setLivePullStatus('loading', 'Sedang menarik data…', 'Meminta sehingga ' + recordLimit + ' rekod mengikut penapis, kemudian menyemak rekod UDA sedia ada, polisi palang dan UID eksport untuk rekod tersebut sahaja.');
+            setUidEligibilityPending();
             try {
                 showToast('Menghubungkan ke Live Database...');
-                // One click does both: the pull and the UID eligibility screen run side by side.
-                const uidCheck = checkUidEligibility({ silent: true });
                 const cardholderType = document.getElementById('uda-cardholder-type')?.value || 'student';
                 if (USM_SMART_IS_ADMIN) { try { await loadExistingPolicyOptions(); } catch (policyError) { console.error('Policy list load failed:', policyError); } }
                 const liveSearch = document.getElementById('uda-live-search')?.value.trim() || '';
@@ -5811,9 +5810,15 @@
                 const params = new URLSearchParams({action:'get_records', cardholderType, startDate, endDate, recordLimit:String(recordLimit), recordSearch:liveSearch, recordStatus:liveStatus, recordSchool:liveSchool});
                 let res = await fetch('index.php?' + params.toString(), {credentials:'same-origin', headers:{'Accept':'application/json'}});
                 let data = await res.json();
-                if (!res.ok || data.error) { setLivePullStatus('error', 'Gagal menarik data', data.error || 'Permintaan tidak berjaya.'); showToast('Ralat DB: ' + (data.error || 'Permintaan gagal.')); return; }
-                if (!Array.isArray(data)) throw new Error('Format respons SQL Server tidak sah.');
-                currentFetchedRecords = data.map(r => Object.assign({}, r, { school: sanitizeSchoolName(r.school), cardholderType: r.cardholderType || cardholderType, policy: String(r.policy || '').trim(), usmUid: String(r.usmUid || '').trim().toUpperCase() }));
+                if (!res.ok || data.error) {
+                    setLivePullStatus('error', 'Gagal menarik data', data.error || 'Permintaan tidak berjaya.');
+                    showToast('Ralat DB: ' + (data.error || 'Permintaan gagal.'));
+                    applyUidEligibility(null);
+                    return;
+                }
+                if (!data || !Array.isArray(data.records)) throw new Error('Format respons SQL Server tidak sah.');
+                currentFetchedRecords = data.records.map(r => Object.assign({}, r, { school: sanitizeSchoolName(r.school), cardholderType: r.cardholderType || cardholderType, policy: String(r.policy || '').trim(), usmUid: String(r.usmUid || '').trim().toUpperCase() }));
+                applyUidEligibility(data.eligibility);
                 renderLivePullSummary(currentFetchedRecords);
                 if (currentFetchedRecords.length === 0) { setLivePullStatus('success', 'Sambungan berjaya — tiada rekod baharu', 'SQL Server berjaya dihubungi, tetapi tiada rekod baharu sepadan dengan tarikh dan penapis yang dipilih. Rekod yang telah berada dalam UDA dikecualikan.'); showToast('Tiada rekod baharu untuk julat tarikh ini.'); document.getElementById('section-step-2').classList.remove('hidden'); renderRawTable(currentFetchedRecords); return; }
                 setLivePullStatus('success', 'Data berjaya dimuatkan', currentFetchedRecords.length + ' rekod baharu diterima. Semak ringkasan kualiti data sebelum memilih rekod untuk penukaran UDA.');
@@ -5826,11 +5831,12 @@
                 document.getElementById('section-stats').classList.remove('hidden');
                 document.getElementById('section-step-2').classList.remove('hidden');
                 const missingPolicy = currentFetchedRecords.filter(r => !String(r.policy || '').trim()).length;
-                await uidCheck;
                 showToast('Berjaya ambil ' + currentFetchedRecords.length + ' rekod ' + (cardholderType === 'staff' ? 'staf' : 'pelajar') + (missingPolicy ? '. ' + missingPolicy + ' rekod tiada polisi palang dan akan disekat.' : '.'));
             } catch (err) {
                 setLivePullStatus('error', 'Tidak dapat memuatkan data', err && err.message ? err.message : 'Ralat rangkaian atau format respons. Semak sambungan SQL Server dan cuba semula.');
                 showToast('Ralat mengambil data: ' + (err && err.message ? err.message : 'Ralat rangkaian.'));
+                const status = document.getElementById('uid-eligibility-status');
+                if (status) status.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1.5 text-rose-600 dark:text-rose-400"></i>Semakan UID tidak dijalankan kerana tarikan gagal.';
             } finally {
                 if (triggerButton) { triggerButton.disabled = false; triggerButton.classList.remove('opacity-60'); }
             }
@@ -7444,24 +7450,27 @@
 
         let uidEligibilityData = null;
 
-        async function checkUidEligibility(options) {
-            const silent = !!(options && options.silent);
+        // The pull itself carries the eligibility result, so the check covers exactly the rows
+        // the user asked for — no separate request, no wider census of dbo.Pelajar / dbo.Staf.
+        function setUidEligibilityPending() {
+            uidEligibilityData = null;
             const csvButton = document.getElementById('uid-eligibility-csv');
-            const status = document.getElementById('uid-eligibility-status');
             if (csvButton) csvButton.disabled = true;
-            if (status) status.innerHTML = '<i class="fa-solid fa-clock mr-1.5 text-emerald-600 dark:text-emerald-400"></i>Menyemak dbo.Pelajar dan dbo.Staf…';
-            try {
-                const res = await fetch('index.php?action=get_uid_eligibility', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
-                const data = await res.json();
-                if (!res.ok || !data || !data.success) throw new Error((data && data.message) || 'Semakan UID tidak berjaya.');
-                uidEligibilityData = data;
-                renderUidEligibility(data);
-                if (!silent) showToast('Semakan UID selesai: ' + ((data.totals && data.totals.eligible) || 0) + ' layak, ' + ((data.totals && data.totals.blocked) || 0) + ' disekat.');
-            } catch (err) {
-                if (status) status.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1.5 text-rose-600 dark:text-rose-400"></i>' + escapeHtml(err && err.message ? err.message : 'Semakan UID tidak berjaya.');
-                if (!silent) showToast('Ralat semakan UID: ' + (err && err.message ? err.message : 'Ralat rangkaian.'));
-                if (csvButton) csvButton.disabled = !(uidEligibilityData && Array.isArray(uidEligibilityData.eligible) && uidEligibilityData.eligible.length > 0);
+            const status = document.getElementById('uid-eligibility-status');
+            if (status) status.innerHTML = '<i class="fa-solid fa-clock mr-1.5 text-emerald-600 dark:text-emerald-400"></i>Menunggu rekod ditarik — semakan UID akan dibuat pada rekod yang diterima sahaja.';
+        }
+
+        function applyUidEligibility(payload) {
+            const status = document.getElementById('uid-eligibility-status');
+            const csvButton = document.getElementById('uid-eligibility-csv');
+            if (!payload || payload.success !== true) {
+                uidEligibilityData = null;
+                if (csvButton) csvButton.disabled = true;
+                if (status) status.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1.5 text-rose-600 dark:text-rose-400"></i>Semakan UID tidak tersedia untuk tarikan ini.';
+                return;
             }
+            uidEligibilityData = payload;
+            renderUidEligibility(payload);
         }
 
         function renderUidEligibility(data) {
@@ -7476,7 +7485,11 @@
             count('uid-eligible-count', eligibleRows.length + ' rekod');
             count('uid-blocked-count', blockedRows.length + ' rekod');
             const status = document.getElementById('uid-eligibility-status');
-            if (status) status.innerHTML = '<i class="fa-solid fa-circle-check mr-1.5 text-emerald-600 dark:text-emerald-400"></i>Semakan pada ' + escapeHtml(new Date(data.generatedAt).toLocaleString('ms-MY')) + '. Batas hari ini: ' + escapeHtml(data.today || '') + '.';
+            const scope = data.scope || {};
+            const scopeText = (scope.requested !== undefined && scope.requested !== null)
+                ? ' Skop: ' + escapeHtml(String(scope.requested)) + ' rekod ditarik, ' + escapeHtml(String(scope.status02 || 0)) + ' StatusKad 02.'
+                : '';
+            if (status) status.innerHTML = '<i class="fa-solid fa-circle-check mr-1.5 text-emerald-600 dark:text-emerald-400"></i>Semakan pada ' + escapeHtml(new Date(data.generatedAt).toLocaleString('ms-MY')) + '.' + scopeText + ' Batas hari ini: ' + escapeHtml(data.today || '') + '.';
             const summary = document.getElementById('uid-eligibility-summary');
             if (summary) summary.classList.remove('hidden');
 

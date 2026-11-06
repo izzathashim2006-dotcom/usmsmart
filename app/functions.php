@@ -148,6 +148,77 @@ function usmsmartClassifyUidEligibility(array $records, array $uidUses, $today) 
     return array('eligible' => $eligible, 'blocked' => $blocked, 'duplicates' => $duplicates);
 }
 
+// Only the rows the user pulled take part in the export check, and only those whose StatusKad is
+// 02; everything else stays filtered out in the pull and is not scanned here. The mapping also
+// hides the pull's field names (matric/usmUid/expiryDate) from the classifier.
+function usmsmartUidEligibilityCandidates(array $rows) {
+    $records = array();
+    foreach ($rows as $row) {
+        if (trim((string)($row['cardStatus'] ?? '')) !== '02') continue;
+        $records[] = array(
+            'sourceId' => (string)($row['sourceId'] ?? ''),
+            'cardholderType' => (string)($row['cardholderType'] ?? ''),
+            'name' => (string)($row['name'] ?? ''),
+            'identifier' => (string)($row['matric'] ?? ''),
+            'school' => (string)($row['school'] ?? ''),
+            'uid' => (string)($row['usmUid'] ?? ''),
+            'expiryDate' => (string)($row['expiryDate'] ?? ''),
+        );
+    }
+    return $records;
+}
+
+// Count how many cards on either source table carry each candidate UID. Only the candidate UIDs
+// are looked up, so the database work matches the batch the user pulled rather than the campus.
+function usmsmartUidUsageCounts(PDO $sqlServer, array $candidateUids) {
+    $wanted = array();
+    foreach ($candidateUids as $uid) {
+        $uid = strtoupper(preg_replace('/\s+/', '', trim((string)$uid)));
+        if ($uid !== '') $wanted[$uid] = true;
+    }
+    $counts = array();
+    if (empty($wanted)) return $counts;
+    /* Same normalisation on both sides of the comparison; PHP still owns the counting so a
+       dialect quirk cannot change the totals. Chunked because a pull can name thousands of UIDs. */
+    $normalised = "UPPER(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(NoSiriKad,''),' ',''),CHAR(9),''),CHAR(10),''),CHAR(13),''))";
+    foreach (array_chunk(array_keys($wanted), 400) as $chunk) {
+        $placeholders = implode(',', array_fill(0, count($chunk), '?'));
+        foreach (array('dbo.Pelajar', 'dbo.Staf') as $table) {
+            $stmt = $sqlServer->prepare("SELECT LTRIM(RTRIM(COALESCE(NoSiriKad,''))) AS card_uid FROM " . $table
+                . " WHERE COALESCE(NULLIF(LTRIM(RTRIM(NoSiriKad)),''),'') <> '' AND " . $normalised . " IN (" . $placeholders . ")");
+            $stmt->execute($chunk);
+            while ($takenRow = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $uid = strtoupper(preg_replace('/\s+/', '', (string)$takenRow['card_uid']));
+                if ($uid !== '' && isset($wanted[$uid])) {
+                    $counts[$uid] = isset($counts[$uid]) ? $counts[$uid] + 1 : 1;
+                }
+            }
+        }
+    }
+    return $counts;
+}
+
+// The shape the dashboard renders. "scope" says how many pulled rows were considered so the panel
+// can state that the check never looks past the batch.
+function usmsmartUidEligibilityPayload(array $rows, array $uidCounts, $today) {
+    $records = usmsmartUidEligibilityCandidates($rows);
+    $classified = usmsmartClassifyUidEligibility($records, $uidCounts, $today);
+    return array(
+        'success' => true,
+        'generatedAt' => date('c'),
+        'today' => $today,
+        'scope' => array('requested' => count($rows), 'status02' => count($records)),
+        'totals' => array(
+            'scanned' => count($records),
+            'eligible' => count($classified['eligible']),
+            'blocked' => count($classified['blocked']),
+            'duplicates' => (int)$classified['duplicates'],
+        ),
+        'eligible' => $classified['eligible'],
+        'blocked' => $classified['blocked'],
+    );
+}
+
 // Descriptive fields carried alongside a Sysweb record so the portal can be filtered on the
 // same details as the source directory. Students contribute school/policy/nationality, staff
 // contribute department/card status/notes; both spellings are accepted because the transport

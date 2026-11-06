@@ -199,74 +199,14 @@ if (!defined('USM_ROOT')) {
                 );
                 if (count($rows) >= $recordLimit) break;
             }
-            echo json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+            $candidates = usmsmartUidEligibilityCandidates($rows);
+            $uidCounts = usmsmartUidUsageCounts($sqlServer, array_column($candidates, 'uid'));
+            $eligibility = usmsmartUidEligibilityPayload($rows, $uidCounts, date('Y-m-d'));
+            echo json_encode(array('records' => $rows, 'eligibility' => $eligibility), JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
         } catch (Throwable $e) {
             error_log('USMSmart SQL Server get_records failed: ' . $e->getMessage());
             http_response_code(500);
             echo json_encode(array('error'=>'Tidak dapat memuatkan data pemegang kad daripada SQL Server. Semak sambungan SQL Server dan kebenaran baca dbo.Pelajar/dbo.Staf.'));
-        }
-        exit;
-    }
-
-    if ($action === 'get_uid_eligibility' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-        header('Content-Type: application/json; charset=utf-8');
-        header('Cache-Control: no-store, private');
-        try {
-            $sqlServer = usmsmartGetSqlServerPdo();
-            $sources = array(
-                'student' => array('table' => 'dbo.Pelajar', 'identifier' => 'NoMatrik', 'school' => 'PPengajian'),
-                'staff'   => array('table' => 'dbo.Staf', 'identifier' => 'NoStaf', 'school' => 'NamaJabatan'),
-            );
-            // Count every UID already registered on either table, whatever its StatusKad or expiry.
-            // An expired card still owns its UID, so a later record cannot reuse it.
-            $uidCounts = array();
-            foreach ($sources as $meta) {
-                $taken = $sqlServer->query("SELECT LTRIM(RTRIM(COALESCE(NoSiriKad,''))) AS card_uid FROM " . $meta['table'] . " WHERE COALESCE(NULLIF(LTRIM(RTRIM(NoSiriKad)),''),'') <> ''");
-                while ($takenRow = $taken->fetch(PDO::FETCH_ASSOC)) {
-                    $takenUid = strtoupper(preg_replace('/\s+/', '', (string)$takenRow['card_uid']));
-                    if ($takenUid !== '') $uidCounts[$takenUid] = isset($uidCounts[$takenUid]) ? $uidCounts[$takenUid] + 1 : 1;
-                }
-            }
-            $today = date('Y-m-d');
-            $records = array();
-            foreach ($sources as $type => $meta) {
-                $sql = "SELECT CAST(id AS varchar(30)) AS source_id,"
-                    . " LTRIM(RTRIM(COALESCE(Nama,''))) AS name,"
-                    . " LTRIM(RTRIM(COALESCE(" . $meta['identifier'] . ",''))) AS identifier,"
-                    . " LTRIM(RTRIM(COALESCE(" . $meta['school'] . ",''))) AS school,"
-                    . " LTRIM(RTRIM(COALESCE(NoSiriKad,''))) AS card_uid,"
-                    . " CAST(TkhTamat AS date) AS expiry_date"
-                    . " FROM " . $meta['table']
-                    . " WHERE LTRIM(RTRIM(COALESCE(StatusKad,''))) = '02'";
-                $stmt = $sqlServer->query($sql);
-                while ($source = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    $records[] = array(
-                        'sourceId' => (string)$source['source_id'],
-                        'cardholderType' => $type,
-                        'name' => trim((string)$source['name']),
-                        'identifier' => trim((string)$source['identifier']),
-                        'school' => trim((string)$source['school']),
-                        'uid' => (string)$source['card_uid'],
-                        'expiryDate' => !empty($source['expiry_date']) ? substr((string)$source['expiry_date'], 0, 10) : '',
-                    );
-                }
-            }
-            $classified = usmsmartClassifyUidEligibility($records, $uidCounts, $today);
-            $eligible = $classified['eligible'];
-            $blocked = $classified['blocked'];
-            $scanned = count($records);
-            echo json_encode(array(
-                'success' => true,
-                'generatedAt' => date('c'),
-                'today' => $today,
-                'totals' => array('scanned' => $scanned, 'eligible' => count($eligible), 'blocked' => count($blocked), 'duplicates' => (int)$classified['duplicates']),
-                'eligible' => $eligible,
-                'blocked' => $blocked,
-            ), JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
-        } catch (Throwable $e) {
-            error_log('USMSmart UID eligibility failed: ' . $e->getMessage());
-            http_response_code(503);
-            echo json_encode(array('success' => false, 'message' => 'Tidak dapat menyemak UID daripada SQL Server. Semak sambungan dan kebenaran baca dbo.Pelajar/dbo.Staf.'));
         }
         exit;
     }
