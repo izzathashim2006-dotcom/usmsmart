@@ -9,9 +9,9 @@
             }
             return nativeFetch(resource, options);
         };
-        // The greeting panels follow the visitor's clock and locale. The PHP process runs in
+        // The dashboard hero follows the visitor's clock and locale. The PHP process runs in
         // the server's zone, not the campus one, so a greeting computed there would be hours off.
-        // The dashboard clock re-renders on the minute boundary so it never shows a stale minute.
+        // The clock re-renders on the minute boundary so it never shows a stale minute.
         (function initGreetingPanels() {
             const greetingFor = function (hour) {
                 return hour < 12 ? 'Selamat pagi'
@@ -37,8 +37,6 @@
             const dashDate = document.getElementById('usm-dash-date');
             const dashTime = document.getElementById('usm-dash-time');
             const dashIcon = document.getElementById('usm-dash-icon');
-            const welcomeGreeting = document.getElementById('usm-welcome-greeting');
-            const welcomeDate = document.getElementById('usm-welcome-date');
             const paint = function () {
                 const now = new Date();
                 const greeting = greetingFor(now.getHours());
@@ -54,8 +52,6 @@
                     dashIcon.classList.toggle('fa-sun', daytime);
                     dashIcon.classList.toggle('fa-moon', !daytime);
                 }
-                if (welcomeGreeting) welcomeGreeting.textContent = greeting;
-                if (welcomeDate) welcomeDate.textContent = date;
             };
             paint();
             if (!dashTime) return;
@@ -1765,7 +1761,7 @@
         }
 
         function hideAllMainViews() {
-            ['view-welcome','view-transporter','view-analytics','view-directory-page','view-staff-directory','view-edit-student','view-user-management','view-audit-history','view-bulk-update','view-data-quality','view-sysweb'].forEach(id => {
+            ['view-transporter','view-analytics','view-directory-page','view-staff-directory','view-edit-student','view-user-management','view-audit-history','view-bulk-update','view-data-quality','view-sysweb'].forEach(id => {
                 const el = document.getElementById(id); if (el) el.classList.add('hidden');
             });
             // Deep segments belong to no top tab, so no tab is marked current.
@@ -1812,14 +1808,12 @@
             let tUsers = document.getElementById('view-user-management');
             let tAudit = document.getElementById('view-audit-history');
             let tSysweb = document.getElementById('view-sysweb');
-            let tWelcome = document.getElementById('view-welcome');
             // The three button handles are gone: setMainTabState() is the only writer now.
             if (tDir) tDir.classList.add('hidden');
             if (tEdit) tEdit.classList.add('hidden');
             if (tUsers) tUsers.classList.add('hidden');
             if (tAudit) tAudit.classList.add('hidden');
             if (tSysweb) tSysweb.classList.add('hidden');
-            if (tWelcome) tWelcome.classList.add('hidden');
             if (tab === 'analytics') {
                 if (tTrans) tTrans.classList.add('hidden');
                 if (tAnal) tAnal.classList.remove('hidden');
@@ -3143,13 +3137,6 @@
             navigateToDirectoryPage('staff');
         }
 
-        // The greeting hands over to the dashboard. Focus moves to <main> so keyboard users
-        // are not left on a button that has just been hidden.
-        function continueFromWelcome() {
-            switchMainTab('transporter');
-            const main = document.getElementById('usm-main');
-            if (main) main.focus({preventScroll: true});
-        }
         async function syncLiveStaffToLocal() {
             if (!USMSMART_IS_ADMIN) { showToast('Hanya Admin boleh mengimport data staf.'); return; }
             if (!window.confirm('Import/sync rekod daripada dbo.Staf ke direktori MySQL tempatan?\n\nRekod rasmi SQL Server tidak akan diubah. Rekod tempatan dengan nombor staf sama akan dikemas kini.')) return;
@@ -4272,23 +4259,150 @@
         }
 
         function switchProfileTab(tab) {
-            const infoTab = document.getElementById('profile-tab-info');
-            const passTab = document.getElementById('profile-tab-password');
-            const infoForm = document.getElementById('profile-info-form');
-            const passForm = document.getElementById('profile-password-form');
-            if (!infoTab || !passTab || !infoForm || !passForm) return;
             const activeCls = "flex-1 px-3 py-2 rounded-lg font-medium transition bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-clean";
             const inactiveCls = "flex-1 px-3 py-2 rounded-lg text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition";
-            if (tab === 'password') {
-                infoTab.className = inactiveCls;
-                passTab.className = activeCls;
-                infoForm.classList.add('hidden');
-                passForm.classList.remove('hidden');
-            } else {
-                infoTab.className = activeCls;
-                passTab.className = inactiveCls;
-                infoForm.classList.remove('hidden');
-                passForm.classList.add('hidden');
+            const panels = {
+                info: ['profile-tab-info', 'profile-info-form'],
+                password: ['profile-tab-password', 'profile-password-form'],
+                passkey: ['profile-tab-passkey', 'profile-passkey-panel']
+            };
+            /* An unknown name falls back to Info instead of hiding every panel, so a stale
+               onclick in a cached tab can never blank the modal. */
+            if (!panels[tab]) tab = 'info';
+            Object.keys(panels).forEach(function (key) {
+                const pair = panels[key];
+                const button = document.getElementById(pair[0]);
+                const panel = document.getElementById(pair[1]);
+                if (!button || !panel) return;
+                const active = key === tab;
+                button.className = active ? activeCls : inactiveCls;
+                panel.classList.toggle('hidden', !active);
+            });
+            if (tab === 'passkey') loadPasskeyList();
+        }
+
+        /* ===== Passkeys (WebAuthn) =====
+           The browser ceremony lives here; all cryptographic verification happens on the server.
+           A passkey only exists on a secure origin with a real domain name, so every entry point
+           checks that first instead of letting navigator.credentials throw an opaque error. */
+        function usmPasskeySupported() {
+            return !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
+        }
+        function usmPasskeyBytes(value) {
+            const text = String(value || '').replace(/-/g, '+').replace(/_/g, '/');
+            const padded = text + '='.repeat((4 - (text.length % 4)) % 4);
+            const raw = atob(padded);
+            const bytes = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+            return bytes.buffer;
+        }
+        function usmPasskeyB64(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let raw = '';
+            for (let i = 0; i < bytes.length; i++) raw += String.fromCharCode(bytes[i]);
+            return btoa(raw).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+        function usmPasskeyDate(value) {
+            if (!value) return '';
+            try {
+                const parsed = new Date(String(value).replace(' ', 'T'));
+                if (isNaN(parsed.getTime())) return String(value);
+                return parsed.toLocaleString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            } catch (error) { return String(value); }
+        }
+
+        async function loadPasskeyList() {
+            const host = document.getElementById('profile-passkey-list');
+            if (!host) return;
+            const supported = usmPasskeySupported();
+            const note = document.getElementById('profile-passkey-unsupported');
+            const addBtn = document.getElementById('profile-passkey-add');
+            if (note) note.classList.toggle('hidden', supported);
+            if (addBtn) addBtn.disabled = !supported;
+            if (!supported) {
+                host.innerHTML = '<p class="text-[11px] text-slate-500 dark:text-zinc-400">Passkey tidak tersedia dalam pelayar atau sambungan ini.</p>';
+                return;
+            }
+            host.innerHTML = '<p class="text-[11px] text-slate-500 dark:text-zinc-400">Memuatkan passkey…</p>';
+            try {
+                const response = await fetch('index.php?action=webauthn_list_credentials', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.message || 'Senarai passkey tidak dapat dibaca.');
+                const rows = Array.isArray(data.credentials) ? data.credentials : [];
+                if (!rows.length) {
+                    host.innerHTML = '<p class="text-[11px] text-slate-500 dark:text-zinc-400">Belum ada passkey. Tambah satu untuk log masuk tanpa kata laluan.</p>';
+                    return;
+                }
+                host.innerHTML = rows.map(function (row) {
+                    const lastUsed = row.last_used_at ? 'Terakhir digunakan ' + usmPasskeyDate(row.last_used_at) : 'Belum digunakan untuk log masuk';
+                    return '<div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">'
+                        + '<div class="min-w-0"><div class="font-semibold text-slate-800 dark:text-zinc-100 truncate"><i class="fa-solid fa-key mr-1 text-indigo-500"></i>' + escapeHtml(row.label || 'Passkey') + '</div>'
+                        + '<div class="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">Didaftarkan ' + escapeHtml(usmPasskeyDate(row.created_at)) + ' · ' + escapeHtml(lastUsed) + '</div></div>'
+                        + '<button type="button" onclick="removePasskey(' + Number(row.id) + ')" class="px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900 text-[10px] font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40">Buang</button>'
+                        + '</div>';
+                }).join('');
+            } catch (error) {
+                host.innerHTML = '<p class="text-[11px] text-rose-600 dark:text-rose-400">Passkey tidak dapat dibaca: ' + escapeHtml(error.message) + '</p>';
+            }
+        }
+
+        async function registerPasskey() {
+            const status = document.getElementById('profile-passkey-status');
+            const addBtn = document.getElementById('profile-passkey-add');
+            if (!usmPasskeySupported()) {
+                if (status) status.textContent = 'Passkey memerlukan HTTPS atau localhost dan pelayar moden.';
+                return;
+            }
+            if (addBtn) addBtn.disabled = true;
+            if (status) status.textContent = 'Menunggu peranti…';
+            try {
+                const optionsResponse = await fetch('index.php?action=webauthn_register_options', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+                const options = await optionsResponse.json();
+                if (!optionsResponse.ok || !options.success) throw new Error(options.message || 'Pendaftaran passkey tidak dapat dimulakan.');
+                const publicKey = options.publicKey;
+                publicKey.challenge = usmPasskeyBytes(publicKey.challenge);
+                publicKey.user.id = usmPasskeyBytes(publicKey.user.id);
+                publicKey.excludeCredentials = (publicKey.excludeCredentials || []).map(function (item) {
+                    return Object.assign({}, item, { id: usmPasskeyBytes(item.id) });
+                });
+                const credential = await navigator.credentials.create({ publicKey: publicKey });
+                const transports = credential.response && typeof credential.response.getTransports === 'function' ? credential.response.getTransports() : [];
+                const labelInput = document.getElementById('profile-passkey-label');
+                const verifyResponse = await fetch('index.php?action=webauthn_register_verify', {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        label: labelInput ? labelInput.value : '',
+                        clientDataJSON: usmPasskeyB64(credential.response.clientDataJSON),
+                        attestationObject: usmPasskeyB64(credential.response.attestationObject),
+                        transports: Array.isArray(transports) ? transports : []
+                    })
+                });
+                const result = await verifyResponse.json();
+                if (!verifyResponse.ok || !result.success) throw new Error(result.message || 'Passkey tidak dapat disimpan.');
+                if (labelInput) labelInput.value = '';
+                if (status) status.textContent = 'Passkey berjaya didaftarkan.';
+                showToast('Passkey berjaya didaftarkan.');
+                await loadPasskeyList();
+            } catch (error) {
+                if (status) status.textContent = error && error.name === 'NotAllowedError'
+                    ? 'Pendaftaran dibatalkan atau tamat masa. Cuba lagi.'
+                    : (error && error.message ? error.message : 'Pendaftaran passkey gagal.');
+            } finally {
+                if (addBtn) addBtn.disabled = false;
+            }
+        }
+
+        async function removePasskey(id) {
+            if (!confirm('Buang passkey ini? Anda masih boleh log masuk dengan kata laluan.')) return;
+            try {
+                const response = await fetch('index.php?action=webauthn_remove_credential', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: Number(id) }) });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.message || 'Passkey tidak dapat dibuang.');
+                showToast('Passkey dibuang.');
+                await loadPasskeyList();
+            } catch (error) {
+                showToast('Gagal membuang passkey: ' + error.message);
             }
         }
 
@@ -5371,6 +5485,8 @@
             setLivePullStatus('loading', 'Sedang menarik data…', 'Meminta sehingga ' + recordLimit + ' rekod mengikut penapis, kemudian menyemak rekod UDA sedia ada dan polisi palang.');
             try {
                 showToast('Menghubungkan ke Live Database...');
+                // One click does both: the pull and the UID eligibility screen run side by side.
+                const uidCheck = checkUidEligibility({ silent: true });
                 const cardholderType = document.getElementById('uda-cardholder-type')?.value || 'student';
                 if (USM_SMART_IS_ADMIN) { try { await loadExistingPolicyOptions(); } catch (policyError) { console.error('Policy list load failed:', policyError); } }
                 const liveSearch = document.getElementById('uda-live-search')?.value.trim() || '';
@@ -5394,6 +5510,7 @@
                 document.getElementById('section-stats').classList.remove('hidden');
                 document.getElementById('section-step-2').classList.remove('hidden');
                 const missingPolicy = currentFetchedRecords.filter(r => !String(r.policy || '').trim()).length;
+                await uidCheck;
                 showToast('Berjaya ambil ' + currentFetchedRecords.length + ' rekod ' + (cardholderType === 'staff' ? 'staf' : 'pelajar') + (missingPolicy ? '. ' + missingPolicy + ' rekod tiada polisi palang dan akan disekat.' : '.'));
             } catch (err) {
                 setLivePullStatus('error', 'Tidak dapat memuatkan data', err && err.message ? err.message : 'Ralat rangkaian atau format respons. Semak sambungan SQL Server dan cuba semula.');
@@ -5430,35 +5547,823 @@
         const ANALYTICS_COLORS = ['#6366F1', '#10B981', '#F59E0B', '#F43F5E', '#8B5CF6', '#06B6D4', '#84CC16'];
         const SCHOOL_SHORT_NAMES = ['Aeroangkasa', 'Awam', 'Elektrik & Elektronik', 'Bahan & Mineral', 'Kimia', 'Mekanikal', 'Bahasa & Terjemahan'];
 
-        function downloadAnalyticsCharts() {
-            const charts = [
-                { id: 'pieChart', name: 'USMSmart-taburan-pelajar.png' },
-                { id: 'barChart', name: 'USMSmart-jumlah-mengikut-pusat.png' },
-                { id: 'monthlyComparisonChart', name: 'USMSmart-trend-pendaftaran-bulanan.png' }
-            ];
-            let downloaded = 0;
-            charts.forEach(chart => {
-                const canvas = document.getElementById(chart.id);
-                if (!canvas || !canvas.width || !canvas.height) return;
-                const link = document.createElement('a');
-                link.download = chart.name;
-                link.href = canvas.toDataURL('image/png');
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-                downloaded++;
+        // ===== Analisis Statistik exports: one summary PDF, one PNG containing every chart, one Excel workbook =====
+        function analyticsExportSnapshot() {
+            const records = Array.isArray(allMasterStudents) ? allMasterStudents : [];
+            const filterSchool = String(selectedAnalyticsSchool || '').trim();
+            const filtered = filterSchool ? records.filter(record => String(sanitizeSchoolName(record.school) || '').trim() === filterSchool) : records;
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const todayMs = today.getTime();
+            const soonMs = todayMs + (30 * 86400000);
+            let active = 0, expired = 0, expiring = 0;
+            records.forEach(record => {
+                const expiryText = String(record.expiryDate || '').slice(0, 10);
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(expiryText)) return;
+                const expiryMs = new Date(expiryText + 'T00:00:00').getTime();
+                if (Number.isNaN(expiryMs)) return;
+                if (expiryMs < todayMs) expired++;
+                else { active++; if (expiryMs <= soonMs) expiring++; }
             });
-            if (!downloaded) alert('Carta belum tersedia. Buka tab Analisis Statistik dan cuba lagi.');
+            const totalCards = records.length;
+            const activeRate = totalCards ? ((active / totalCards) * 100).toFixed(1) : '0.0';
+            const schoolNames = filterSchool ? [filterSchool] : getAnalyticsSchoolNames();
+            const counts = {};
+            schoolNames.forEach(school => { counts[school] = 0; });
+            filtered.forEach(record => {
+                const school = String(sanitizeSchoolName(record.school) || '').trim();
+                if (school) counts[school] = (counts[school] || 0) + 1;
+            });
+            const schools = schoolNames.map(school => ({ school, count: counts[school] || 0 }))
+                .sort((a, b) => b.count - a.count || a.school.localeCompare(b.school, undefined, { sensitivity: 'base' }));
+            const total = filtered.length;
+            const topSchool = schools.find(row => row.count > 0) || null;
+            const latestRaw = filtered.reduce((latest, record) => {
+                const raw = String(record.dateJoined || record.date_joined || record.joined || '').trim();
+                return raw > latest ? raw : latest;
+            }, '');
+            let latestLabel = 'Tiada tarikh';
+            if (latestRaw) {
+                const parsed = new Date(latestRaw.length === 10 ? latestRaw + 'T00:00:00' : latestRaw);
+                if (!Number.isNaN(parsed.getTime())) latestLabel = new Intl.DateTimeFormat('ms-MY', { day: '2-digit', month: 'short', year: 'numeric' }).format(parsed);
+            }
+            const startMonth = document.getElementById('analytics-start-month')?.value || '';
+            const endMonth = document.getElementById('analytics-end-month')?.value || '';
+            let monthly = { labels: [], series: [] };
+            const chart = monthlyComparisonChartInstance;
+            if (chart && chart.data && Array.isArray(chart.data.labels)) {
+                monthly = {
+                    labels: chart.data.labels.map(String),
+                    series: (chart.data.datasets || []).map(dataset => ({ label: String(dataset.label || ''), data: (dataset.data || []).map(value => Number(value) || 0) }))
+                };
+            }
+            return {
+                generatedAt: new Date(),
+                filterSchool,
+                filterLabel: filterSchool || 'Semua pusat pengajian',
+                monthLabel: startMonth || endMonth ? ((startMonth || 'awal') + ' hingga ' + (endMonth || 'terkini')) : 'Semua bulan',
+                cards: { total: totalCards, active, expiring, expired, activeRate },
+                kpi: {
+                    total,
+                    schools: new Set(filtered.map(record => String(sanitizeSchoolName(record.school) || '').trim()).filter(Boolean)).size,
+                    topSchool,
+                    latestLabel
+                },
+                schools,
+                total,
+                monthly
+            };
         }
 
-        function printAnalyticsReport() {
-            if (document.getElementById('view-analytics')?.classList.contains('hidden')) {
-                switchMainTab('analytics');
-                setTimeout(() => window.print(), 350);
-                return;
-            }
-            window.print();
+        function analyticsExportDateLabel(date) {
+            return new Intl.DateTimeFormat('ms-MY', { day: '2-digit', month: 'long', year: 'numeric' }).format(date);
         }
+
+        function analyticsFileStamp(snapshot) {
+            const date = snapshot.generatedAt;
+            const pad = value => String(value).padStart(2, '0');
+            return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+        }
+
+        function downloadAnalyticsFile(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        function downloadAnalyticsSummaryPdf() {
+            const snapshot = analyticsExportSnapshot();
+            const fmt = value => new Intl.NumberFormat('ms-MY').format(Number(value) || 0);
+            const percent = (value, base) => base ? ((value / base) * 100).toFixed(1) + '%' : '0.0%';
+            const ascii = value => String(value == null ? '' : value)
+                .replace(/[\u2013\u2014]/g, '-')
+                .replace(/[\u2018\u2019]/g, "'")
+                .replace(/[\u201C\u201D]/g, '"')
+                .replace(/[^\x20-\x7E]/g, '?');
+            const esc = value => ascii(value).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+            const ops = [];
+            const rgb = (r, g, b) => r + ' ' + g + ' ' + b;
+            const ink = rgb(0.12, 0.16, 0.22);
+            const muted = rgb(0.4, 0.45, 0.52);
+            const accent = rgb(0.31, 0.27, 0.9);
+            const text = (x, y, size, value, options) => {
+                const opts = options || {};
+                ops.push('BT ' + (opts.color || ink) + ' rg ' + (opts.bold ? '/F2' : '/F1') + ' ' + size + ' Tf ' + x + ' ' + y + ' Td (' + esc(value) + ') Tj ET');
+            };
+            const rightText = (xRight, y, size, value, options) => {
+                text(xRight - (ascii(value).length * size * 0.52), y, size, value, options);
+            };
+            const section = (y, title) => {
+                text(40, y, 12.5, title, { bold: true, color: rgb(0.18, 0.2, 0.28) });
+                ops.push(accent + ' RG 1.4 w 40 ' + (y - 6) + ' m 96 ' + (y - 6) + ' l S');
+                return y - 20;
+            };
+            const row = (y, label, value) => {
+                text(40, y, 10, label, { color: muted });
+                rightText(555, y, 10, value, { bold: true });
+                return y - 15;
+            };
+            const empty = y => { text(46, y, 9, 'Tiada data untuk dipaparkan.', { color: muted }); return y - 13; };
+
+            ops.push(accent + ' rg 0 762 595 80 re f');
+            text(40, 806, 20, 'USMSmart - Analisis Statistik', { bold: true, color: '1 1 1' });
+            text(40, 786, 9.5, 'Ringkasan statistik kad pelajar', { color: rgb(0.92, 0.92, 1) });
+            rightText(555, 806, 9.5, analyticsExportDateLabel(snapshot.generatedAt), { color: rgb(0.92, 0.92, 1) });
+
+            let y = 735;
+            y = section(y, 'Ringkasan status kad (semua rekod)');
+            y = row(y, 'Jumlah rekod kad', fmt(snapshot.cards.total));
+            y = row(y, 'Kad aktif', fmt(snapshot.cards.active) + ' (' + snapshot.cards.activeRate + '% daripada semua rekod)');
+            y = row(y, 'Luput dalam 30 hari', fmt(snapshot.cards.expiring));
+            y = row(y, 'Kad tamat tempoh', fmt(snapshot.cards.expired));
+            y -= 10;
+            y = section(y, 'Sorotan analitik');
+            y = row(y, 'Paparan', snapshot.filterLabel);
+            y = row(y, 'Julat bulan trend', snapshot.monthLabel);
+            y = row(y, 'Jumlah pelajar', fmt(snapshot.kpi.total));
+            y = row(y, 'Pusat pengajian', fmt(snapshot.kpi.schools));
+            y = row(y, 'Pusat terbesar', snapshot.kpi.topSchool ? snapshot.kpi.topSchool.school + ' (' + fmt(snapshot.kpi.topSchool.count) + ' pelajar)' : 'Tiada rekod');
+            y = row(y, 'Pendaftaran terkini', snapshot.kpi.latestLabel);
+            y -= 10;
+            y = section(y, 'Pelajar mengikut pusat pengajian');
+            ops.push('0.95 0.96 0.98 rg 40 ' + (y - 2) + ' 515 16 re f');
+            text(46, y + 2, 9, 'Pusat pengajian', { bold: true, color: muted });
+            rightText(465, y + 2, 9, 'Jumlah', { bold: true, color: muted });
+            rightText(555, y + 2, 9, 'Peratus', { bold: true, color: muted });
+            y -= 15;
+            const listed = snapshot.schools.slice(0, 12);
+            if (!listed.length) y = empty(y);
+            listed.forEach(item => {
+                text(46, y, 9, item.school);
+                rightText(465, y, 9, fmt(item.count));
+                rightText(555, y, 9, percent(item.count, snapshot.total));
+                y -= 13;
+            });
+            if (snapshot.schools.length > listed.length) {
+                text(46, y, 9, '+ ' + (snapshot.schools.length - listed.length) + ' pusat lagi', { color: muted });
+                y -= 13;
+            }
+            y -= 12;
+            y = section(y, 'Trend pendaftaran bulanan');
+            const monthTotals = snapshot.monthly.labels.map((month, index) => ({
+                month,
+                total: snapshot.monthly.series.reduce((sum, series) => sum + (series.data[index] || 0), 0)
+            })).slice(-8);
+            if (!monthTotals.length) y = empty(y);
+            monthTotals.forEach(item => {
+                text(46, y, 9, item.month);
+                rightText(555, y, 9, fmt(item.total) + ' pelajar');
+                y -= 13;
+            });
+            text(40, 40, 8.5, 'Dijana oleh USMSmart pada ' + analyticsExportDateLabel(snapshot.generatedAt), { color: muted });
+            rightText(555, 40, 8.5, 'Halaman 1', { color: muted });
+
+            downloadAnalyticsFile(buildAnalyticsPdf(ops), 'USMSmart_Analisis_' + analyticsFileStamp(snapshot) + '.pdf');
+            showToast('PDF ringkasan analisis dimuat turun.');
+        }
+
+        function buildAnalyticsPdf(ops) {
+            const encoder = new TextEncoder();
+            const chunks = [];
+            let offset = 0;
+            const push = value => {
+                const bytes = encoder.encode(value);
+                chunks.push(bytes);
+                offset += bytes.length;
+            };
+            push('%PDF-1.4\n');
+            const content = ops.join('\n');
+            const objects = [
+                '<< /Type /Catalog /Pages 2 0 R >>',
+                '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+                '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>',
+                '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+                '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>',
+                '<< /Length ' + encoder.encode(content).length + ' >>\nstream\n' + content + '\nendstream'
+            ];
+            const offsets = [0];
+            objects.forEach((body, index) => {
+                offsets.push(offset);
+                push((index + 1) + ' 0 obj\n' + body + '\nendobj\n');
+            });
+            const xrefOffset = offset;
+            let xref = 'xref\n0 ' + (objects.length + 1) + '\n0000000000 65535 f \n';
+            for (let i = 1; i <= objects.length; i++) xref += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+            xref += 'trailer\n<< /Size ' + (objects.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xrefOffset + '\n%%EOF\n';
+            push(xref);
+            return new Blob(chunks, { type: 'application/pdf' });
+        }
+
+        function analyticsChartSections() {
+            return [
+                { id: 'pieChart', title: 'Taburan pelajar', subtitle: 'Peratusan mengikut pusat pengajian' },
+                { id: 'barChart', title: 'Jumlah mengikut pusat', subtitle: 'Perbandingan jumlah pelajar berdaftar' },
+                { id: 'monthlyComparisonChart', title: 'Trend pendaftaran bulanan', subtitle: 'Perbandingan pendaftaran bagi setiap pusat pengajian' }
+            ].map(section => Object.assign({ canvas: document.getElementById(section.id) }, section))
+                .filter(section => section.canvas && section.canvas.width > 0 && section.canvas.height > 0);
+        }
+
+        function analyticsRoundRect(ctx, x, y, width, height, radius) {
+            if (typeof ctx.roundRect === 'function') { ctx.beginPath(); ctx.roundRect(x, y, width, height, radius); return; }
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.arcTo(x + width, y, x + width, y + height, radius);
+            ctx.arcTo(x + width, y + height, x, y + height, radius);
+            ctx.arcTo(x, y + height, x, y, radius);
+            ctx.arcTo(x, y, x + width, y, radius);
+            ctx.closePath();
+        }
+
+        // Shared by the analytics page and every other statistics card: one PNG, one rounded panel per
+        // chart, themed to match the screen that produced it.
+        function usmComposeStatsPng(options) {
+            const sections = options.sections || [];
+            if (!sections.length) { showToast(options.emptyMessage || 'Carta belum tersedia. Cuba lagi.'); return; }
+            const dark = document.documentElement.classList.contains('dark');
+            const width = 1240;
+            const pad = 48;
+            const chartWidth = width - (pad * 2);
+            const innerWidth = chartWidth - 40;
+            const items = sections.map(section => Object.assign({}, section, {
+                drawHeight: Math.round(innerWidth * (section.canvas.height / section.canvas.width))
+            }));
+            const headerHeight = 176;
+            const height = headerHeight + items.reduce((sum, item) => sum + item.drawHeight + 110, 0) + 24;
+            const canvas = document.createElement('canvas');
+            canvas.width = width * 2;
+            canvas.height = height * 2;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(2, 2);
+            ctx.fillStyle = dark ? '#0b0b0d' : '#eef2f7';
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = dark ? '#f4f4f5' : '#0f172a';
+            ctx.font = '700 38px "Plus Jakarta Sans", "Segoe UI", sans-serif';
+            ctx.fillText(options.title, pad, 72);
+            ctx.fillStyle = dark ? '#a1a1aa' : '#475569';
+            ctx.font = '500 18px "Plus Jakarta Sans", "Segoe UI", sans-serif';
+            ctx.fillText(options.metaLine, pad, 106);
+            ctx.fillStyle = dark ? '#d4d4d8' : '#334155';
+            ctx.font = '600 20px "Plus Jakarta Sans", "Segoe UI", sans-serif';
+            ctx.fillText(options.statLine, pad, 140);
+            ctx.fillStyle = '#6366f1';
+            ctx.fillRect(pad, 156, 96, 4);
+            let y = headerHeight;
+            items.forEach(item => {
+                const panelHeight = 70 + item.drawHeight + 16;
+                ctx.fillStyle = dark ? '#18181b' : '#ffffff';
+                analyticsRoundRect(ctx, pad, y, chartWidth, panelHeight, 18);
+                ctx.fill();
+                ctx.strokeStyle = dark ? '#27272a' : '#dbe3ec';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.fillStyle = dark ? '#f4f4f5' : '#0f172a';
+                ctx.font = '700 22px "Plus Jakarta Sans", "Segoe UI", sans-serif';
+                ctx.fillText(item.title, pad + 26, y + 36);
+                ctx.fillStyle = dark ? '#a1a1aa' : '#64748b';
+                ctx.font = '500 15px "Plus Jakarta Sans", "Segoe UI", sans-serif';
+                ctx.fillText(item.subtitle, pad + 26, y + 58);
+                ctx.drawImage(item.canvas, pad + 20, y + 70, innerWidth, item.drawHeight);
+                y += panelHeight + 24;
+            });
+            canvas.toBlob(blob => {
+                if (!blob) { showToast('Gagal menjana PNG. Cuba lagi.'); return; }
+                downloadAnalyticsFile(blob, options.filename);
+                showToast(options.doneMessage || 'PNG semua carta dimuat turun.');
+            }, 'image/png');
+        }
+
+        function downloadAnalyticsSummaryPng() {
+            const snapshot = analyticsExportSnapshot();
+            const fmt = value => new Intl.NumberFormat('ms-MY').format(Number(value) || 0);
+            usmComposeStatsPng({
+                title: 'USMSmart - Analisis Statistik',
+                metaLine: snapshot.filterLabel + '  |  ' + snapshot.monthLabel + '  |  ' + analyticsExportDateLabel(snapshot.generatedAt),
+                statLine: fmt(snapshot.total) + ' pelajar  |  ' + fmt(snapshot.kpi.schools) + ' pusat  |  ' + fmt(snapshot.cards.expiring) + ' luput 30h  |  ' + fmt(snapshot.cards.expired) + ' tamat tempoh (semua rekod)',
+                sections: analyticsChartSections(),
+                filename: 'USMSmart_Analisis_' + analyticsFileStamp(snapshot) + '.png',
+                emptyMessage: 'Carta belum tersedia. Buka tab Analisis Statistik dan cuba lagi.',
+                doneMessage: 'PNG semua carta dimuat turun.'
+            });
+        }
+
+        const ANALYTICS_CRC_TABLE = (() => {
+            const table = new Uint32Array(256);
+            for (let index = 0; index < 256; index++) {
+                let value = index;
+                for (let bit = 0; bit < 8; bit++) value = (value & 1) ? (0xEDB88320 ^ (value >>> 1)) : (value >>> 1);
+                table[index] = value >>> 0;
+            }
+            return table;
+        })();
+
+        function analyticsCrc32(bytes) {
+            let crc = 0xFFFFFFFF;
+            for (let index = 0; index < bytes.length; index++) crc = ANALYTICS_CRC_TABLE[(crc ^ bytes[index]) & 0xFF] ^ (crc >>> 8);
+            return (crc ^ 0xFFFFFFFF) >>> 0;
+        }
+
+        function analyticsZip(files) {
+            const encoder = new TextEncoder();
+            const chunks = [];
+            const central = [];
+            let offset = 0;
+            const u16 = value => { const bytes = new Uint8Array(2); new DataView(bytes.buffer).setUint16(0, value, true); return bytes; };
+            const u32 = value => { const bytes = new Uint8Array(4); new DataView(bytes.buffer).setUint32(0, value >>> 0, true); return bytes; };
+            files.forEach(file => {
+                const name = encoder.encode(file.name);
+                const data = typeof file.data === 'string' ? encoder.encode(file.data) : file.data;
+                const crc = analyticsCrc32(data);
+                const header = [
+                    u32(0x04034b50), u16(20), u16(0x0800), u16(0), u16(0), u16(0x21),
+                    u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0)
+                ];
+                chunks.push(...header, name, data);
+                central.push({ name, crc, size: data.length, offset });
+                offset += header.reduce((sum, part) => sum + part.length, 0) + name.length + data.length;
+            });
+            const directoryStart = offset;
+            let directorySize = 0;
+            central.forEach(entry => {
+                const header = [
+                    u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(0x21),
+                    u32(entry.crc), u32(entry.size), u32(entry.size), u16(entry.name.length), u16(0), u16(0), u16(0), u16(0),
+                    u32(0), u32(entry.offset)
+                ];
+                chunks.push(...header, entry.name);
+                directorySize += header.reduce((sum, part) => sum + part.length, 0) + entry.name.length;
+            });
+            chunks.push(u32(0x06054b50), u16(0), u16(0), u16(central.length), u16(central.length), u32(directorySize), u32(directoryStart), u16(0));
+            return new Blob(chunks, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        }
+
+        function analyticsXmlEscape(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+        }
+
+        function analyticsColumnName(index) {
+            let name = '';
+            let value = index;
+            while (value > 0) { const remainder = (value - 1) % 26; name = String.fromCharCode(65 + remainder) + name; value = Math.floor((value - 1) / 26); }
+            return name;
+        }
+
+        function analyticsSheetXml(rows, widths) {
+            const body = rows.map((row, rowIndex) => {
+                const cells = row.map((cell, columnIndex) => {
+                    const ref = analyticsColumnName(columnIndex + 1) + (rowIndex + 1);
+                    const header = !!(cell && typeof cell === 'object' && cell.header);
+                    const value = cell && typeof cell === 'object' ? cell.value : cell;
+                    const style = header ? ' s="1"' : '';
+                    if (typeof value === 'number' && Number.isFinite(value)) return '<c r="' + ref + '"' + style + '><v>' + value + '</v></c>';
+                    return '<c r="' + ref + '" t="inlineStr"' + style + '><is><t xml:space="preserve">' + analyticsXmlEscape(value) + '</t></is></c>';
+                }).join('');
+                return '<row r="' + (rowIndex + 1) + '">' + cells + '</row>';
+            }).join('');
+            const cols = widths ? '<cols>' + widths.map((width, index) => '<col min="' + (index + 1) + '" max="' + (index + 1) + '" width="' + width + '" customWidth="1"/>').join('') + '</cols>' : '';
+            return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' + cols + '<sheetData>' + body + '</sheetData></worksheet>';
+        }
+
+        function downloadAnalyticsExcel() {
+            const snapshot = analyticsExportSnapshot();
+            const summaryRows = [
+                [{ value: 'USMSmart - Analisis Statistik', header: true }, ''],
+                [{ value: 'Dijana', header: true }, snapshot.generatedAt.toLocaleString('ms-MY')],
+                [{ value: 'Paparan', header: true }, snapshot.filterLabel],
+                [{ value: 'Julat bulan trend', header: true }, snapshot.monthLabel],
+                [],
+                [{ value: 'Ringkasan status kad (semua rekod)', header: true }, ''],
+                [{ value: 'Jumlah rekod kad', header: true }, snapshot.cards.total],
+                [{ value: 'Kad aktif', header: true }, snapshot.cards.active],
+                [{ value: 'Kadar aktif (%)', header: true }, Number(snapshot.cards.activeRate)],
+                [{ value: 'Luput dalam 30 hari', header: true }, snapshot.cards.expiring],
+                [{ value: 'Kad tamat tempoh', header: true }, snapshot.cards.expired],
+                [],
+                [{ value: 'Sorotan analitik', header: true }, ''],
+                [{ value: 'Jumlah pelajar', header: true }, snapshot.kpi.total],
+                [{ value: 'Pusat pengajian', header: true }, snapshot.kpi.schools],
+                [{ value: 'Pusat terbesar', header: true }, snapshot.kpi.topSchool ? snapshot.kpi.topSchool.school : 'Tiada rekod'],
+                [{ value: 'Pelajar di pusat terbesar', header: true }, snapshot.kpi.topSchool ? snapshot.kpi.topSchool.count : 0],
+                [{ value: 'Pendaftaran terkini', header: true }, snapshot.kpi.latestLabel]
+            ];
+            const schoolRows = [[
+                { value: 'Pusat pengajian', header: true },
+                { value: 'Jumlah pelajar', header: true },
+                { value: 'Peratus (%)', header: true }
+            ]];
+            snapshot.schools.forEach(row => schoolRows.push([row.school, row.count, snapshot.total ? Number(((row.count / snapshot.total) * 100).toFixed(1)) : 0]));
+            const trendRows = [[
+                { value: 'Bulan', header: true },
+                { value: 'Pusat pengajian', header: true },
+                { value: 'Jumlah', header: true }
+            ]];
+            snapshot.monthly.labels.forEach((month, index) => {
+                snapshot.monthly.series.forEach(series => trendRows.push([month, series.label, series.data[index] || 0]));
+            });
+            if (trendRows.length === 1) trendRows.push(['Tiada data', '', '']);
+            const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+            const files = [
+                { name: '[Content_Types].xml', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>' },
+                { name: '_rels/.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+                { name: 'xl/workbook.xml', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Ringkasan" sheetId="1" r:id="rId1"/><sheet name="Pusat Pengajian" sheetId="2" r:id="rId2"/><sheet name="Trend Bulanan" sheetId="3" r:id="rId3"/></sheets></workbook>' },
+                { name: 'xl/_rels/workbook.xml.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>' },
+                { name: 'xl/styles.xml', data: styles },
+                { name: 'xl/worksheets/sheet1.xml', data: analyticsSheetXml(summaryRows, [42, 34]) },
+                { name: 'xl/worksheets/sheet2.xml', data: analyticsSheetXml(schoolRows, [52, 16, 14]) },
+                { name: 'xl/worksheets/sheet3.xml', data: analyticsSheetXml(trendRows, [14, 30, 12]) }
+            ];
+            downloadAnalyticsFile(analyticsZip(files), 'USMSmart_Analisis_' + analyticsFileStamp(snapshot) + '.xlsx');
+            showToast('Laporan Excel analisis dimuat turun.');
+        }
+
+        // ===== Statistics exports for the session, quality, audit and Sysweb cards =====
+        // One snapshot shape for every card:
+        //   { title, subtitle, fileStem, scope, generatedAt, statLine, summary: [[label, value]],
+        //     tables: [{ name, columns, widths, rows }], charts: [{ id, title, subtitle }] }
+        // All three files are rendered from that one snapshot, so the PDF, PNG and workbook always
+        // describe the same filtered rows the card is showing at the moment the button is pressed.
+        function usmStatsNumber(value) {
+            return new Intl.NumberFormat('ms-MY').format(Number(value) || 0);
+        }
+
+        function usmStatsDrillLabel(drill, names) {
+            if (!drill || !drill.kind) return '';
+            const map = (names || {})[drill.kind] || {};
+            return map[drill.value] || String(drill.value || '');
+        }
+
+        function usmStatsChartSections(list) {
+            return (list || []).map(section => Object.assign({ canvas: document.getElementById(section.id) }, section))
+                .filter(section => section.canvas && section.canvas.width > 0 && section.canvas.height > 0);
+        }
+
+        function usmStatsSelectedText(id) {
+            const select = document.getElementById(id);
+            if (!select || !select.selectedOptions || !select.selectedOptions.length) return '';
+            const option = select.selectedOptions[0];
+            return option.value ? String(option.textContent || '').trim() : '';
+        }
+
+        function usmStatsPdfOps(snapshot) {
+            const ascii = value => String(value == null ? '' : value)
+                .replace(/[\u2013\u2014]/g, '-')
+                .replace(/[\u2018\u2019]/g, "'")
+                .replace(/[\u201C\u201D]/g, '"')
+                .replace(/[^\x20-\x7E]/g, '?');
+            const esc = value => ascii(value).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+            const rgb = (r, g, b) => r + ' ' + g + ' ' + b;
+            const ink = rgb(0.12, 0.16, 0.22);
+            const muted = rgb(0.4, 0.45, 0.52);
+            const accent = rgb(0.31, 0.27, 0.9);
+            const ops = [];
+            const text = (x, y, size, value, options) => {
+                const opts = options || {};
+                ops.push('BT ' + (opts.color || ink) + ' rg ' + (opts.bold ? '/F2' : '/F1') + ' ' + size + ' Tf ' + x + ' ' + y + ' Td (' + esc(value) + ') Tj ET');
+            };
+            const rightText = (xRight, y, size, value, options) => {
+                text(xRight - (ascii(value).length * size * 0.52), y, size, value, options);
+            };
+            const section = (y, title) => {
+                text(40, y, 12.5, title, { bold: true, color: rgb(0.18, 0.2, 0.28) });
+                ops.push(accent + ' RG 1.4 w 40 ' + (y - 6) + ' m 96 ' + (y - 6) + ' l S');
+                return y - 20;
+            };
+            const row = (y, label, value) => {
+                text(40, y, 10, label, { color: muted });
+                rightText(555, y, 10, value, { bold: true });
+                return y - 15;
+            };
+
+            ops.push(accent + ' rg 0 762 595 80 re f');
+            text(40, 806, 20, snapshot.title, { bold: true, color: '1 1 1' });
+            text(40, 786, 9.5, snapshot.subtitle, { color: rgb(0.92, 0.92, 1) });
+            rightText(555, 806, 9.5, analyticsExportDateLabel(snapshot.generatedAt), { color: rgb(0.92, 0.92, 1) });
+
+            let y = 735;
+            y = section(y, 'Ringkasan');
+            const scopeLine = ascii(snapshot.scope || '');
+            text(40, y, 9, scopeLine.length > 108 ? scopeLine.slice(0, 105) + '...' : scopeLine, { color: muted });
+            y -= 18;
+            snapshot.summary.forEach(item => { y = row(y, item[0], item[1]); });
+
+            (snapshot.tables || []).forEach(table => {
+                y -= 8;
+                y = section(y, table.name);
+                const widths = table.widths && table.widths.length === table.columns.length
+                    ? table.widths : table.columns.map(() => 1);
+                const weight = widths.reduce((sum, width) => sum + width, 0) || 1;
+                const columns = widths.map(width => (width / weight) * 515);
+                const xs = columns.map((_, index) => 40 + columns.slice(0, index).reduce((sum, width) => sum + width, 0));
+                const size = 8.5;
+                ops.push('0.95 0.96 0.98 rg 40 ' + (y - 1) + ' 515 15 re f');
+                table.columns.forEach((label, index) => {
+                    const maxChars = Math.max(4, Math.floor((columns[index] - 8) / (size * 0.52)));
+                    const shown = ascii(label);
+                    text(xs[index] + 4, y + 3, size, shown.length > maxChars ? shown.slice(0, Math.max(1, maxChars - 3)) + '...' : shown, { bold: true, color: muted });
+                });
+                y -= 13;
+                const listed = (table.rows || []).slice(0, 14);
+                if (!listed.length) { text(46, y, size, 'Tiada data untuk dipaparkan.', { color: muted }); y -= 12; }
+                listed.forEach(cells => {
+                    cells.forEach((cell, index) => {
+                        const maxChars = Math.max(4, Math.floor((columns[index] - 8) / (size * 0.52)));
+                        const shown = ascii(cell);
+                        text(xs[index] + 4, y, size, shown.length > maxChars ? shown.slice(0, Math.max(1, maxChars - 3)) + '...' : shown);
+                    });
+                    y -= 12;
+                });
+                if ((table.rows || []).length > listed.length) {
+                    text(46, y, size, '+ ' + ((table.rows || []).length - listed.length) + ' baris lagi dalam fail Excel', { color: muted });
+                    y -= 12;
+                }
+            });
+
+            text(40, 40, 8.5, 'Dijana oleh USMSmart pada ' + analyticsExportDateLabel(snapshot.generatedAt), { color: muted });
+            rightText(555, 40, 8.5, 'Halaman 1', { color: muted });
+            return ops;
+        }
+
+        function usmStatsSheetName(name, used) {
+            const base = String(name || 'Helaian').replace(/[\\\/\?\*\[\]:]/g, ' ').trim().slice(0, 31) || 'Helaian';
+            let candidate = base;
+            let index = 2;
+            while (used.indexOf(candidate) !== -1) {
+                const suffix = ' ' + index++;
+                candidate = base.slice(0, 31 - suffix.length) + suffix;
+            }
+            used.push(candidate);
+            return candidate;
+        }
+
+        function usmStatsExcelBlob(snapshot) {
+            const sheets = [];
+            const used = [];
+            const summaryRows = [
+                [{ value: snapshot.title, header: true }, ''],
+                [{ value: 'Dijana', header: true }, snapshot.generatedAt.toLocaleString('ms-MY')],
+                [{ value: 'Skop', header: true }, snapshot.scope]
+            ];
+            snapshot.summary.forEach(item => summaryRows.push([{ value: String(item[0]), header: true }, item[1]]));
+            sheets.push({ name: usmStatsSheetName('Ringkasan', used), rows: summaryRows, widths: [40, 46] });
+            (snapshot.tables || []).forEach(table => {
+                const rows = [table.columns.map(label => ({ value: label, header: true }))];
+                (table.rows || []).forEach(row => rows.push(row));
+                if (rows.length === 1) rows.push(['Tiada data']);
+                sheets.push({ name: usmStatsSheetName(table.name, used), rows, widths: table.widths || table.columns.map(() => 18) });
+            });
+            const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+            const contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+                + sheets.map((sheet, index) => '<Override PartName="/xl/worksheets/sheet' + (index + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('')
+                + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>';
+            const workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
+                + sheets.map((sheet, index) => '<sheet name="' + analyticsXmlEscape(sheet.name) + '" sheetId="' + (index + 1) + '" r:id="rId' + (index + 1) + '"/>').join('')
+                + '</sheets></workbook>';
+            const rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                + sheets.map((sheet, index) => '<Relationship Id="rId' + (index + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (index + 1) + '.xml"/>').join('')
+                + '<Relationship Id="rId' + (sheets.length + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+            const files = [
+                { name: '[Content_Types].xml', data: contentTypes },
+                { name: '_rels/.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+                { name: 'xl/workbook.xml', data: workbook },
+                { name: 'xl/_rels/workbook.xml.rels', data: rels },
+                { name: 'xl/styles.xml', data: styles }
+            ];
+            sheets.forEach((sheet, index) => {
+                files.push({ name: 'xl/worksheets/sheet' + (index + 1) + '.xml', data: analyticsSheetXml(sheet.rows, sheet.widths) });
+            });
+            return analyticsZip(files);
+        }
+
+        function usmStatsExportPdf(snapshot) {
+            downloadAnalyticsFile(buildAnalyticsPdf(usmStatsPdfOps(snapshot)), snapshot.fileStem + '_' + analyticsFileStamp(snapshot) + '.pdf');
+            showToast('PDF ringkasan dimuat turun.');
+        }
+
+        function usmStatsExportPng(snapshot) {
+            usmComposeStatsPng({
+                title: snapshot.title,
+                metaLine: snapshot.scope + '  |  ' + analyticsExportDateLabel(snapshot.generatedAt),
+                statLine: snapshot.statLine || '',
+                sections: usmStatsChartSections(snapshot.charts),
+                filename: snapshot.fileStem + '_' + analyticsFileStamp(snapshot) + '.png',
+                emptyMessage: 'Carta belum tersedia. Buka panel statistik ini dan cuba lagi.',
+                doneMessage: 'PNG semua carta dimuat turun.'
+            });
+        }
+
+        function usmStatsExportExcel(snapshot) {
+            downloadAnalyticsFile(usmStatsExcelBlob(snapshot), snapshot.fileStem + '_' + analyticsFileStamp(snapshot) + '.xlsx');
+            showToast('Laporan Excel dimuat turun.');
+        }
+
+        function sessionStatsExportSnapshot() {
+            const rows = sessionHistoryFiltered();
+            const records = rows.reduce((sum, session) => sum + usmHistoryNumber(session.total_records), 0);
+            const days = usmHistoryCountDistinct(rows.map(usmSessionDayKey)).length;
+            const unnamed = rows.filter(session => !String(session.session_name || '').trim()).length;
+            const rangeLabel = sessionHistoryDays >= USM_HISTORY_ALL_DAYS ? 'Semua hari' : sessionHistoryDays + ' hari terakhir';
+            const drillLabel = usmStatsDrillLabel(sessionHistoryDrill, sessionHistoryDrillNames());
+            const search = String(document.getElementById('session-history-filter')?.value || '').trim();
+            const scope = [rangeLabel, drillLabel ? 'Tapisan: ' + drillLabel : '', search ? 'Carian: "' + search + '"' : ''].filter(Boolean).join(' · ');
+            return {
+                title: 'Statistik Sesi Penghantaran',
+                subtitle: 'Sejarah sesi penghantaran UDA',
+                fileStem: 'USMSmart_Statistik_Sesi',
+                scope,
+                generatedAt: new Date(),
+                statLine: usmStatsNumber(rows.length) + ' sesi  |  ' + usmStatsNumber(records) + ' pelajar dihantar  |  ' + usmStatsNumber(days) + ' hari berbeza  |  ' + usmStatsNumber(unnamed) + ' sesi tanpa nama',
+                summary: [
+                    ['Sesi dalam julat', rows.length],
+                    ['Pelajar dihantar', records],
+                    ['Hari berbeza', days],
+                    ['Sesi tanpa nama', unnamed],
+                    ['Jumlah sesi dalam pangkalan data', Array.isArray(allSessionsData) ? allSessionsData.length : 0]
+                ],
+                tables: [{
+                    name: 'Sesi',
+                    columns: ['ID', 'Nama sesi', 'Tarikh', 'Jumlah rekod'],
+                    widths: [7, 36, 13, 12],
+                    rows: rows.map(session => [
+                        String(session.id || ''),
+                        String(session.session_name || '').trim() || '(tanpa nama)',
+                        String(session.session_date || '').slice(0, 10) || '-',
+                        usmHistoryNumber(session.total_records)
+                    ])
+                }],
+                charts: [
+                    { id: 'sessionHistoryTrendChart', title: 'Trend sesi penghantaran', subtitle: 'Bilangan sesi dan pelajar dihantar mengikut masa' },
+                    { id: 'sessionSizeChart', title: 'Campuran saiz sesi', subtitle: 'Taburan sesi mengikut jumlah rekod' },
+                    { id: 'sessionTopChart', title: 'Sesi paling besar', subtitle: 'Sesi dengan rekod terbanyak dalam julat' }
+                ]
+            };
+        }
+
+        function qualityStatsExportSnapshot() {
+            const rows = qualityFilteredIssues();
+            const records = qualityDistinct(rows.map(issue => String(issue.id))).length;
+            const schools = qualityDistinct(rows.map(qualitySchoolOf)).length;
+            const types = qualityDistinct(rows.map(issue => String(issue.type || ''))).length;
+            const typeLabel = usmStatsSelectedText('quality-filter') || 'Semua jenis isu';
+            const search = String(document.getElementById('quality-search')?.value || '').trim();
+            const scope = [qualityStatsRange + ' bulan trend', typeLabel, search ? 'Carian: "' + search + '"' : '', dataQualityScannedAt ? 'Imbasan: ' + dataQualityScannedAt : 'Belum diimbas'].filter(Boolean).join(' · ');
+            return {
+                title: 'Statistik Kualiti Data',
+                subtitle: 'Statistik mengikut tapisan imbasan',
+                fileStem: 'USMSmart_Kualiti_Data',
+                scope,
+                generatedAt: new Date(),
+                statLine: usmStatsNumber(rows.length) + ' isu  |  ' + usmStatsNumber(records) + ' rekod terjejas  |  ' + usmStatsNumber(schools) + ' pusat  |  ' + usmStatsNumber(types) + ' jenis isu',
+                summary: [
+                    ['Isu dalam tapisan', rows.length],
+                    ['Rekod terjejas', records],
+                    ['Pusat terjejas', schools],
+                    ['Jenis isu', types],
+                    ['Jumlah isu ditemui', dataQualityIssues.length],
+                    ['Imbasan terakhir', dataQualityScannedAt || 'Belum diimbas']
+                ],
+                tables: [{
+                    name: 'Isu',
+                    columns: ['Pelajar', 'Matrik', 'Jenis isu', 'Perincian', 'Pusat pengajian', 'Tarikh luput'],
+                    widths: [18, 12, 15, 32, 18, 11],
+                    rows: rows.map(issue => [
+                        String(issue.name || '-'),
+                        String(issue.matric || '-'),
+                        String(issue.label || issue.type || '-'),
+                        String(issue.message || ''),
+                        qualitySchoolOf(issue),
+                        String(issue.expiryDate || '-')
+                    ])
+                }],
+                charts: [
+                    { id: 'qualityTrendChart', title: 'Trend isu bulanan', subtitle: 'Bilangan isu mengikut bulan pendaftaran' },
+                    { id: 'qualityTypeChart', title: 'Campuran jenis isu', subtitle: 'Taburan isu mengikut jenis' },
+                    { id: 'qualitySchoolChart', title: 'Pusat pengajian paling banyak isu', subtitle: 'Isu mengikut pusat pengajian' }
+                ]
+            };
+        }
+
+        function auditStatsExportSnapshot() {
+            const payload = auditStatsPayload;
+            if (!payload) return null;
+            const summary = payload.summary || {};
+            const slice = auditStatsWindow();
+            const inRange = slice.series.reduce((sum, item) => sum + (item.data || []).reduce((a, b) => a + (Number(b) || 0), 0), 0);
+            const actions = Array.isArray(payload.actions) ? payload.actions : [];
+            const actors = Array.isArray(payload.actors) ? payload.actors : [];
+            const search = String(document.getElementById('audit-search-input')?.value || '').trim();
+            const actionLabel = usmStatsSelectedText('audit-action-filter') || 'Semua tindakan';
+            const startDate = document.getElementById('audit-start-date')?.value || '';
+            const endDate = document.getElementById('audit-end-date')?.value || '';
+            const dateLabel = startDate || endDate ? (startDate || 'awal') + ' hingga ' + (endDate || 'kini') : '';
+            const scope = [slice.days.length + ' hari carta', actionLabel, dateLabel, search ? 'Carian: "' + search + '"' : ''].filter(Boolean).join(' · ');
+            return {
+                title: 'Statistik Log Audit',
+                subtitle: 'Statistik mengikut tapisan log audit',
+                fileStem: 'USMSmart_Log_Audit',
+                scope,
+                generatedAt: new Date(),
+                statLine: usmStatsNumber(inRange) + ' peristiwa  |  ' + usmStatsNumber(summary.today) + ' hari ini  |  ' + usmStatsNumber(summary.week) + ' dalam 7 hari  |  ' + usmStatsNumber(summary.actors) + ' pengguna',
+                summary: [
+                    ['Peristiwa dalam julat carta', inRange],
+                    ['Jumlah dalam tapisan', summary.total],
+                    ['Hari ini', summary.today],
+                    ['7 hari lepas', summary.week],
+                    ['7 hari sebelumnya', summary.prev_week],
+                    ['Jenis tindakan', summary.actions],
+                    ['Pengguna aktif', summary.actors],
+                    ['Julat hari carta', slice.days.length]
+                ],
+                tables: [
+                    {
+                        name: 'Tindakan',
+                        columns: ['Tindakan', 'Kategori', 'Jumlah'],
+                        widths: [30, 24, 12],
+                        rows: actions.map(item => [auditActionLabel(item.action), auditCategoryMeta(item.category).label, Number(item.total) || 0])
+                    },
+                    {
+                        name: 'Pengguna',
+                        columns: ['Pengguna', 'Jumlah peristiwa'],
+                        widths: [40, 14],
+                        rows: actors.map(item => [String(item.actor || '(tanpa nama)'), Number(item.total) || 0])
+                    }
+                ],
+                charts: [
+                    { id: 'auditDailyChart', title: 'Aktiviti harian', subtitle: 'Peristiwa mengikut hari dan kategori tindakan' },
+                    { id: 'auditActionChart', title: 'Campuran tindakan', subtitle: 'Taburan jenis tindakan dalam tapisan' },
+                    { id: 'auditActorChart', title: 'Pengguna paling aktif', subtitle: 'Bilangan peristiwa mengikut pengguna' }
+                ]
+            };
+        }
+
+        function syswebHistoryStatsExportSnapshot() {
+            const rows = syswebHistoryFiltered();
+            const records = rows.reduce((sum, item) => sum + usmHistoryNumber(item.total), 0);
+            const saved = rows.reduce((sum, item) => sum + usmHistoryNumber(item.saved_new), 0);
+            const skipped = rows.reduce((sum, item) => sum + usmHistoryNumber(item.duplicates_skipped), 0);
+            const failed = rows.reduce((sum, item) => sum + usmHistoryNumber(item.failed_count), 0);
+            const rangeLabel = syswebHistoryDays >= USM_HISTORY_ALL_DAYS ? 'Semua hari' : syswebHistoryDays + ' hari terakhir';
+            const drillLabel = usmStatsDrillLabel(syswebHistoryDrill, syswebHistoryDrillNames());
+            const scope = [rangeLabel, drillLabel ? 'Tapisan: ' + drillLabel : '', 'Pelayan: ' + rows.length + ' batch terakhir'].filter(Boolean).join(' · ');
+            const statusLabel = item => item.status === 'success' ? 'Berjaya' : (item.status === 'partial' ? 'Sebahagian' : 'Gagal');
+            return {
+                title: 'Statistik Eksport Sysweb',
+                subtitle: 'Sejarah eksport dan keputusan penghantaran',
+                fileStem: 'USMSmart_Eksport_Sysweb',
+                scope,
+                generatedAt: new Date(),
+                statLine: usmStatsNumber(rows.length) + ' batch  |  ' + usmStatsNumber(records) + ' rekod diproses  |  ' + usmStatsNumber(saved) + ' disimpan baharu  |  ' + usmStatsNumber(failed) + ' gagal',
+                summary: [
+                    ['Batch dalam julat', rows.length],
+                    ['Rekod diproses', records],
+                    ['Disimpan baharu', saved],
+                    ['Pendua dilangkau', skipped],
+                    ['Rekod gagal', failed]
+                ],
+                tables: [{
+                    name: 'Batch',
+                    columns: ['Batch', 'Tarikh', 'Pengguna', 'Status', 'Pelajar', 'Staf', 'Jumlah', 'Baharu', 'Pendua', 'Gagal'],
+                    widths: [16, 15, 13, 10, 8, 8, 8, 8, 8, 8],
+                    rows: rows.map(item => [
+                        String(item.batch_id || '-'),
+                        formatSyswebDateTime(item.created_at) || String(item.created_at || '-'),
+                        String(item.user || '-'),
+                        statusLabel(item),
+                        Number(item.student_count) || 0,
+                        Number(item.staff_count) || 0,
+                        Number(item.total) || 0,
+                        Number(item.saved_new) || 0,
+                        Number(item.duplicates_skipped) || 0,
+                        Number(item.failed_count) || 0
+                    ])
+                }],
+                charts: [
+                    { id: 'syswebHistoryTrendChart', title: 'Trend eksport', subtitle: 'Rekod disimpan, dilangkau dan gagal mengikut masa' },
+                    { id: 'syswebHistoryStatusChart', title: 'Status batch', subtitle: 'Taburan batch mengikut keputusan penghantaran' },
+                    { id: 'syswebHistoryUserChart', title: 'Pengguna paling banyak eksport', subtitle: 'Bilangan batch mengikut pengguna' }
+                ]
+            };
+        }
+
+        function downloadSessionStatsPdf() { usmStatsExportPdf(sessionStatsExportSnapshot()); }
+        function downloadSessionStatsPng() { usmStatsExportPng(sessionStatsExportSnapshot()); }
+        function downloadSessionStatsExcel() { usmStatsExportExcel(sessionStatsExportSnapshot()); }
+        function downloadQualityStatsPdf() { usmStatsExportPdf(qualityStatsExportSnapshot()); }
+        function downloadQualityStatsPng() { usmStatsExportPng(qualityStatsExportSnapshot()); }
+        function downloadQualityStatsExcel() { usmStatsExportExcel(qualityStatsExportSnapshot()); }
+        function downloadAuditStatsPdf() { const snapshot = auditStatsExportSnapshot(); if (!snapshot) { showToast('Statistik audit belum dimuatkan. Tukar julat atau tapisan dan cuba lagi.'); return; } usmStatsExportPdf(snapshot); }
+        function downloadAuditStatsPng() { const snapshot = auditStatsExportSnapshot(); if (!snapshot) { showToast('Statistik audit belum dimuatkan. Tukar julat atau tapisan dan cuba lagi.'); return; } usmStatsExportPng(snapshot); }
+        function downloadAuditStatsExcel() { const snapshot = auditStatsExportSnapshot(); if (!snapshot) { showToast('Statistik audit belum dimuatkan. Tukar julat atau tapisan dan cuba lagi.'); return; } usmStatsExportExcel(snapshot); }
+        function downloadSyswebHistoryStatsPdf() { usmStatsExportPdf(syswebHistoryStatsExportSnapshot()); }
+        function downloadSyswebHistoryStatsPng() { usmStatsExportPng(syswebHistoryStatsExportSnapshot()); }
+        function downloadSyswebHistoryStatsExcel() { usmStatsExportExcel(syswebHistoryStatsExportSnapshot()); }
 
         function usmChartTheme() {
             const dark = document.documentElement.classList.contains('dark');
@@ -6223,11 +7128,10 @@
 
         let uidEligibilityData = null;
 
-        async function checkUidEligibility() {
-            const runButton = document.getElementById('uid-eligibility-run');
+        async function checkUidEligibility(options) {
+            const silent = !!(options && options.silent);
             const csvButton = document.getElementById('uid-eligibility-csv');
             const status = document.getElementById('uid-eligibility-status');
-            if (runButton) { runButton.disabled = true; runButton.classList.add('opacity-60'); }
             if (csvButton) csvButton.disabled = true;
             if (status) status.innerHTML = '<i class="fa-solid fa-clock mr-1.5 text-emerald-600 dark:text-emerald-400"></i>Menyemak dbo.Pelajar dan dbo.Staf…';
             try {
@@ -6236,13 +7140,11 @@
                 if (!res.ok || !data || !data.success) throw new Error((data && data.message) || 'Semakan UID tidak berjaya.');
                 uidEligibilityData = data;
                 renderUidEligibility(data);
-                showToast('Semakan UID selesai: ' + ((data.totals && data.totals.eligible) || 0) + ' layak, ' + ((data.totals && data.totals.blocked) || 0) + ' disekat.');
+                if (!silent) showToast('Semakan UID selesai: ' + ((data.totals && data.totals.eligible) || 0) + ' layak, ' + ((data.totals && data.totals.blocked) || 0) + ' disekat.');
             } catch (err) {
                 if (status) status.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1.5 text-rose-600 dark:text-rose-400"></i>' + escapeHtml(err && err.message ? err.message : 'Semakan UID tidak berjaya.');
-                showToast('Ralat semakan UID: ' + (err && err.message ? err.message : 'Ralat rangkaian.'));
+                if (!silent) showToast('Ralat semakan UID: ' + (err && err.message ? err.message : 'Ralat rangkaian.'));
                 if (csvButton) csvButton.disabled = !(uidEligibilityData && Array.isArray(uidEligibilityData.eligible) && uidEligibilityData.eligible.length > 0);
-            } finally {
-                if (runButton) { runButton.disabled = false; runButton.classList.remove('opacity-60'); }
             }
         }
 

@@ -11,7 +11,7 @@ time.
 | --- | --- |
 | `index.php` | Front controller: bootstrap, session/CSRF guards, route dispatch |
 | `app/functions.php` | Shared helpers (backups, serials, Sysweb store, audit) |
-| `controllers/` | One file per route group: auth, sysweb, dashboard API, system probes, reports, people, access, cards, sessions, backups |
+| `controllers/` | One file per route group: auth, webauthn, sysweb, dashboard API, system probes, reports, people, access, cards, sessions, backups |
 | `views/login.php` | Login and first-run administrator setup |
 | `views/dashboard.php` | Dashboard markup, modals and the user manual |
 | `assets/usmsmart-dashboard.js` | Dashboard behaviour and rendering |
@@ -19,6 +19,7 @@ time.
 | `assets/usmsmart-login.css` | Login screen |
 | `assets/tailwind.css` | Compiled Tailwind output — generated, do not edit |
 | `assets/vendor/` | Chart.js, html5-qrcode, Font Awesome subset, local fonts |
+| `app/vendor/webauthn/` | Vendored MIT WebAuthn library (passkey sign-in), pinned; loaded by `app/webauthn.php` |
 | `config/` | Database config template; the real file is gitignored |
 | `database/schema.sql` | Structure of every application table, no rows |
 | `tools/` | Verification and build scripts |
@@ -32,7 +33,8 @@ time.
 - Node 22+ — only for rebuilding CSS and running the verification tools; not
   needed on the production server
 
-Optional: `pdo_sqlsrv` if the Sysweb live snapshot is enabled.
+Optional: `ext-openssl` and `ext-mbstring` for passkey sign-in (both ship with
+XAMPP), and `pdo_sqlsrv` if the Sysweb live snapshot is enabled.
 
 ## First run
 
@@ -238,6 +240,16 @@ still serve it from the project folder.
   and therefore one budget, so raise the limit or resolve the real client IP at
   the proxy. Exhausting either budget writes a `login_throttled` audit row once,
   not on every blocked retry.
+- Passkey sign-in (WebAuthn) is offered only on a secure origin: HTTPS, or
+  `localhost` during development. The relying-party id is the request host
+  without its port, so a key enrolled at `localhost:8080` is not valid at
+  `127.0.0.1:8080`; deploy behind one hostname and keep it stable. The browser
+  keeps the private key and biometrics; the server stores only the public key,
+  signature counter and a label. Challenges are one-shot, bound to the session
+  and expire after two minutes, and the same 5/30 login budgets apply. Enrolment
+  happens under the signed-in session (profile → Passkey); it does not re-prompt
+  for the password, so a hijacked session can add one — sign out of shared
+  machines.
 - The dashboard has one modal keyboard layer (`data-modal-close` on each
   dialog) that handles Escape, the Tab trap and focus return.
 - The root `.htaccess` refuses `.git/`, `tools/` and `database/` over HTTP and

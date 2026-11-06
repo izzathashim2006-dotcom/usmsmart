@@ -531,7 +531,10 @@ if (!defined('USM_ROOT')) {
     if ($action === '' && !$isAuthenticated) {
         $setupMode = ($userCount === 0);
         $csrfForAuth = htmlspecialchars((string)$_SESSION['usmsmart_csrf_token'], ENT_QUOTES, 'UTF-8');
-        
+        // Passkeys need a relying-party domain and a secure context (HTTPS, or localhost for dev).
+        // Anything else gets the password form alone instead of a button that can only fail.
+        $usmPasskeyAvailable = usmsmartWebAuthnIsSecure();
+
         require USM_ROOT . '/views/login.php';
         exit;
     }

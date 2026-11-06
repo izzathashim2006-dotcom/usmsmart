@@ -1,4 +1,4 @@
-/* Font Awesome Free 6.4.0 — generated subset, 103 icon classes.
+/* Font Awesome Free 6.4.0 — generated subset, 104 icon classes.
    Only glyphs referenced by this app are present; woff2 only.
    Regenerate with: node tools/build-vendor-css.js
    Icons CC BY 4.0, fonts SIL OFL 1.1, code MIT — https://fontawesome.com/license/free */
@@ -173,6 +173,7 @@
 .fa-users-gear:before{content:"\f509"}
 .fa-building-columns:before{content:"\f19c"}
 .fa-graduation-cap:before{content:"\f19d"}
+.fa-fingerprint:before{content:"\f577"}
 .sr-only,.sr-only-focusable:not(:focus){position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
 :host,:root{--fa-style-family-brands:"Font Awesome 6 Brands";--fa-font-brands:normal 400 1em/1 "Font Awesome 6 Brands"}
 .fa-brands,.fab{font-weight:400}

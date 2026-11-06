@@ -254,3 +254,20 @@ CREATE TABLE IF NOT EXISTS `usmsmart_users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `usmsmart_webauthn_credentials` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `credential_id` varchar(255) NOT NULL,
+  `public_key` text NOT NULL,
+  `sign_count` int(10) unsigned NOT NULL DEFAULT 0,
+  `aaguid` char(36) DEFAULT NULL,
+  `label` varchar(80) NOT NULL DEFAULT 'Passkey',
+  `transports` varchar(120) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_used_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_webauthn_credential` (`credential_id`),
+  KEY `idx_webauthn_user` (`user_id`),
+  CONSTRAINT `fk_webauthn_user` FOREIGN KEY (`user_id`) REFERENCES `usmsmart_users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

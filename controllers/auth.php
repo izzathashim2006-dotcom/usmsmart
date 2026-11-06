@@ -27,7 +27,7 @@ if (!defined('USM_ROOT')) {
         $stmt = $pdo->prepare('INSERT INTO usmsmart_users (username,password_hash,role) VALUES (?,?,?)');
         $stmt->execute(array($user, password_hash($pass, PASSWORD_DEFAULT), 'admin'));
         session_regenerate_id(true); $_SESSION['usmsmart_csrf_token'] = bin2hex(random_bytes(32)); $_SESSION['username'] = $user; $_SESSION['role'] = 'admin'; $_SESSION['user_id'] = (int)$pdo->lastInsertId(); $_SESSION['auth_version'] = 1; $_SESSION['last_activity'] = time();
-        $_SESSION['usm_welcome_pending'] = 1; auditLog($pdo, 'setup_admin', 'user', $pdo->lastInsertId(), null, 'Initial administrator account created');
+        auditLog($pdo, 'setup_admin', 'user', $pdo->lastInsertId(), null, 'Initial administrator account created');
         echo json_encode(array('success'=>true,'message'=>'Akaun pentadbir berjaya dibuat.')); exit;
     }
     if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -75,7 +75,7 @@ if (!defined('USM_ROOT')) {
         }
         session_regenerate_id(true); $_SESSION['usmsmart_csrf_token'] = bin2hex(random_bytes(32)); $_SESSION['username'] = $account['username']; $_SESSION['role'] = $account['role']; $_SESSION['user_id'] = (int)$account['id']; $_SESSION['auth_version'] = (int)$account['auth_version']; $_SESSION['last_activity'] = time();
         $upd = $pdo->prepare('UPDATE usmsmart_users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?'); $upd->execute(array($account['id']));
-        $_SESSION['usm_welcome_pending'] = 1; auditLog($pdo, 'login', 'user', $account['id'], null, 'Successful login');
+        auditLog($pdo, 'login', 'user', $account['id'], null, 'Successful login');
         echo json_encode(array('success'=>true,'role'=>$account['role'])); exit;
     }
     if ($action === 'logout' && $_SERVER['REQUEST_METHOD'] === 'POST') {

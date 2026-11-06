@@ -84,6 +84,30 @@ try {
         if (!$loginIpIndex) {
             $pdo->exec("ALTER TABLE usmsmart_login_attempts ADD INDEX idx_login_attempt_ip (ip_hash, attempted_at)");
         }
+        // Passkey credentials: one row per authenticator. The public key is not secret, but the
+        // credential can only ever authenticate the account it is linked to. CASCADE cleans up
+        // when an account is deleted; the app never reuses user ids, but the constraint is free.
+        // Isolated on purpose: a host that forbids the foreign key must still get a working
+        // password login, and the passkey endpoints report the missing table on their own.
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS usmsmart_webauthn_credentials (
+                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                user_id BIGINT UNSIGNED NOT NULL,
+                credential_id VARCHAR(255) NOT NULL,
+                public_key TEXT NOT NULL,
+                sign_count INT UNSIGNED NOT NULL DEFAULT 0,
+                aaguid CHAR(36) NULL DEFAULT NULL,
+                label VARCHAR(80) NOT NULL DEFAULT 'Passkey',
+                transports VARCHAR(120) NULL DEFAULT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                last_used_at TIMESTAMP NULL DEFAULT NULL,
+                UNIQUE KEY uq_webauthn_credential (credential_id),
+                INDEX idx_webauthn_user (user_id),
+                CONSTRAINT fk_webauthn_user FOREIGN KEY (user_id) REFERENCES usmsmart_users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        } catch (Exception $passkeyTableError) {
+            error_log('USMSmart passkey table setup failed: ' . $passkeyTableError->getMessage());
+        }
         // Add account status to existing installations without affecting current users.
         $userColumns = $pdo->query("SHOW COLUMNS FROM usmsmart_users LIKE 'is_active'")->fetchAll(PDO::FETCH_ASSOC);
         if (!$userColumns) {
@@ -158,6 +182,11 @@ if ($authReady && !empty($_SESSION['user_id'])) {
 
 // Helpers are required before any route: the auth routes call auditLog().
 require USM_ROOT . '/app/functions.php';
+
+// Passkey helpers and routes run before the login/setup routes: the sign-in endpoints must work
+// unauthenticated, and each handler exits so the global CSRF gate below never double-handles them.
+require USM_ROOT . '/app/webauthn.php';
+require USM_ROOT . '/controllers/webauthn.php';
 
 if ($authReady && in_array($action, array('setup_admin', 'login', 'logout', 'create_user', 'list_users', 'manage_user'), true)) {
     require USM_ROOT . '/controllers/auth.php';

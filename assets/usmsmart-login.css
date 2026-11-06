@@ -22,6 +22,18 @@
         .submit:hover{background:var(--indigo-hover);box-shadow:0 7px 16px #4F46E52b}.submit:active{transform:translateY(1px)}.submit:disabled{opacity:.65;cursor:wait}
         #msg{display:none;margin-top:15px;padding:11px 12px;border:1px solid #FECACA;border-radius:10px;background:#FEF2F2;color:var(--danger);font-size:12px;line-height:1.5}#msg.visible{display:block}
         .security-note{display:flex;align-items:flex-start;gap:9px;margin-top:20px;padding-top:17px;border-top:1px solid #F1F5F9;color:#64748B;font-size:11px;line-height:1.6}.security-note i{margin-top:2px;color:#64748B}
+        /* Passkey sign-in, shown only on a secure origin with a real domain. */
+        .passkey-block{margin-top:22px}
+        .passkey-divider{display:flex;align-items:center;gap:10px;color:#64748B;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+        .passkey-divider::before,.passkey-divider::after{content:"";flex:1;height:1px;background:#E2E8F0}
+        .passkey-btn{width:100%;display:flex;justify-content:center;align-items:center;gap:9px;margin-top:14px;padding:12px 16px;border:1px solid #C7D2FE;border-radius:11px;background:#EEF2FF;color:#3730A3;font:700 13px 'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .15s,border-color .15s}
+        .passkey-btn:hover{background:#E0E7FF;border-color:#A5B4FC}
+        .passkey-btn:disabled{opacity:.65;cursor:wait}
+        .passkey-hint{margin:10px 0 0;color:#64748B;font-size:11px;line-height:1.6;text-align:center}
+        .dark .passkey-divider{color:var(--muted)}.dark .passkey-divider::before,.dark .passkey-divider::after{background:#3F3F46}
+        .dark .passkey-btn{background:#1E1B4B;border-color:#3730A3;color:#C7D2FE}
+        .dark .passkey-btn:hover{background:#312E81}
+        .dark .passkey-hint{color:#A1A1AA}
         /* The footer stands on the photograph, which no contrast checker can measure. An explicit
    scrim behind it makes the ratio a property of the stylesheet instead of the picture. */
 footer{align-self:center;margin:0 16px 22px;padding:6px 14px 7px;border-radius:999px;background:rgba(15,23,42,.72);color:#e8eef7;text-align:center;font:10px 'JetBrains Mono',monospace;letter-spacing:.03em}

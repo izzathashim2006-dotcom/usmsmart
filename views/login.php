@@ -90,6 +90,15 @@
                 </label>
                 <button class="submit" id="submitBtn" type="submit"><i class="fa-solid <?php echo $setupMode ? 'fa-user-plus' : 'fa-arrow-right-to-bracket'; ?>"></i><span><?php echo $setupMode ? 'Cipta akaun pentadbir' : 'Log masuk'; ?></span></button>
             </form>
+            <?php if (!$setupMode && $usmPasskeyAvailable): ?>
+            <div class="passkey-block">
+                <div class="passkey-divider"><span>atau</span></div>
+                <button type="button" id="passkeyLoginBtn" class="passkey-btn">
+                    <i class="fa-solid fa-fingerprint" aria-hidden="true"></i><span>Log masuk dengan passkey</span>
+                </button>
+                <p class="passkey-hint">Guna Face ID, Windows Hello atau cap jari peranti ini. Kata laluan masih boleh digunakan jika akaun belum mempunyai passkey.</p>
+            </div>
+            <?php endif; ?>
             <div id="msg" role="status" aria-live="polite"></div>
             <div class="security-note"><i class="fa-solid fa-shield-halved"></i><span>Akses terhad kepada pengguna yang dibenarkan. Jangan kongsi kata laluan anda.</span></div>
         </section>
@@ -129,6 +138,88 @@
             }
         });
     </script>
+    <?php if (!$setupMode && $usmPasskeyAvailable): ?>
+    <script>
+    /* Passkey sign-in. The username must be typed first: the server then returns only that
+       account's credential ids, so the browser never offers an unrelated passkey. */
+    (function () {
+        const btn = document.getElementById('passkeyLoginBtn');
+        if (!btn) return;
+        const usernameInput = document.querySelector('#authForm input[name="username"]');
+        const csrf = <?php echo json_encode((string)$_SESSION['usmsmart_csrf_token']); ?>;
+        const defaultLabel = btn.querySelector('span').textContent;
+
+        function bytesFromB64url(value) {
+            const text = String(value || '').replace(/-/g, '+').replace(/_/g, '/');
+            const padded = text + '='.repeat((4 - (text.length % 4)) % 4);
+            const raw = atob(padded);
+            const bytes = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+            return bytes.buffer;
+        }
+        function b64urlFromBytes(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let raw = '';
+            for (let i = 0; i < bytes.length; i++) raw += String.fromCharCode(bytes[i]);
+            return btoa(raw).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+        function fail(message) {
+            msg.textContent = message;
+            msg.classList.add('visible');
+        }
+        function busy(on) {
+            btn.disabled = on;
+            btn.querySelector('span').textContent = on ? 'Menunggu peranti…' : defaultLabel;
+        }
+
+        btn.addEventListener('click', async function () {
+            msg.classList.remove('visible');
+            const username = (usernameInput.value || '').trim();
+            if (!username) { fail('Masukkan nama pengguna dahulu, kemudian tekan passkey.'); usernameInput.focus(); return; }
+            if (!window.PublicKeyCredential || !navigator.credentials || !window.isSecureContext) {
+                fail('Pelayar atau sambungan ini tidak menyokong passkey. Sila guna kata laluan.');
+                return;
+            }
+            busy(true);
+            try {
+                const optionsResponse = await fetch('index.php?action=webauthn_login_options', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrf},
+                    body: JSON.stringify({username: username})
+                });
+                const options = await optionsResponse.json();
+                if (!optionsResponse.ok || !options.success) throw new Error(options.message || 'Passkey tidak tersedia.');
+                const publicKey = options.publicKey;
+                publicKey.challenge = bytesFromB64url(publicKey.challenge);
+                publicKey.allowCredentials = (publicKey.allowCredentials || []).map(function (item) {
+                    return Object.assign({}, item, {id: bytesFromB64url(item.id)});
+                });
+                const assertion = await navigator.credentials.get({publicKey: publicKey});
+                const verifyResponse = await fetch('index.php?action=webauthn_login_verify', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrf},
+                    body: JSON.stringify({
+                        username: username,
+                        credentialId: b64urlFromBytes(assertion.rawId),
+                        clientDataJSON: b64urlFromBytes(assertion.response.clientDataJSON),
+                        authenticatorData: b64urlFromBytes(assertion.response.authenticatorData),
+                        signature: b64urlFromBytes(assertion.response.signature)
+                    })
+                });
+                const result = await verifyResponse.json();
+                if (!verifyResponse.ok || !result.success) throw new Error(result.message || 'Pengesahan passkey gagal.');
+                location.href = 'index.php?usm_tab=' + encodeURIComponent(sessionStorage.getItem('usmsmart_tab_token') || '');
+            } catch (error) {
+                if (error && error.name === 'NotAllowedError') fail('Passkey dibatalkan atau tamat masa. Cuba lagi.');
+                else if (error && error.name === 'SecurityError') fail('Passkey memerlukan sambungan HTTPS atau localhost.');
+                else fail(error && error.message ? error.message : 'Passkey tidak dapat digunakan. Sila guna kata laluan.');
+            } finally {
+                busy(false);
+            }
+        });
+    })();
+    </script>
+    <?php endif; ?>
 
 <script>
 /* Small quality-of-life enhancements; existing filters and data logic remain authoritative. */

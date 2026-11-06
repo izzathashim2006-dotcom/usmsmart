@@ -122,32 +122,15 @@
     <main id="usm-main" tabindex="-1" class="flex-grow max-w-[1100px] w-full mx-auto px-5 py-7 space-y-5">
         
         <?php
-        // A sign-in lands on this greeting segment first; a later page load in the same session
-        // goes straight to the dashboard. There is only one way forward, so the greeting stays
-        // a greeting: no directories, no routes to choose between.
-        $usmShowWelcome = !empty($_SESSION['usm_welcome_pending']);
-        unset($_SESSION['usm_welcome_pending']);
-        $usmWelcomeName = trim((string)($_SESSION['display_name'] ?? ''));
-        if ($usmWelcomeName === '') { $usmWelcomeName = (string)($_SESSION['username'] ?? 'pengguna'); }
-        $usmWelcomeAdmin = (($_SESSION['role'] ?? '') === 'admin');
+        // Who the hero greets. The script fills in the clock and the date so they follow the
+        // browser's time zone instead of the server's; the role picks the subline.
+        $usmHeroName = trim((string)($_SESSION['display_name'] ?? ''));
+        if ($usmHeroName === '') { $usmHeroName = (string)($_SESSION['username'] ?? 'pengguna'); }
+        $usmHeroAdmin = (($_SESSION['role'] ?? '') === 'admin');
         ?>
-        <div id="view-welcome" class="<?php echo $usmShowWelcome ? '' : 'hidden '; ?>page-transition">
-            <section class="usm-launch" aria-labelledby="usm-welcome-title">
-                <span class="usm-launch-mark" aria-hidden="true"><i class="fa-solid fa-id-card-clip"></i></span>
-                <p class="usm-welcome-eyebrow">Kampus Kejuruteraan USM</p>
-                <h2 id="usm-welcome-title" class="usm-launch-title"><span id="usm-welcome-greeting">Selamat datang</span>, <span class="usm-welcome-name"><?php echo htmlspecialchars($usmWelcomeName, ENT_QUOTES, 'UTF-8'); ?></span></h2>
-                <p class="usm-launch-sub">Selamat kembali ke USMSmart. Semua modul sedia menanti di papan pemuka.</p>
-                <div class="usm-launch-meta">
-                    <span class="usm-welcome-chip"><i class="fa-solid fa-<?php echo $usmWelcomeAdmin ? 'shield-halved' : 'eye'; ?>" aria-hidden="true"></i><?php echo $usmWelcomeAdmin ? 'Admin &middot; akses penuh' : 'Viewer &middot; akses baca'; ?></span>
-                    <span id="usm-welcome-date" class="usm-welcome-date"></span>
-                </div>
-                <button type="button" class="usm-launch-btn" onclick="continueFromWelcome()"><span>Teruskan ke papan pemuka</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
-                <p class="usm-launch-foot"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Direktori Kad, Sysweb dan modul lain boleh dibuka dari rel kiri.</p>
-            </section>
-        </div>
 
         <!-- HALAMAN UTAMA: TRANSPORTER -->
-        <div id="view-transporter" class="<?php echo $usmShowWelcome ? 'hidden ' : ''; ?>space-y-5">
+        <div id="view-transporter" class="space-y-5">
             
             <section class="usm-hero" aria-labelledby="usm-dash-hero-title">
                 <span class="usm-hero-blob usm-hero-blob-a" aria-hidden="true"></span>
@@ -155,8 +138,10 @@
                 <div class="usm-hero-inner">
                     <span class="usm-hero-mark" aria-hidden="true"><i id="usm-dash-icon" class="fa-solid fa-sun"></i></span>
                     <p class="usm-hero-eyebrow">Kampus Kejuruteraan USM</p>
-                    <h2 id="usm-dash-hero-title" class="usm-hero-title"><span id="usm-dash-greeting">Selamat datang</span>, <span class="usm-hero-name"><?php echo htmlspecialchars($usmWelcomeName, ENT_QUOTES, 'UTF-8'); ?></span></h2>
-                    <p class="usm-hero-sub">Semoga hari anda tenang dan produktif. Direktori kad, Sysweb dan semua modul sedia menanti di rel kiri.</p>
+                    <h2 id="usm-dash-hero-title" class="usm-hero-title"><span id="usm-dash-greeting">Selamat datang</span>, <span class="usm-hero-name"><?php echo htmlspecialchars($usmHeroName, ENT_QUOTES, 'UTF-8'); ?></span></h2>
+                    <p class="usm-hero-sub"><?php echo $usmHeroAdmin
+                        ? 'Semoga hari anda tenang dan produktif. Akses penuh — tarikan rekod, kemas kini pukal, log audit dan eksport tersedia di rel kiri.'
+                        : 'Semoga hari anda tenang dan produktif. Akses baca — direktori kad, statistik dan eksport tersedia di rel kiri.'; ?></p>
                     <div class="usm-hero-meta">
                         <span class="usm-hero-pill"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i><span id="usm-dash-date">Hari ini</span></span>
                         <span class="usm-hero-pill"><i class="fa-solid fa-clock" aria-hidden="true"></i><time id="usm-dash-time" datetime="">--:--</time></span>
@@ -264,17 +249,16 @@
                                 <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"><i class="fa-solid fa-shield-halved text-[10px]"></i></span>
                                 <div>
                                     <h3 id="uid-eligibility-title" class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-zinc-200">Semakan UID layak eksport</h3>
-                                    <p class="mt-1 max-w-2xl text-[11px] leading-5 text-slate-500 dark:text-zinc-400">Baca dbo.Pelajar dan dbo.Staf, StatusKad 02 sahaja. UID mesti 8 aksara hexadecimal dan unik merentas pelajar serta staf, termasuk rekod yang telah tamat tempoh.</p>
+                                    <p class="mt-1 max-w-2xl text-[11px] leading-5 text-slate-500 dark:text-zinc-400">Baca dbo.Pelajar dan dbo.Staf, StatusKad 02 sahaja. UID mesti 8 aksara hexadecimal dan unik merentas pelajar serta staf, termasuk rekod yang telah tamat tempoh. Semakan berjalan automatik setiap kali “Tarik rekod”.</p>
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-2 self-start">
                                 <button type="button" id="uid-eligibility-csv" onclick="downloadUidEligibilityCsv()" disabled class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"><i class="fa-solid fa-file-csv"></i> Eksport CSV</button>
-                                <button type="button" id="uid-eligibility-run" onclick="checkUidEligibility()" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"><i class="fa-solid fa-rotate-right"></i> Semak UID</button>
                             </div>
                         </div>
                         <div class="space-y-4">
                             <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/70" aria-live="polite">
-                                <p id="uid-eligibility-status" class="text-xs leading-5 text-slate-600 dark:text-zinc-300"><i class="fa-solid fa-circle-info mr-1.5 text-emerald-600 dark:text-emerald-400"></i>Belum disemak. Tekan “Semak UID” untuk membaca kedua-dua jadual SQL Server.</p>
+                                <p id="uid-eligibility-status" class="text-xs leading-5 text-slate-600 dark:text-zinc-300"><i class="fa-solid fa-circle-info mr-1.5 text-emerald-600 dark:text-emerald-400"></i>Belum disemak. Semakan akan berjalan automatik selepas anda menekan “Tarik rekod”.</p>
                             </div>
                             <div id="uid-eligibility-summary" class="hidden grid grid-cols-2 md:grid-cols-4 gap-3">
                                 <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"><p class="text-[11px] text-slate-500 dark:text-zinc-400">Rekod StatusKad 02</p><p id="uid-summary-scanned" class="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">0</p></div>
@@ -431,6 +415,11 @@
                             </div>
                         </div>
                         <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                            <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Eksport statistik sesi">
+                                <button type="button" onclick="downloadSessionStatsPdf()" title="Muat turun ringkasan PDF" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"><i class="fa-solid fa-file-pdf"></i>PDF</button>
+                                <button type="button" onclick="downloadSessionStatsPng()" title="Muat turun PNG semua carta" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"><i class="fa-solid fa-download"></i>PNG</button>
+                                <button type="button" onclick="downloadSessionStatsExcel()" title="Muat turun laporan Excel" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"><i class="fa-solid fa-file-excel"></i>Excel</button>
+                            </div>
                             <button type="button" id="session-history-drill-reset" hidden onclick="clearSessionHistoryDrill()" class="px-2.5 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-800 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"></button>
                             <div class="usm-stats-ranges" role="group" aria-label="Julat hari statistik sesi">
                                 <button type="button" class="usm-stats-range" onclick="setSessionHistoryRange(7, this)">7 hari</button>
@@ -971,10 +960,17 @@
                                     <p id="quality-stats-caption" role="status" class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">Jalankan imbasan untuk memaparkan statistik.</p>
                                 </div>
                             </div>
-                            <div class="usm-stats-ranges" role="group" aria-label="Julat bulan carta">
-                                <button type="button" class="usm-stats-range is-on" onclick="setQualityStatsRange(12, this)">12 bulan</button>
-                                <button type="button" class="usm-stats-range" onclick="setQualityStatsRange(24, this)">24 bulan</button>
-                                <button type="button" class="usm-stats-range" onclick="setQualityStatsRange(36, this)">36 bulan</button>
+                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                                <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Eksport statistik kualiti data">
+                                    <button type="button" onclick="downloadQualityStatsPdf()" title="Muat turun ringkasan PDF" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"><i class="fa-solid fa-file-pdf"></i>PDF</button>
+                                    <button type="button" onclick="downloadQualityStatsPng()" title="Muat turun PNG semua carta" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"><i class="fa-solid fa-download"></i>PNG</button>
+                                    <button type="button" onclick="downloadQualityStatsExcel()" title="Muat turun laporan Excel" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"><i class="fa-solid fa-file-excel"></i>Excel</button>
+                                </div>
+                                <div class="usm-stats-ranges" role="group" aria-label="Julat bulan carta">
+                                    <button type="button" class="usm-stats-range is-on" onclick="setQualityStatsRange(12, this)">12 bulan</button>
+                                    <button type="button" class="usm-stats-range" onclick="setQualityStatsRange(24, this)">24 bulan</button>
+                                    <button type="button" class="usm-stats-range" onclick="setQualityStatsRange(36, this)">36 bulan</button>
+                                </div>
                             </div>
                         </div>
 
@@ -1125,10 +1121,17 @@
                                     <p id="audit-stats-caption" role="status" class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">Memuatkan angka…</p>
                                 </div>
                             </div>
-                            <div class="usm-stats-ranges" role="group" aria-label="Julat hari carta">
-                                <button type="button" class="usm-stats-range" onclick="setAuditStatsRange(7, this)">7 hari</button>
-                                <button type="button" class="usm-stats-range is-on" onclick="setAuditStatsRange(30, this)">30 hari</button>
-                                <button type="button" class="usm-stats-range" onclick="setAuditStatsRange(90, this)">90 hari</button>
+                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                                <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Eksport statistik log audit">
+                                    <button type="button" onclick="downloadAuditStatsPdf()" title="Muat turun ringkasan PDF" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"><i class="fa-solid fa-file-pdf"></i>PDF</button>
+                                    <button type="button" onclick="downloadAuditStatsPng()" title="Muat turun PNG semua carta" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"><i class="fa-solid fa-download"></i>PNG</button>
+                                    <button type="button" onclick="downloadAuditStatsExcel()" title="Muat turun laporan Excel" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"><i class="fa-solid fa-file-excel"></i>Excel</button>
+                                </div>
+                                <div class="usm-stats-ranges" role="group" aria-label="Julat hari carta">
+                                    <button type="button" class="usm-stats-range" onclick="setAuditStatsRange(7, this)">7 hari</button>
+                                    <button type="button" class="usm-stats-range is-on" onclick="setAuditStatsRange(30, this)">30 hari</button>
+                                    <button type="button" class="usm-stats-range" onclick="setAuditStatsRange(90, this)">90 hari</button>
+                                </div>
                             </div>
                         </div>
 
@@ -1399,6 +1402,11 @@
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                                <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Eksport statistik eksport Sysweb">
+                                    <button type="button" onclick="downloadSyswebHistoryStatsPdf()" title="Muat turun ringkasan PDF" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"><i class="fa-solid fa-file-pdf"></i>PDF</button>
+                                    <button type="button" onclick="downloadSyswebHistoryStatsPng()" title="Muat turun PNG semua carta" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"><i class="fa-solid fa-download"></i>PNG</button>
+                                    <button type="button" onclick="downloadSyswebHistoryStatsExcel()" title="Muat turun laporan Excel" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"><i class="fa-solid fa-file-excel"></i>Excel</button>
+                                </div>
                                 <button type="button" id="sysweb-history-drill-reset" hidden onclick="clearSyswebHistoryDrill()" class="px-2.5 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-800 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"></button>
                                 <div class="usm-stats-ranges" role="group" aria-label="Julat hari statistik eksport">
                                     <button type="button" class="usm-stats-range" onclick="setSyswebHistoryRange(7, this)">7 hari</button>
@@ -1899,11 +1907,14 @@
                         <p class="text-sm text-slate-500 dark:text-zinc-400 mt-1">Ringkasan pendaftaran pelajar mengikut pusat pengajian dan bulan.</p>
                     </div>
                     <div id="analytics-actions" class="flex flex-wrap items-center gap-2 no-print">
-                        <button type="button" onclick="downloadAnalyticsCharts()" class="inline-flex items-center gap-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 px-3 py-2.5 rounded-xl text-sm font-medium transition shadow-sm">
-                            <i class="fa-solid fa-download text-xs"></i> Muat turun carta PNG
+                        <button type="button" onclick="downloadAnalyticsSummaryPdf()" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2.5 rounded-xl text-sm font-medium transition shadow-sm">
+                            <i class="fa-solid fa-file-pdf text-xs"></i> PDF ringkasan
                         </button>
-                        <button type="button" onclick="printAnalyticsReport()" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2.5 rounded-xl text-sm font-medium transition shadow-sm">
-                            <i class="fa-solid fa-file-pdf text-xs"></i> Cetak / Simpan PDF
+                        <button type="button" onclick="downloadAnalyticsSummaryPng()" class="inline-flex items-center gap-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 px-3 py-2.5 rounded-xl text-sm font-medium transition shadow-sm">
+                            <i class="fa-solid fa-download text-xs"></i> PNG semua carta
+                        </button>
+                        <button type="button" onclick="downloadAnalyticsExcel()" class="inline-flex items-center gap-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 px-3 py-2.5 rounded-xl text-sm font-medium transition shadow-sm">
+                            <i class="fa-solid fa-file-excel text-xs"></i> Laporan Excel
                         </button>
                         <button type="button" onclick="switchMainTab('transporter')" class="inline-flex items-center gap-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 px-3 py-2.5 rounded-xl text-sm font-medium transition shadow-sm">
                             <i class="fa-solid fa-arrow-left text-xs"></i> Kembali
@@ -2251,7 +2262,7 @@
                     </div>
                     <div>
                         <h3 id="my-profile-title" class="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-wider">Profil Saya</h3>
-                        <p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">Urus maklumat akaun dan kata laluan anda.</p>
+                        <p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">Urus maklumat akaun, kata laluan dan passkey anda.</p>
                     </div>
                 </div>
                 <button onclick="closeMyProfile()" class="text-slate-400 hover:text-slate-600 cursor-pointer p-1" aria-label="Tutup"><i class="fa-solid fa-xmark text-base"></i></button>
@@ -2262,6 +2273,7 @@
                 <div class="flex bg-slate-100 dark:bg-zinc-900 rounded-xl p-1 gap-1 text-xs">
                     <button type="button" id="profile-tab-info" onclick="switchProfileTab('info')" class="flex-1 px-3 py-2 rounded-lg font-medium transition bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-clean">Maklumat</button>
                     <button type="button" id="profile-tab-password" onclick="switchProfileTab('password')" class="flex-1 px-3 py-2 rounded-lg text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition">Kata Laluan</button>
+                    <button type="button" id="profile-tab-passkey" onclick="switchProfileTab('passkey')" class="flex-1 px-3 py-2 rounded-lg text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition">Passkey</button>
                 </div>
             </div>
 
@@ -2361,6 +2373,36 @@
                     </button>
                 </div>
             </form>
+
+            <!-- Tab: Passkey -->
+            <div id="profile-passkey-panel" class="p-5 space-y-4 text-xs hidden">
+                <div class="rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/60 p-3">
+                    <p class="text-[11px] text-slate-600 dark:text-zinc-300 leading-relaxed">
+                        <i class="fa-solid fa-fingerprint mr-1 text-indigo-600 dark:text-indigo-400"></i>
+                        Passkey membenarkan log masuk dengan Face ID, Windows Hello atau cap jari tanpa menaip kata laluan. Kunci peribadi kekal dalam peranti anda; pelayan hanya menyimpan kunci awam.
+                    </p>
+                </div>
+                <div id="profile-passkey-unsupported" class="hidden rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-3">
+                    <p class="text-[11px] text-amber-900 dark:text-amber-200 leading-relaxed">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                        Passkey memerlukan sambungan HTTPS (atau localhost) dan pelayar yang menyokong WebAuthn.
+                    </p>
+                </div>
+                <div id="profile-passkey-list" class="space-y-2">
+                    <p class="text-[11px] text-slate-500 dark:text-zinc-400">Memuatkan passkey…</p>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:items-end gap-3 pt-1">
+                    <div class="flex-1">
+                        <label for="profile-passkey-label" class="block text-[11px] font-medium text-slate-600 dark:text-zinc-400 mb-1.5">Nama peranti (pilihan)</label>
+                        <input id="profile-passkey-label" type="text" maxlength="80" placeholder="Contoh: Laptop pejabat"
+                               class="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition">
+                    </div>
+                    <button type="button" id="profile-passkey-add" onclick="registerPasskey()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-medium shadow-sm cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-60">
+                        <i class="fa-solid fa-plus"></i> <span>Tambah Passkey</span>
+                    </button>
+                </div>
+                <p id="profile-passkey-status" role="status" aria-live="polite" class="text-[10px] text-slate-500 dark:text-zinc-400"></p>
+            </div>
         </div>
     </div>
     <!-- ===== END NEW ===== -->
