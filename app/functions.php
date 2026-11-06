@@ -1114,7 +1114,7 @@ function usmsmartAuditCategory($action) {
     $act = strtolower(trim((string)$action));
     if ($act === 'update') return 'update';
     if ($act === 'create' || $act === 'save_student') return 'create';
-    if ($act === 'delete' || $act === 'soft_delete_session') return 'delete';
+    if ($act === 'delete' || $act === 'delete_user' || $act === 'soft_delete_session') return 'delete';
     if ($act === 'import_csv') return 'import';
     if ($act === 'export_csv' || $act === 'export_audit_csv' || $act === 'dump_uda') return 'export';
     if ($act === 'login' || $act === 'logout') return 'session';

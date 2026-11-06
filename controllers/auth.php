@@ -116,6 +116,21 @@ if (!defined('USM_ROOT')) {
             }
             $stmt = $pdo->prepare('UPDATE usmsmart_users SET is_active=?, auth_version=auth_version+1 WHERE id=?'); $stmt->execute(array($active,$id));
             auditLog($pdo,$active ? 'enable_user' : 'disable_user','user',$id,null,$active ? 'Account enabled' : 'Account disabled');
+        } elseif ($operation === 'delete_user') {
+            // Permanent: there is no undo, so the caller must echo the exact username back.
+            $confirm = trim((string)($_POST['confirm_username'] ?? ''));
+            if ($isSelf) { http_response_code(400); echo json_encode(array('success'=>false,'message'=>'Anda tidak boleh memadam akaun sendiri.')); exit; }
+            if (strcasecmp($confirm, (string)$target['username']) !== 0) { http_response_code(400); echo json_encode(array('success'=>false,'message'=>'Taip nama pengguna dengan tepat untuk mengesahkan pemadaman.')); exit; }
+            if ((int)$target['is_active'] === 1 && $target['role'] === 'admin') {
+                $admins = (int)$pdo->query("SELECT COUNT(*) FROM usmsmart_users WHERE role='admin' AND is_active=1")->fetchColumn();
+                if ($admins <= 1) { http_response_code(400); echo json_encode(array('success'=>false,'message'=>'Sekurang-kurangnya seorang Admin aktif mesti dikekalkan.')); exit; }
+            }
+            $stmt = $pdo->prepare('DELETE FROM usmsmart_users WHERE id = ?'); $stmt->execute(array($id));
+            if ($stmt->rowCount() !== 1) { http_response_code(409); echo json_encode(array('success'=>false,'message'=>'Akaun tidak dapat dipadam. Muat semula senarai dan cuba lagi.')); exit; }
+            // The avatar is a file keyed by user id; remove it so a reused id cannot inherit a face.
+            $avatarFile = usmsmartAvatarFile($id);
+            if ($avatarFile !== null && is_file($avatarFile)) @unlink($avatarFile);
+            auditLog($pdo,'delete_user','user',$id,null,'Deleted account '.$target['username'].' (role '.$target['role'].', active '.$target['is_active'].')');
         } else { http_response_code(400); echo json_encode(array('success'=>false,'message'=>'Operasi tidak sah.')); exit; }
         echo json_encode(array('success'=>true,'message'=>'Akaun berjaya dikemas kini.')); exit;
     }

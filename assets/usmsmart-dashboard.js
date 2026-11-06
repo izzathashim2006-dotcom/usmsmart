@@ -4537,7 +4537,7 @@
                         '<td class="p-3.5"><span class="inline-flex rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase ' + roleClass + '">' + escapeHtml(String(u.role)) + '</span></td>' +
                         '<td class="p-3.5"><span class="inline-flex rounded-lg border px-2.5 py-1 text-[10px] font-semibold ' + statusClass + '">' + (active ? 'Aktif' : 'Nyahaktif') + '</span></td>' +
                         '<td class="p-3.5 text-[11px] text-slate-500 dark:text-zinc-400 whitespace-nowrap">' + lastLogin + '</td>' +
-                        '<td class="p-3.5"><div class="flex justify-end gap-1.5"><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'role\')" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-800 text-[10px]" title="Tukar peranan"><i class="fa-solid fa-shield-halved"></i></button><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'password\')" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-800 text-[10px]" title="Set semula kata laluan"><i class="fa-solid fa-key"></i></button><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'status\')" class="px-2.5 py-1.5 rounded-lg border ' + (active ? 'border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-900 dark:hover:bg-rose-950/40' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-900 dark:hover:bg-emerald-950/40') + ' text-[10px]" title="' + (active ? 'Nyahaktifkan akaun' : 'Aktifkan akaun') + '"><i class="fa-solid ' + (active ? 'fa-user-slash' : 'fa-user-check') + '"></i></button></div></td></tr>';
+                        '<td class="p-3.5"><div class="flex justify-end gap-1.5"><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'role\')" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-800 text-[10px]" title="Tukar peranan"><i class="fa-solid fa-shield-halved"></i></button><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'password\')" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-800 text-[10px]" title="Set semula kata laluan"><i class="fa-solid fa-key"></i></button><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'status\')" class="px-2.5 py-1.5 rounded-lg border ' + (active ? 'border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-900 dark:hover:bg-rose-950/40' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-900 dark:hover:bg-emerald-950/40') + ' text-[10px]" title="' + (active ? 'Nyahaktifkan akaun' : 'Aktifkan akaun') + '"><i class="fa-solid ' + (active ? 'fa-user-slash' : 'fa-user-check') + '"></i></button><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'delete\')" class="px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[10px]" title="Padam akaun"><i class="fa-solid fa-trash"></i></button></div></td></tr>';
                 }).join('');
             }
             document.getElementById('user-management-count').textContent = 'Menunjukkan ' + rows.length + ' daripada ' + userManagementRows.length + ' akaun';
@@ -4561,6 +4561,11 @@
                 const enable = Number(target.is_active) !== 1;
                 if (!confirm((enable ? 'Aktifkan' : 'Nyahaktifkan') + ' akaun ' + target.username + '?')) return;
                 data.append('operation', 'set_active'); data.append('is_active', enable ? '1' : '0');
+            } else if (operation === 'delete') {
+                const typed = window.prompt('Padam akaun ' + target.username + ' secara kekal. Taip nama pengguna untuk mengesahkan:');
+                if (typed === null) return;
+                if (typed.trim().toLowerCase() !== String(target.username).toLowerCase()) { showToast('Nama pengguna tidak sepadan. Pemadaman dibatalkan.'); return; }
+                data.append('operation', 'delete_user'); data.append('confirm_username', typed.trim());
             } else return;
             try {
                 const response = await fetch('index.php?action=manage_user', { method: 'POST', body: data });
@@ -4965,7 +4970,7 @@
                 return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300"><i class="fa-solid fa-pen-to-square text-[9px]"></i> KEMASKINI</span>';
             } else if (act === 'create' || act === 'save_student') {
                 return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"><i class="fa-solid fa-user-plus text-[9px]"></i> TAMBAH</span>';
-            } else if (act === 'delete' || act === 'soft_delete_session') {
+            } else if (act === 'delete' || act === 'delete_user' || act === 'soft_delete_session') {
                 return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300"><i class="fa-solid fa-trash-can text-[9px]"></i> PADAM</span>';
             } else if (act === 'import_csv') {
                 return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-teal-100 text-teal-800 dark:bg-teal-950/70 dark:text-teal-300"><i class="fa-solid fa-file-arrow-up text-[9px]"></i> IMPORT CSV</span>';
