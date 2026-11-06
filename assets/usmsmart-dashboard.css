@@ -2217,3 +2217,185 @@ html.dark .usm-launch-btn:hover{background:#6d28d9}
   .usm-launch-btn{transition:none}
   .usm-launch-btn:active{transform:none}
 }
+
+/* ===== usmsmart-dash-hero-2026-v1 ===== */
+/* The first thing the dashboard shows after sign-in: a warm, roomy greeting that owns the
+   full width of the main column. Cream, amber and a little lavender keep it calm before the
+   tooling below; the sun/moon mark and the drifting glows follow the visitor's clock. */
+.usm-hero{position:relative;isolation:isolate;overflow:hidden;width:100%;
+  min-height:clamp(300px,46vh,430px);display:grid;place-items:center;
+  padding:clamp(30px,5vw,58px) clamp(20px,4vw,48px);text-align:center;
+  border:1px solid #f0e0cf;border-radius:24px;
+  background:
+    radial-gradient(120% 120% at 12% 8%, rgba(253,186,116,.32), transparent 55%),
+    radial-gradient(100% 100% at 88% 92%, rgba(196,181,253,.28), transparent 55%),
+    linear-gradient(150deg,#fffaf3 0%,#fdf4ec 46%,#f7f2ff 100%);
+  box-shadow:0 18px 44px rgba(122,79,38,.10), inset 0 1px 0 rgba(255,255,255,.8)}
+.usm-hero-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;max-width:56ch}
+.usm-hero-blob{position:absolute;z-index:0;border-radius:50%;filter:blur(42px);opacity:.55;pointer-events:none}
+.usm-hero-blob-a{width:260px;height:260px;left:-60px;top:-70px;
+  background:radial-gradient(circle,#fdba74,transparent 68%);
+  animation:usm-hero-drift 19s ease-in-out infinite alternate}
+.usm-hero-blob-b{width:300px;height:300px;right:-80px;bottom:-100px;
+  background:radial-gradient(circle,#c4b5fd,transparent 68%);
+  animation:usm-hero-drift 23s ease-in-out infinite alternate-reverse}
+@keyframes usm-hero-drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(22px,18px,0) scale(1.08)}}
+.usm-hero-mark{display:inline-flex;align-items:center;justify-content:center;width:62px;height:62px;
+  border-radius:19px;background:linear-gradient(150deg,#fde3c0,#f7c9a3);color:#95521d;font-size:24px;
+  box-shadow:0 12px 26px rgba(180,83,9,.20), inset 0 1px 0 rgba(255,255,255,.65);
+  animation:usm-hero-breathe 7s ease-in-out infinite}
+@keyframes usm-hero-breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.usm-hero-eyebrow{margin:16px 0 0;font-size:9.5px;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:#7d6750}
+.usm-hero-title{margin:8px 0 0;font-size:clamp(26px,3.6vw,40px);line-height:1.16;
+  font-weight:750;letter-spacing:-.02em;color:#3a2c21}
+.usm-hero-name{color:#b45309}
+.usm-hero-sub{margin:12px auto 0;max-width:46ch;font-size:clamp(12px,1.2vw,13.5px);
+  line-height:1.65;color:#786755}
+.usm-hero-meta{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:22px}
+.usm-hero-pill{display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:5px 13px;
+  border-radius:999px;border:1px solid rgba(206,178,148,.55);background:rgba(255,255,255,.62);
+  color:#6d5a47;font-size:11px;font-weight:600;letter-spacing:.01em;white-space:nowrap;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+.usm-hero-pill>i{font-size:10px;color:#b45309}
+html.dark .usm-hero{border-color:#302720;
+  background:
+    radial-gradient(120% 120% at 12% 8%, rgba(251,146,60,.18), transparent 55%),
+    radial-gradient(100% 100% at 88% 92%, rgba(139,92,246,.20), transparent 55%),
+    linear-gradient(150deg,#1a1512 0%,#1d1815 46%,#191a23 100%);
+  box-shadow:0 18px 44px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05)}
+html.dark .usm-hero-blob{opacity:.4}
+html.dark .usm-hero-mark{background:linear-gradient(150deg,rgba(251,191,36,.25),rgba(249,115,22,.18));
+  color:#fcd34d;box-shadow:0 12px 26px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08)}
+html.dark .usm-hero-eyebrow{color:#a8957f}
+html.dark .usm-hero-title{color:#f5ece1}
+html.dark .usm-hero-name{color:#fbbf24}
+html.dark .usm-hero-sub{color:#b9a794}
+html.dark .usm-hero-pill{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.09);
+  color:#d8c8b6;box-shadow:none}
+html.dark .usm-hero-pill>i{color:#fbbf24}
+@media(max-width:640px){
+  .usm-hero{min-height:clamp(260px,42vh,340px);border-radius:20px;padding:30px 18px}
+  .usm-hero-mark{width:54px;height:54px;border-radius:17px;font-size:21px}
+  .usm-hero-sub{font-size:12px}
+  .usm-hero-meta{margin-top:18px}
+}
+@media(prefers-reduced-motion:reduce){
+  .usm-hero-blob,.usm-hero-mark{animation:none}
+}
+
+/* The palette layer squares every <section> under <main> to 16px. The hero is a welcome
+   panel, not a tool card, so it keeps its softer corners. */
+#usm-main .usm-hero{border-radius:24px !important}
+@media(max-width:640px){#usm-main .usm-hero{border-radius:20px !important}}
+
+/* ===== usmsmart-analytics-stats-2026-v1 ===== */
+/* The analytics figures carry one modern treatment: tabular JetBrains Mono numerals, a
+   two-tone gradient ink per metric, a soft tinted wash on the card and a gradient icon chip.
+   The top status row and the KPI row share it so the two sets of numbers read as siblings. */
+#view-analytics .analytics-kpi,
+#view-analytics #analytics-export-wrapper > section:first-child > .analytics-stat{
+  position:relative !important;overflow:hidden !important;min-width:0 !important;
+  padding:16px !important;border-radius:16px !important;border:1px solid var(--stat-edge,#e5e7eb) !important;
+  background:radial-gradient(150% 130% at 100% 0%, var(--stat-wash,rgba(99,102,241,.08)), transparent 62%), #fff !important;
+  box-shadow:0 1px 2px rgba(15,23,42,.03) !important;
+  transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease !important}
+#view-analytics .analytics-kpi:hover,
+#view-analytics #analytics-export-wrapper > section:first-child > .analytics-stat:hover{
+  transform:translateY(-2px) !important;border-color:var(--stat-line,#c7d2fe) !important;
+  box-shadow:0 16px 32px -26px rgba(15,23,42,.45) !important}
+
+#view-analytics .analytics-stat-indigo,
+#view-analytics .analytics-kpi-indigo{--stat-a:#4f46e5;--stat-b:#7c3aed;--stat-ink:#4338ca;
+  --stat-wash:rgba(99,102,241,.10);--stat-edge:#e3e3fb;--stat-line:#c7d2fe;--stat-glow:rgba(79,70,229,.42)}
+#view-analytics .analytics-stat-emerald,
+#view-analytics .analytics-kpi-emerald{--stat-a:#047857;--stat-b:#0d9488;--stat-ink:#047857;
+  --stat-wash:rgba(16,185,129,.10);--stat-edge:#dcf5ea;--stat-line:#a7f3d0;--stat-glow:rgba(5,150,105,.40)}
+#view-analytics .analytics-stat-violet,
+#view-analytics .analytics-kpi-violet{--stat-a:#7c3aed;--stat-b:#c026d3;--stat-ink:#6d28d9;
+  --stat-wash:rgba(139,92,246,.10);--stat-edge:#ede6fd;--stat-line:#ddd6fe;--stat-glow:rgba(124,58,237,.40)}
+#view-analytics .analytics-stat-amber,
+#view-analytics .analytics-kpi-amber{--stat-a:#b45309;--stat-b:#c2410c;--stat-ink:#b45309;
+  --stat-wash:rgba(245,158,11,.12);--stat-edge:#fbeed3;--stat-line:#fde68a;--stat-glow:rgba(217,119,6,.40)}
+#view-analytics .analytics-stat-rose{--stat-a:#be123c;--stat-b:#e11d48;--stat-ink:#be123c;
+  --stat-wash:rgba(244,63,94,.10);--stat-edge:#fbe0e6;--stat-line:#fecdd3;--stat-glow:rgba(225,29,72,.40)}
+
+/* The action card in the status row keeps a warmer edge than its siblings. */
+#view-analytics #analytics-export-wrapper > section:first-child > .analytics-stat-amber{
+  border-color:#fcd34d !important;box-shadow:0 0 0 3px rgba(245,158,11,.10) !important}
+
+/* Numerals: monospace, tabular, gradient ink. */
+#view-analytics .analytics-stat-value,
+#view-analytics .analytics-kpi-value{
+  margin-top:10px !important;width:fit-content;max-width:100%;
+  font-family:'JetBrains Mono','Plus Jakarta Sans',ui-monospace,SFMono-Regular,Menlo,monospace !important;
+  font-size:clamp(1.6rem,2.2vw,2.05rem) !important;font-weight:700 !important;line-height:1.1 !important;
+  letter-spacing:-.05em !important;font-variant-numeric:tabular-nums;
+  background:linear-gradient(118deg,var(--stat-a,#4f46e5) 6%,var(--stat-b,#a855f7) 94%) !important;
+  -webkit-background-clip:text !important;background-clip:text !important;color:transparent !important}
+#view-analytics #analytics-export-wrapper > section:first-child > .analytics-stat > .analytics-stat-value{
+  margin-top:10px !important;font-size:clamp(1.6rem,2.2vw,2.05rem) !important;line-height:1.1 !important}
+#view-analytics .analytics-kpi-value.analytics-kpi-text{
+  background:none !important;background-clip:border-box !important;-webkit-background-clip:border-box !important;
+  color:var(--stat-ink,#4338ca) !important;-webkit-text-fill-color:var(--stat-ink,#4338ca) !important;
+  font-size:clamp(1.05rem,1.4vw,1.2rem) !important;line-height:1.32 !important;
+  letter-spacing:-.02em !important;min-height:2.4rem}
+
+/* Labels and captions. */
+#view-analytics .analytics-kpi-top{color:#5b6478;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;line-height:1.35}
+#view-analytics #analytics-export-wrapper > section:first-child > .analytics-stat > div:first-child > p:first-child{
+  font-size:10.5px !important;font-weight:700 !important;letter-spacing:.09em !important;
+  text-transform:uppercase !important;line-height:1.35 !important}
+#view-analytics .analytics-kpi-caption{font-size:10.5px;color:#64748b;line-height:1.45;margin-top:8px}
+
+/* Icon chip: gradient fill, white glyph. */
+#view-analytics .analytics-kpi-icon{
+  display:grid !important;place-items:center !important;flex:0 0 38px;width:38px !important;height:38px !important;
+  border-radius:12px !important;font-size:13px;color:#fff !important;
+  background:linear-gradient(140deg,var(--stat-a,#4f46e5),var(--stat-b,#a855f7)) !important;
+  box-shadow:0 8px 16px -10px var(--stat-glow,rgba(79,70,229,.5)), inset 0 1px 0 rgba(255,255,255,.35) !important}
+
+html.dark #view-analytics .analytics-stat-indigo,
+html.dark #view-analytics .analytics-kpi-indigo{--stat-a:#a5b4fc;--stat-b:#d8b4fe;--stat-ink:#c7d2fe;
+  --stat-wash:rgba(99,102,241,.16);--stat-edge:#2c2f3c;--stat-line:#4f4a8f}
+html.dark #view-analytics .analytics-stat-emerald,
+html.dark #view-analytics .analytics-kpi-emerald{--stat-a:#6ee7b7;--stat-b:#2dd4bf;--stat-ink:#6ee7b7;
+  --stat-wash:rgba(16,185,129,.15);--stat-edge:#243430;--stat-line:#2f6f5e}
+html.dark #view-analytics .analytics-stat-violet,
+html.dark #view-analytics .analytics-kpi-violet{--stat-a:#d8b4fe;--stat-b:#f0abfc;--stat-ink:#e9d5ff;
+  --stat-wash:rgba(139,92,246,.18);--stat-edge:#2f2a3f;--stat-line:#5b4a86}
+html.dark #view-analytics .analytics-stat-amber,
+html.dark #view-analytics .analytics-kpi-amber{--stat-a:#fcd34d;--stat-b:#fb923c;--stat-ink:#fcd34d;
+  --stat-wash:rgba(245,158,11,.16);--stat-edge:#372a1c;--stat-line:#7c5a22}
+html.dark #view-analytics .analytics-stat-rose{--stat-a:#fda4af;--stat-b:#fb7185;--stat-ink:#fda4af;
+  --stat-wash:rgba(244,63,94,.16);--stat-edge:#37232a;--stat-line:#7f3a48}
+html.dark #view-analytics .analytics-kpi,
+html.dark #view-analytics #analytics-export-wrapper > section:first-child > .analytics-stat{
+  border-color:var(--stat-edge,#2b2f3a) !important;
+  background:radial-gradient(150% 130% at 100% 0%, var(--stat-wash,rgba(99,102,241,.14)), transparent 62%), #111318 !important;
+  box-shadow:0 1px 2px rgba(0,0,0,.35) !important}
+html.dark #view-analytics .analytics-stat-value,
+html.dark #view-analytics .analytics-kpi-value{color:transparent !important}
+html.dark #view-analytics .analytics-kpi-value.analytics-kpi-text{
+  color:var(--stat-ink,#c7d2fe) !important;-webkit-text-fill-color:var(--stat-ink,#c7d2fe) !important}
+html.dark #view-analytics .analytics-kpi .analytics-kpi-icon{
+  background:linear-gradient(140deg,var(--stat-a,#a5b4fc),var(--stat-b,#d8b4fe)) !important;
+  color:#141821 !important;box-shadow:0 8px 16px -10px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.35) !important}
+
+@media(prefers-reduced-motion:reduce){
+  #view-analytics .analytics-kpi,#view-analytics .analytics-stat{transition:none !important}
+  #view-analytics .analytics-kpi:hover,#view-analytics .analytics-stat:hover{transform:none !important}
+}
+@media(forced-colors:active){
+  #view-analytics .analytics-stat-value,#view-analytics .analytics-kpi-value,
+  #view-analytics .analytics-kpi-value.analytics-kpi-text{color:CanvasText !important;-webkit-text-fill-color:CanvasText !important;background:none !important}
+}
+
+/* Gradient ink disappears on paper unless backgrounds are printed; fall back to solid ink. */
+@media print{
+  #view-analytics .analytics-stat-value,
+  #view-analytics .analytics-kpi-value,
+  html.dark #view-analytics .analytics-stat-value,
+  html.dark #view-analytics .analytics-kpi-value{
+    color:#111827 !important;-webkit-text-fill-color:#111827 !important;background:none !important}
+}

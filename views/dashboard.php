@@ -149,30 +149,20 @@
         <!-- HALAMAN UTAMA: TRANSPORTER -->
         <div id="view-transporter" class="<?php echo $usmShowWelcome ? 'hidden ' : ''; ?>space-y-5">
             
-            <div class="bg-white dark:bg-[#111113] border border-slate-200/60 dark:border-zinc-800/50 rounded-2xl p-4 shadow-clean flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-base shrink-0">
-                        <i class="fa-solid fa-id-card-clip" aria-hidden="true"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <h3 class="font-semibold text-sm text-slate-800 dark:text-zinc-100"><span id="usm-dash-greeting">Selamat datang</span>, <span class="text-indigo-600 dark:text-indigo-400"><?php echo htmlspecialchars($usmWelcomeName, ENT_QUOTES, 'UTF-8'); ?></span></h3>
-                        <p class="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">
-                            <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-calendar-check text-[9px]" aria-hidden="true"></i><span id="usm-dash-date">Hari ini</span></span>
-                            <span aria-hidden="true">·</span>
-                            <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-clock text-[9px]" aria-hidden="true"></i><time id="usm-dash-time" datetime="">--:--</time></span>
-                        </p>
+            <section class="usm-hero" aria-labelledby="usm-dash-hero-title">
+                <span class="usm-hero-blob usm-hero-blob-a" aria-hidden="true"></span>
+                <span class="usm-hero-blob usm-hero-blob-b" aria-hidden="true"></span>
+                <div class="usm-hero-inner">
+                    <span class="usm-hero-mark" aria-hidden="true"><i id="usm-dash-icon" class="fa-solid fa-sun"></i></span>
+                    <p class="usm-hero-eyebrow">Kampus Kejuruteraan USM</p>
+                    <h2 id="usm-dash-hero-title" class="usm-hero-title"><span id="usm-dash-greeting">Selamat datang</span>, <span class="usm-hero-name"><?php echo htmlspecialchars($usmWelcomeName, ENT_QUOTES, 'UTF-8'); ?></span></h2>
+                    <p class="usm-hero-sub">Semoga hari anda tenang dan produktif. Direktori kad, Sysweb dan semua modul sedia menanti di rel kiri.</p>
+                    <div class="usm-hero-meta">
+                        <span class="usm-hero-pill"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i><span id="usm-dash-date">Hari ini</span></span>
+                        <span class="usm-hero-pill"><i class="fa-solid fa-clock" aria-hidden="true"></i><time id="usm-dash-time" datetime="">--:--</time></span>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <button onclick="navigateToDirectoryPage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-id-card-clip"></i><span>Buka Direktori Kad</span>
-                        <i class="fa-solid fa-arrow-right text-[9px]"></i>
-                    </button>
-                    <button type="button" onclick="navigateToSyswebSegment('transporter')" class="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer" title="Buka Segmen Integrasi Sysweb">
-                        <i class="fa-solid fa-network-wired"></i><span>Segmen Sysweb</span><i class="fa-solid fa-arrow-right text-[9px]"></i>
-                    </button>
-                </div>
-            </div>
+            </section>
 
             <!-- BANNER PERINGATAN KAD HAMPIR LUPUT (1-CLICK ACCESS) -->
             <div id="transporter-expiry-alert-banner" class="hidden bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50 rounded-2xl p-4 shadow-clean flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -1807,45 +1797,45 @@
         <div id="view-analytics" class="space-y-6 hidden page-transition">
             <div id="analytics-export-wrapper" class="space-y-6">
                 <section data-usm-reveal class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3" aria-label="Ringkasan status kad">
-                    <div onclick="viewStudentsByExpiryStatus('')" class="cursor-pointer group hover:border-indigo-400 dark:hover:border-indigo-600 transition min-w-0 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] p-4 shadow-clean hover:shadow-md" title="Klik untuk lihat semua rekod pelajar">
+                    <div onclick="viewStudentsByExpiryStatus('')" class="analytics-stat analytics-stat-indigo cursor-pointer group hover:border-indigo-400 dark:hover:border-indigo-600 transition min-w-0 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] p-4 shadow-clean hover:shadow-md" title="Klik untuk lihat semua rekod pelajar">
                         <div class="flex justify-between items-start">
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Jumlah rekod kad</p>
                             <span class="text-[10px] font-medium text-indigo-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                         </div>
-                        <p id="card-stat-total" class="text-2xl font-bold mt-1">—</p>
+                        <p id="card-stat-total" class="analytics-stat-value text-2xl font-bold mt-1">—</p>
                         <div class="flex items-center justify-between mt-1">
                             <p class="text-[11px] text-slate-500 dark:text-zinc-400">Semua rekod pelajar</p>
                             <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium group-hover:underline">Papar semua →</span>
                         </div>
                     </div>
-                    <div onclick="viewStudentsByExpiryStatus('active')" class="cursor-pointer group hover:border-emerald-400 dark:hover:border-emerald-600 transition min-w-0 rounded-2xl border border-emerald-200 dark:border-emerald-900 bg-white dark:bg-[#121214] p-4 shadow-clean hover:shadow-md" title="Klik untuk lihat kad pelajar aktif">
+                    <div onclick="viewStudentsByExpiryStatus('active')" class="analytics-stat analytics-stat-emerald cursor-pointer group hover:border-emerald-400 dark:hover:border-emerald-600 transition min-w-0 rounded-2xl border border-emerald-200 dark:border-emerald-900 bg-white dark:bg-[#121214] p-4 shadow-clean hover:shadow-md" title="Klik untuk lihat kad pelajar aktif">
                         <div class="flex justify-between items-start">
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Kad aktif</p>
                             <span class="text-[10px] font-medium text-emerald-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                         </div>
-                        <p id="card-stat-active" class="text-2xl font-bold text-emerald-600 mt-1">—</p>
+                        <p id="card-stat-active" class="analytics-stat-value text-2xl font-bold text-emerald-600 mt-1">—</p>
                         <div class="flex items-center justify-between mt-1">
                             <p id="card-stat-active-rate" class="text-[11px] text-slate-500 dark:text-zinc-400">—% daripada rekod</p>
                             <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium group-hover:underline">Papar aktif →</span>
                         </div>
                     </div>
-                    <div onclick="viewStudentsByExpiryStatus('30')" class="cursor-pointer group hover:border-amber-400 dark:hover:border-amber-500 transition min-w-0 rounded-2xl border-2 border-amber-300 dark:border-amber-700 bg-amber-50/30 dark:bg-amber-950/20 p-4 shadow-clean hover:shadow-md ring-2 ring-amber-400/20" title="Klik untuk lihat senarai pelajar yang kad mereka hampir luput (30 hari)">
+                    <div onclick="viewStudentsByExpiryStatus('30')" class="analytics-stat analytics-stat-amber cursor-pointer group hover:border-amber-400 dark:hover:border-amber-500 transition min-w-0 rounded-2xl border-2 border-amber-300 dark:border-amber-700 bg-amber-50/30 dark:bg-amber-950/20 p-4 shadow-clean hover:shadow-md ring-2 ring-amber-400/20" title="Klik untuk lihat senarai pelajar yang kad mereka hampir luput (30 hari)">
                         <div class="flex justify-between items-start">
                             <p class="text-xs font-semibold text-amber-800 dark:text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-clock text-amber-500 animate-pulse"></i> Luput dalam 30 hari</p>
                             <span class="text-[10px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/60 px-1.5 py-0.5 rounded flex items-center gap-1">Tindakan <i class="fa-solid fa-arrow-right text-[8px]"></i></span>
                         </div>
-                        <p id="card-stat-expiring" class="text-2xl font-bold text-amber-600 mt-1">—</p>
+                        <p id="card-stat-expiring" class="analytics-stat-value text-2xl font-bold text-amber-600 mt-1">—</p>
                         <div class="flex items-center justify-between mt-1">
                             <p class="text-[11px] text-amber-700/80 dark:text-zinc-400">Perlu perhatian / pembaharuan</p>
                             <span class="text-[10px] text-amber-700 dark:text-amber-400 font-bold group-hover:underline">Klik lihat senarai →</span>
                         </div>
                     </div>
-                    <div onclick="viewStudentsByExpiryStatus('expired')" class="cursor-pointer group hover:border-rose-400 dark:hover:border-rose-600 transition min-w-0 rounded-2xl border border-rose-200 dark:border-rose-900 bg-white dark:bg-[#121214] p-4 shadow-clean hover:shadow-md" title="Klik untuk lihat kad pelajar yang telah tamat tempoh">
+                    <div onclick="viewStudentsByExpiryStatus('expired')" class="analytics-stat analytics-stat-rose cursor-pointer group hover:border-rose-400 dark:hover:border-rose-600 transition min-w-0 rounded-2xl border border-rose-200 dark:border-rose-900 bg-white dark:bg-[#121214] p-4 shadow-clean hover:shadow-md" title="Klik untuk lihat kad pelajar yang telah tamat tempoh">
                         <div class="flex justify-between items-start">
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Kad tamat tempoh</p>
                             <span class="text-[10px] font-medium text-rose-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                         </div>
-                        <p id="card-stat-expired" class="text-2xl font-bold text-rose-600 mt-1">—</p>
+                        <p id="card-stat-expired" class="analytics-stat-value text-2xl font-bold text-rose-600 mt-1">—</p>
                         <div class="flex items-center justify-between mt-1">
                             <p class="text-[11px] text-slate-500 dark:text-zinc-400">Tarikh luput sebelum hari ini</p>
                             <span class="text-[10px] text-rose-600 dark:text-rose-400 font-medium group-hover:underline">Papar tamat →</span>

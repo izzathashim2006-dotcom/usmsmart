@@ -36,6 +36,7 @@
             const dashGreeting = document.getElementById('usm-dash-greeting');
             const dashDate = document.getElementById('usm-dash-date');
             const dashTime = document.getElementById('usm-dash-time');
+            const dashIcon = document.getElementById('usm-dash-icon');
             const welcomeGreeting = document.getElementById('usm-welcome-greeting');
             const welcomeDate = document.getElementById('usm-welcome-date');
             const paint = function () {
@@ -47,6 +48,11 @@
                 if (dashTime) {
                     dashTime.textContent = clock12(now);
                     dashTime.setAttribute('datetime', now.toISOString());
+                }
+                if (dashIcon) {
+                    const daytime = now.getHours() >= 6 && now.getHours() < 19;
+                    dashIcon.classList.toggle('fa-sun', daytime);
+                    dashIcon.classList.toggle('fa-moon', !daytime);
                 }
                 if (welcomeGreeting) welcomeGreeting.textContent = greeting;
                 if (welcomeDate) welcomeDate.textContent = date;
