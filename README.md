@@ -117,6 +117,12 @@ visual changes, noisy for large DOM shifts.
 Remove any audit account afterwards — nothing in these tools writes to the
 database, but the account itself is real.
 
+GitHub Actions runs the static checks on every push and pull request
+(`.github/workflows/ci.yml`): PHP lint on every file, JavaScript syntax,
+Tailwind class coverage, and a rebuild that must leave `assets/tailwind.css`
+untouched. The browser suites stay local because they need MySQL and a
+signed-in throwaway account.
+
 ## Backup and restore
 
 **In-app.** Administrators can run a verified backup from the dashboard. Backups

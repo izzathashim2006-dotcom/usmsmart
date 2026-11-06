@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      # Production runs PHP 8.2, so lint against the same minor.
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Lint every PHP file
+        run: |
+          find . -name '*.php' -not -path './node_modules/*' -print0 \
+            | xargs -0 -n1 php -l
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install build tooling
+        run: npm ci
+
+      # Only the application assets; assets/vendor is generated elsewhere.
+      - name: Check JavaScript syntax
+        run: |
+          for file in assets/usmsmart-dashboard.js tools/*.js; do
+            node --check "$file"
+          done
+
+      # The Play CDN is gone, so a class with no compiled rule renders as plain
+      # text. This catches a markup or JS change that skipped the build.
+      - name: Check every class token has a rule
+        run: node tools/tailwind-coverage.js
+
+      # Rebuilding must be a no-op: a diff means the committed sheet is stale.
+      - name: Check the compiled stylesheet is current
+        run: |
+          npm run build:css
+          if ! git diff --quiet -- assets/tailwind.css; then
+            echo "::error::assets/tailwind.css is stale. Run npm run build:css and commit the result."
+            git --no-pager diff --stat -- assets/tailwind.css
+            exit 1
+          fi

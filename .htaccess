@@ -6,6 +6,7 @@
 
 # Repository metadata, tooling sources and the schema folder are build-time only.
 RedirectMatch 404 "(?i)/\.git(/|$)"
+RedirectMatch 404 "(?i)/\.github(/|$)"
 RedirectMatch 404 "(?i)/tools(/|$)"
 RedirectMatch 404 "(?i)/database(/|$)"
 
