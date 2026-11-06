@@ -88,6 +88,51 @@ function usmsmartSyswebCardProbe() {
     return array('status'=>'ok','mode'=>'live','detail'=>'Connected; card records are read live');
 }
 
+/* The write path is optional, so an unconfigured login reads as "off", not as a
+   degraded system. Once write_enabled is set, however, every missing key or
+   denied table right is a warning the administrator has to act on before an
+   export can write. This probe never inserts or updates a row: the permissions
+   come from SQL Server's own effective-rights function. */
+function usmsmartSyswebWriteProbe() {
+    $config = usmsmartSyswebLiveConfig();
+    $missing = usmsmartSyswebWriteMissing($config);
+    if ($missing === array('write_enabled')) {
+        return array('status'=>'ok','mode'=>'off','detail'=>'Not configured (optional); exports stay in MySQL');
+    }
+    if (count($missing)) {
+        return array('status'=>'warning','mode'=>'not_configured','detail'=>'Enabled, but missing: ' . implode(', ', $missing));
+    }
+    $config['login_timeout'] = max(1, min(3, (int)($config['login_timeout'] ?? 3)));
+    $table = usmsmartSyswebWriteTable($config);
+    try {
+        $live = usmsmartGetSyswebWritePdo($config);
+        $columns = usmsmartSyswebLiveColumns($live, $table);
+        if (!count($columns)) {
+            return array('status'=>'warning','mode'=>'unreadable','detail'=>'Write login connected, but the columns of ' . $table . ' could not be read');
+        }
+        $planMissing = array();
+        usmsmartSyswebWritePlan($columns, is_array($config['card_columns'] ?? null) ? $config['card_columns'] : array(), $planMissing);
+        if (count($planMissing)) {
+            return array('status'=>'warning','mode'=>'unmapped','detail'=>'Write login connected; unmapped columns: ' . implode(', ', $planMissing));
+        }
+        $permissions = usmsmartSyswebWritePermissions($live, $table);
+        if (!count($permissions)) {
+            return array('status'=>'warning','mode'=>'permission','detail'=>'Write login connected, but its table rights could not be confirmed');
+        }
+        $denied = array();
+        foreach (array('SELECT', 'INSERT', 'UPDATE') as $right) {
+            if (!$permissions[strtolower($right)]) $denied[] = $right;
+        }
+        if (count($denied)) {
+            return array('status'=>'warning','mode'=>'permission','detail'=>'Write login connected, but ' . implode(' and ', $denied) . ' is not granted on ' . $table);
+        }
+        return array('status'=>'ok','mode'=>'ready','detail'=>'Write login connected; SELECT, INSERT and UPDATE are permitted on ' . $table);
+    } catch (Throwable $e) {
+        error_log('USMSmart ccadmin write probe failed: ' . $e->getMessage());
+        return array('status'=>'warning','mode'=>'unavailable','detail'=>'Write login unreachable; exports stay in MySQL');
+    }
+}
+
 function usmsmartDbSources($pdo) {
     $mysql = array('status'=>'error','detail'=>'Query failed');
     try {
@@ -201,6 +246,8 @@ if ($action === 'system_health' && $_SERVER['REQUEST_METHOD'] === 'GET') {
        says it is not. */
     $cardProbe = usmsmartSyswebCardProbe();
     $checks[] = array('name'=>'Sysweb card database','status'=>$cardProbe['status'],'detail'=>$cardProbe['detail']);
+    $writeProbe = usmsmartSyswebWriteProbe();
+    $checks[] = array('name'=>'ccadmin write login','status'=>$writeProbe['status'],'detail'=>$writeProbe['detail']);
     $ollamaUrl = getenv('USMSMART_OLLAMA_URL');
     if (!$ollamaUrl) $ollamaUrl = 'http://127.0.0.1:11434/api/generate';
     $ollamaBase = rtrim(preg_replace('~/api/(generate|chat|tags)/?$~', '', $ollamaUrl), '/');

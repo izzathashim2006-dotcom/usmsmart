@@ -655,12 +655,25 @@ function usmsmartSyswebWriteTable(array $config) {
     return $table !== '' ? $table : trim((string)($config['card_table'] ?? ''));
 }
 
-function usmsmartSyswebWriteReady(array $config) {
-    if (empty($config['write_enabled'])) return false;
+// Names the config keys that still have to be filled in, so the export report
+// and the health panel say what to edit instead of a generic "not configured".
+// Key names only: values and credentials never leave the private file.
+function usmsmartSyswebWriteMissing(array $config) {
+    if (empty($config['write_enabled'])) return array('write_enabled');
+    $missing = array();
     foreach (array('server', 'database', 'write_username', 'write_password') as $key) {
-        if (!usmsmartSyswebLiveFilled($config[$key] ?? '')) return false;
+        if (!usmsmartSyswebLiveFilled($config[$key] ?? '')) $missing[] = $key;
     }
-    return usmsmartSyswebWriteTable($config) !== '';
+    if (usmsmartSyswebWriteTable($config) === '') $missing[] = 'write_table';
+    // The UID is never auto-detected on the write side, so an explicit mapping
+    // is part of the configuration rather than something the server can answer.
+    $uidColumn = is_array($config['card_columns'] ?? null) ? ($config['card_columns']['uid'] ?? '') : '';
+    if (usmsmartSafeLiveColumnName($uidColumn) === '') $missing[] = 'card_columns.uid';
+    return $missing;
+}
+
+function usmsmartSyswebWriteReady(array $config) {
+    return !count(usmsmartSyswebWriteMissing($config));
 }
 
 // Deliberately a separate handle from the read snapshot: the writer is another
@@ -675,6 +688,23 @@ function usmsmartGetSyswebWritePdo(array $config) {
         $config['write_username'], $config['write_password'],
         array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES => false));
     return $connection;
+}
+
+// Read-only permission preflight. SQL Server reports the login's effective
+// rights itself, so asking is enough: no probe row is touched. All three are
+// needed because the writer updates first, selects to confirm, then inserts.
+function usmsmartSyswebWritePermissions(PDO $live, $table) {
+    $object = str_replace(array('[', ']'), '', trim((string)$table));
+    if ($object === '') return array();
+    $statement = $live->prepare("SELECT HAS_PERMS_BY_NAME(?, 'OBJECT', 'SELECT') AS can_select, HAS_PERMS_BY_NAME(?, 'OBJECT', 'INSERT') AS can_insert, HAS_PERMS_BY_NAME(?, 'OBJECT', 'UPDATE') AS can_update");
+    $statement->execute(array($object, $object, $object));
+    $row = $statement->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($row)) return array();
+    return array(
+        'select' => (int)($row['can_select'] ?? 0) === 1,
+        'insert' => (int)($row['can_insert'] ?? 0) === 1,
+        'update' => (int)($row['can_update'] ?? 0) === 1,
+    );
 }
 
 // Column names come from the server's own catalogue, so a renamed column fails
@@ -742,19 +772,41 @@ function usmsmartSyswebPushCards(array $cards) {
     $config = usmsmartSyswebLiveConfig();
     $table = usmsmartSyswebWriteTable($config);
     $uidMode = strtolower(trim((string)($config['write_uid'] ?? 'source'))) === 'converted' ? 'converted' : 'source';
-    $result = array('status' => 'not_configured', 'written' => 0, 'total' => count($cards), 'table' => $table, 'uid' => $uidMode, 'message' => '');
-    if (!usmsmartSyswebWriteReady($config)) {
-        $result['message'] = 'Penulisan ccadmin belum dikonfigurasi; eksport MySQL sahaja.';
+    $missingConfig = usmsmartSyswebWriteMissing($config);
+    $result = array('status' => 'not_configured', 'written' => 0, 'total' => count($cards), 'table' => $table, 'uid' => $uidMode, 'missing' => $missingConfig, 'message' => '');
+    if (count($missingConfig)) {
+        $result['message'] = $missingConfig === array('write_enabled')
+            ? 'Penulisan ccadmin dimatikan (write_enabled); eksport MySQL sahaja.'
+            : 'Penulisan ccadmin belum lengkap; tetapkan ' . implode(', ', $missingConfig) . ' dalam konfigurasi. Eksport MySQL sahaja.';
         return $result;
     }
     $live = null;
     try {
         $live = usmsmartGetSyswebWritePdo($config);
         $columns = usmsmartSyswebLiveColumns($live, $table);
+        if (!count($columns)) {
+            $result['status'] = 'failed';
+            $result['message'] = 'Login tulis tidak dapat membaca katalog lajur ' . $table . '. Semak akses SELECT dan INFORMATION_SCHEMA.';
+            return $result;
+        }
         $missing = array();
         $plan = usmsmartSyswebWritePlan($columns, is_array($config['card_columns'] ?? null) ? $config['card_columns'] : array(), $missing);
         if (count($missing)) {
             $result['message'] = 'Lajur ccadmin belum dipetakan: ' . implode(', ', $missing) . '. Tetapkan card_columns dalam konfigurasi.';
+            return $result;
+        }
+        // Advisory preflight: a definite denial names the missing right before
+        // any row is touched. If the server cannot answer, the write itself is
+        // still the authority and decides.
+        $permissions = array();
+        try { $permissions = usmsmartSyswebWritePermissions($live, $table); } catch (Throwable $probeError) { error_log('USMSmart ccadmin permission probe failed: ' . $probeError->getMessage()); }
+        $denied = array();
+        foreach (array('select', 'insert', 'update') as $right) {
+            if (isset($permissions[$right]) && !$permissions[$right]) $denied[] = strtoupper($right);
+        }
+        if (count($denied)) {
+            $result['status'] = 'failed';
+            $result['message'] = 'Login tulis ccadmin tiada kebenaran ' . implode(', ', $denied) . ' pada ' . $table . '. Eksport MySQL kekal; minta DBA memberi GRANT SELECT, INSERT, UPDATE.';
             return $result;
         }
         $prepared = array();

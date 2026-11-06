@@ -106,10 +106,16 @@ return array(
 );
 ```
 
-The write login needs `SELECT` on the table and `INFORMATION_SCHEMA.COLUMNS`,
-plus `INSERT` and `UPDATE`:
+The write login needs a database user in `dbkadpintar`, `SELECT` on the table
+(and its catalogue metadata), plus `INSERT` and `UPDATE`. A SQL-authenticated
+login would look like this; a Windows login only needs the `CREATE USER`/`GRANT`
+half, and the DBA adjusts the names:
 
 ```sql
+USE dbkadpintar;
+-- Skip the next line when the login already exists (for example, a Windows login).
+CREATE LOGIN [usmsmart_writer] WITH PASSWORD = N'<strong-password>';
+CREATE USER [usmsmart_writer] FOR LOGIN [usmsmart_writer];
 GRANT SELECT, INSERT, UPDATE ON dbo.ccadmin TO [usmsmart_writer];
 ```
 
@@ -122,6 +128,21 @@ catalogue, are interpolated. `write_uid` defaults to `source` because the read
 snapshot treats the stored UID as the raw card value and converts it for
 comparison; choose `converted` only if a controller consumes that column as the
 little-endian value this app stages for UDA.
+
+**Checking the write login.** After the grant and the config edit, run:
+
+```sh
+php tools/ccadmin-check.php             # required keys only, no connection
+php tools/ccadmin-check.php --connect   # login, column mapping, table rights
+```
+
+The checker prints the table, the UID mode and the exact keys still missing; it
+never prints a credential. `--connect` uses the write login once to read column
+metadata and ask SQL Server for its effective `SELECT`/`INSERT`/`UPDATE` rights
+— it never inserts or updates a row. The dashboard's **System Health** panel
+shows the same verdict as "ccadmin write login": optional when off, a warning
+once `write_enabled` is on but a key or grant is missing. The export report also
+names missing keys now, rather than only saying "not configured".
 
 ## Front-end assets
 
