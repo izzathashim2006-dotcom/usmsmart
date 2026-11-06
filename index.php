@@ -121,7 +121,7 @@ if (!$authReady) {
 // Revalidate the account on every request. auth_version revokes sessions after password/role/status changes.
 if ($authReady && !empty($_SESSION['user_id'])) {
     try {
-        $sessionAccountStmt = $pdo->prepare('SELECT username, role, is_active, auth_version, avatar_updated_at FROM usmsmart_users WHERE id = ? LIMIT 1');
+        $sessionAccountStmt = $pdo->prepare('SELECT username, role, display_name, is_active, auth_version, avatar_updated_at FROM usmsmart_users WHERE id = ? LIMIT 1');
         $sessionAccountStmt->execute(array((int)$_SESSION['user_id']));
         $sessionAccount = $sessionAccountStmt->fetch(PDO::FETCH_ASSOC);
         $sessionInvalid = !$sessionAccount || !(int)$sessionAccount['is_active']
@@ -135,6 +135,8 @@ if ($authReady && !empty($_SESSION['user_id'])) {
             // Keep role and username sourced from the database, never solely from stale session data.
             $_SESSION['username'] = $sessionAccount['username'];
             $_SESSION['role'] = $sessionAccount['role'];
+            // The greeting reads the preferred name; username stays the fallback.
+            $_SESSION['display_name'] = (string)($sessionAccount['display_name'] ?? '');
             // Cached on the session because the header and the rail render server-side and must not
             // issue a second query just to know whether the signed-in user has a picture.
             $_SESSION['avatar_updated_at'] = (string)($sessionAccount['avatar_updated_at'] ?? '');

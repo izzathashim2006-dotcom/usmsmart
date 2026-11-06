@@ -9,6 +9,26 @@
             }
             return nativeFetch(resource, options);
         };
+        // The greeting card follows the visitor's clock and locale. The PHP process runs in the
+        // server's zone, not the campus one, so a greeting computed there would be hours off.
+        (function initWelcomeCard() {
+            const hour = new Date().getHours();
+            const greeting = document.getElementById('usm-welcome-greeting');
+            if (greeting) {
+                greeting.textContent = hour < 12 ? 'Selamat pagi'
+                    : hour < 15 ? 'Selamat tengah hari'
+                    : hour < 19 ? 'Selamat petang'
+                    : 'Selamat malam';
+            }
+            const date = document.getElementById('usm-welcome-date');
+            if (!date) return;
+            try {
+                date.textContent = new Intl.DateTimeFormat('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+            } catch (error) {
+                date.textContent = new Date().toLocaleDateString();
+            }
+        })();
+
         let allMasterStudents = [];
         let filteredMasterStudents = [];
         let currentPage = 1;
@@ -1704,7 +1724,7 @@
         }
 
         function hideAllMainViews() {
-            ['view-transporter','view-analytics','view-directory-page','view-staff-directory','view-edit-student','view-user-management','view-audit-history','view-bulk-update','view-data-quality','view-sysweb'].forEach(id => {
+            ['view-welcome','view-transporter','view-analytics','view-directory-page','view-staff-directory','view-edit-student','view-user-management','view-audit-history','view-bulk-update','view-data-quality','view-sysweb'].forEach(id => {
                 const el = document.getElementById(id); if (el) el.classList.add('hidden');
             });
             // Deep segments belong to no top tab, so no tab is marked current.
@@ -1751,12 +1771,14 @@
             let tUsers = document.getElementById('view-user-management');
             let tAudit = document.getElementById('view-audit-history');
             let tSysweb = document.getElementById('view-sysweb');
+            let tWelcome = document.getElementById('view-welcome');
             // The three button handles are gone: setMainTabState() is the only writer now.
             if (tDir) tDir.classList.add('hidden');
             if (tEdit) tEdit.classList.add('hidden');
             if (tUsers) tUsers.classList.add('hidden');
             if (tAudit) tAudit.classList.add('hidden');
             if (tSysweb) tSysweb.classList.add('hidden');
+            if (tWelcome) tWelcome.classList.add('hidden');
             if (tab === 'analytics') {
                 if (tTrans) tTrans.classList.add('hidden');
                 if (tAnal) tAnal.classList.remove('hidden');
@@ -3078,6 +3100,14 @@
         let staffDirectoryLoaded = false;
         function navigateToStaffDirectory() {
             navigateToDirectoryPage('staff');
+        }
+
+        // The greeting hands over to the dashboard. Focus moves to <main> so keyboard users
+        // are not left on a button that has just been hidden.
+        function continueFromWelcome() {
+            switchMainTab('transporter');
+            const main = document.getElementById('usm-main');
+            if (main) main.focus({preventScroll: true});
         }
         async function syncLiveStaffToLocal() {
             if (!USMSMART_IS_ADMIN) { showToast('Hanya Admin boleh mengimport data staf.'); return; }

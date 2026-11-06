@@ -121,8 +121,33 @@
 
     <main id="usm-main" tabindex="-1" class="flex-grow max-w-[1100px] w-full mx-auto px-5 py-7 space-y-5">
         
+        <?php
+        // A sign-in lands on this greeting segment first; a later page load in the same session
+        // goes straight to the dashboard. There is only one way forward, so the greeting stays
+        // a greeting: no directories, no routes to choose between.
+        $usmShowWelcome = !empty($_SESSION['usm_welcome_pending']);
+        unset($_SESSION['usm_welcome_pending']);
+        $usmWelcomeName = trim((string)($_SESSION['display_name'] ?? ''));
+        if ($usmWelcomeName === '') { $usmWelcomeName = (string)($_SESSION['username'] ?? 'pengguna'); }
+        $usmWelcomeAdmin = (($_SESSION['role'] ?? '') === 'admin');
+        ?>
+        <div id="view-welcome" class="<?php echo $usmShowWelcome ? '' : 'hidden '; ?>page-transition">
+            <section class="usm-launch" aria-labelledby="usm-welcome-title">
+                <span class="usm-launch-mark" aria-hidden="true"><i class="fa-solid fa-id-card-clip"></i></span>
+                <p class="usm-welcome-eyebrow">Kampus Kejuruteraan USM</p>
+                <h2 id="usm-welcome-title" class="usm-launch-title"><span id="usm-welcome-greeting">Selamat datang</span>, <span class="usm-welcome-name"><?php echo htmlspecialchars($usmWelcomeName, ENT_QUOTES, 'UTF-8'); ?></span></h2>
+                <p class="usm-launch-sub">Selamat kembali ke USMSmart. Semua modul sedia menanti di papan pemuka.</p>
+                <div class="usm-launch-meta">
+                    <span class="usm-welcome-chip"><i class="fa-solid fa-<?php echo $usmWelcomeAdmin ? 'shield-halved' : 'eye'; ?>" aria-hidden="true"></i><?php echo $usmWelcomeAdmin ? 'Admin &middot; akses penuh' : 'Viewer &middot; akses baca'; ?></span>
+                    <span id="usm-welcome-date" class="usm-welcome-date"></span>
+                </div>
+                <button type="button" class="usm-launch-btn" onclick="continueFromWelcome()"><span>Teruskan ke papan pemuka</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                <p class="usm-launch-foot"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Direktori Kad, Sysweb dan modul lain boleh dibuka dari rel kiri.</p>
+            </section>
+        </div>
+
         <!-- HALAMAN UTAMA: TRANSPORTER -->
-        <div id="view-transporter" class="space-y-5">
+        <div id="view-transporter" class="<?php echo $usmShowWelcome ? 'hidden ' : ''; ?>space-y-5">
             
             <div class="bg-white dark:bg-[#111113] border border-slate-200/60 dark:border-zinc-800/50 rounded-2xl p-4 shadow-clean flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
