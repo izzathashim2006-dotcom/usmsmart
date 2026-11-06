@@ -233,7 +233,7 @@ if (!defined('USM_ROOT')) {
                 COUNT(*) as total,
                 SUM(CASE WHEN action = 'update' THEN 1 ELSE 0 END) as updates,
                 SUM(CASE WHEN action IN ('create', 'save_student', 'import_csv') THEN 1 ELSE 0 END) as inserts,
-                SUM(CASE WHEN action IN ('delete', 'soft_delete_session') THEN 1 ELSE 0 END) as deletes
+                SUM(CASE WHEN action IN ('delete', 'delete_user', 'soft_delete_session') THEN 1 ELSE 0 END) as deletes
                 FROM usmsmart_audit_log");
             $auditStats = $statsStmt ? $statsStmt->fetch(PDO::FETCH_ASSOC) : array();
             echo json_encode(array('data' => $stmt->fetchAll(PDO::FETCH_ASSOC), 'total' => $total, 'page' => $page, 'perPage' => $perPage, 'totalPages' => $totalPages, 'actions' => $actions, 'stats' => $auditStats));

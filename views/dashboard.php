@@ -932,7 +932,7 @@
                             <div id="audit-stat-inserts" class="text-2xl font-bold mt-2 text-emerald-600 dark:text-emerald-400">—</div>
                             <div class="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5 group-hover:underline">Klik untuk tapis pendaftaran →</div>
                         </div>
-                        <div onclick="quickFilterAuditAction('delete,soft_delete_session')" class="cursor-pointer group hover:border-rose-300 transition rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/30 dark:bg-zinc-900/70 p-4">
+                        <div onclick="quickFilterAuditAction('delete,delete_user,soft_delete_session')" class="cursor-pointer group hover:border-rose-300 transition rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/30 dark:bg-zinc-900/70 p-4">
                             <div class="flex items-center justify-between"><span class="text-[11px] text-slate-500 dark:text-zinc-400">Pemadaman Data</span><span class="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs"><i class="fa-solid fa-trash-can"></i></span></div>
                             <div id="audit-stat-deletes" class="text-2xl font-bold mt-2 text-rose-600 dark:text-rose-400">—</div>
                             <div class="text-[10px] text-rose-600 dark:text-rose-400 mt-0.5 group-hover:underline">Klik untuk tapis pemadaman →</div>
@@ -951,6 +951,8 @@
                                 <label for="audit-action-filter" class="block text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-1.5">Jenis Tindakan</label>
                                 <select id="audit-action-filter" onchange="loadAuditHistoryPage(1)" class="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-violet-500">
                                     <option value="">Semua Tindakan</option>
+                                    <option value="create,save_student,import_csv">Pendaftaran / Tambah (semua)</option>
+                                    <option value="delete,delete_user,soft_delete_session">Pemadaman (semua)</option>
                                     <option value="update">Kemas Kini Pelajar (Update)</option>
                                     <option value="create">Tambah Pelajar Baharu (Create)</option>
                                     <option value="delete">Padam Pelajar (Delete)</option>
