@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Production runs PHP 8.2, so lint against the same minor.
       - name: Set up PHP
@@ -33,7 +33,7 @@ jobs:
             | xargs -0 -n1 php -l
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '20'
           cache: npm
