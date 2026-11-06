@@ -493,3 +493,62 @@ html.dark footer{background:rgba(9,12,22,.78);color:#e8eef7}
 .card{border-color:rgba(226,232,240,.55);box-shadow:0 26px 60px rgba(2,6,23,.42),0 3px 10px rgba(2,6,23,.24)}
 /* The eyebrow and the brand mark take !important tints from the redesign block, and both are
    light tiles that already read well here, so they are left as they are. */
+
+
+/* ===== usmsmart-login-palette-2026-v1 ===== */
+/* The sign-in card joins the dashboard palette: the same deep violet brand, a porcelain
+   surface and a hairline with a violet cast. The photograph stays as it is - it is the one
+   part of this page whose colour must not be tokenised - but the card and its controls now
+   match every screen behind the login, and dark mode gets a real dark card instead of leaving
+   a white sheet floating on the photo. */
+:root{
+  --bg:#f6f7fc;--surface:#ffffff;--text:#182033;--muted:#64708a;--border:#e6e8f2;
+  --indigo:#6d28d9;--indigo-hover:#5b21b6;--soft:#f2efff;
+  --usm-accent:#6d28d9;--usm-accent-hover:#5b21b6;--usm-accent-soft:#f2efff;
+  --usm-ink:#182033;--usm-muted:#64708a;--usm-line:#e6e8f2;--usm-canvas:#f6f7fc;
+}
+html.dark{
+  --bg:#0b0d14;--surface:#12151e;--text:#e9ecf5;--muted:#9aa4b8;--border:#272b38;
+  --indigo:#a78bfa;--indigo-hover:#c4b5fd;--soft:#251d3f;
+  --usm-accent:#a78bfa;--usm-accent-hover:#c4b5fd;--usm-accent-soft:#251d3f;
+  --usm-ink:#e9ecf5;--usm-muted:#9aa4b8;--usm-line:#272b38;--usm-canvas:#0b0d14;
+}
+html.dark body{background:var(--bg);color:var(--text)}
+body{background:var(--bg);color:var(--text)}
+
+.topbar{background:linear-gradient(90deg,#6d28d9,#8b5cf6 55%,#ddd6fe)}
+.brand-mark{background:linear-gradient(145deg,#7c3aed,#5b21b6)!important;
+  box-shadow:0 6px 18px rgba(109,40,217,.24)!important}
+.eyebrow{background:var(--soft)!important;color:var(--indigo)!important;border-color:#e2dbff!important}
+.card{border-color:var(--border);box-shadow:0 24px 56px rgba(24,32,51,.10),0 3px 10px rgba(24,32,51,.04)}
+.card-icon{background:var(--soft);color:var(--indigo)}
+.field{color:#3a4459}
+.field input{border-color:#d5dae7!important}
+.field input::placeholder{color:#96a0b4}
+.field input:focus{border-color:#8b5cf6;box-shadow:0 0 0 4px rgba(109,40,217,.12)}
+.submit{background:var(--indigo);border-color:var(--indigo);
+  box-shadow:0 6px 14px rgba(109,40,217,.20)}
+.submit:hover{background:var(--indigo-hover);box-shadow:0 8px 18px rgba(109,40,217,.26)}
+.security-note{border-top-color:#eef0f7;color:var(--muted)}
+.security-note i{color:var(--muted)}
+.toggle-password{color:var(--muted)}
+.toggle-password:hover{background:#f2f3fa;color:#3a4459}
+
+html.dark .card{background:var(--surface)!important;border-color:var(--border)!important;
+  box-shadow:0 28px 60px rgba(0,0,0,.46),0 3px 12px rgba(0,0,0,.30)}
+html.dark .card h2{color:#eef0f8}
+html.dark .card-desc{color:var(--muted)}
+html.dark .card-icon{background:var(--soft);color:var(--indigo)}
+html.dark .field{color:#c6cede}
+html.dark .field input{background:#0e1119;border-color:#3a4152!important;color:var(--text)}
+html.dark .field input::placeholder{color:#7e879c}
+html.dark .field input:focus{border-color:#a78bfa;box-shadow:0 0 0 4px rgba(167,139,250,.16)}
+html.dark .toggle-password{color:var(--muted)}
+html.dark .toggle-password:hover{background:#1a1e2a;color:var(--text)}
+html.dark .security-note{border-top-color:#232735;color:var(--muted)}
+html.dark .security-note i{color:var(--muted)}
+html.dark #msg{background:rgba(127,29,29,.22);border-color:#7f1d1d;color:#fecaca}
+html.dark .submit{background:#7c3aed;border-color:#7c3aed;color:#fff;
+  box-shadow:0 6px 16px rgba(0,0,0,.35)}
+html.dark .submit:hover{background:#6d28d9;border-color:#6d28d9}
+html.dark .eyebrow{background:#251d3f!important;color:#c4b5fd!important;border-color:#3b2f5c!important}

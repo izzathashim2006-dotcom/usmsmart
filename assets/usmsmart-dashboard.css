@@ -1998,3 +1998,143 @@ html.dark #uda-source-badge.is-bad .usm-src-dot{background:#fb7185}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
+
+
+/* ===== usmsmart-palette-2026-v1 ===== */
+/* One brand, one surface language, two themes.
+   This block is deliberately last: every earlier visual pass declared its own --usm-accent
+   (#4f46e5, #5b4be8, #6d28d9) and the last :root won, so the product painted a different violet
+   depending on which block happened to be nearby. These declarations settle it once.
+     - Brand: a single deep violet. Solid fills use #6d28d9 in light (white clears AA at 7.1:1) and
+       #7c3aed in dark (white 5.7:1); the bright #a78bfa token is for text and icons on dark panels,
+       never for a surface that carries white text.
+     - Neutrals: a cool porcelain canvas with a violet-tinted hairline, so cards read as clean paper
+       rather than grey boxes. The dark theme gets an ink-blue canvas instead of zinc black, which
+       lets the violet accents glow instead of turning muddy.
+     - Backdrop: the four drifting corners are now an analogous violet / blue / rose set instead of
+       violet + cyan + pink + orange. Orange mixed into violet turns the wash brown mid-page, which
+       is the main reason the old backdrop read as noise rather than depth.
+   No markup, ID, handler or route changes; deleting this block restores the previous palette. */
+
+:root{
+  --usm-accent:#6d28d9;--usm-accent-hover:#5b21b6;
+  --usm-accent-soft:#f2efff;--usm-accent-ring:rgba(109,40,217,.20);
+  --usm-ink:#182033;--usm-muted:#64708a;
+  --usm-line:#e6e8f2;--usm-line-strong:#cbd2e2;
+  --usm-canvas:#f6f7fc;--usm-card:#ffffff;
+  --usm-surface:#ffffff;--usm-surface-soft:#f8f9fe;
+  --usm-shadow-sm:0 1px 2px rgba(24,32,51,.05);
+  --usm-shadow:0 2px 10px rgba(24,32,51,.04), 0 14px 34px rgba(58,45,120,.045);
+  --usm-focus-ring:rgba(109,40,217,.30);
+  --usm-ui-border:#e6e8f2;
+}
+html.dark{
+  --usm-accent:#a78bfa;--usm-accent-hover:#c4b5fd;
+  --usm-accent-soft:#251d3f;--usm-accent-ring:rgba(167,139,250,.28);
+  --usm-ink:#e9ecf5;--usm-muted:#9aa4b8;
+  --usm-line:#272b38;--usm-line-strong:#3a4152;
+  --usm-canvas:#0b0d14;--usm-card:#12151e;
+  --usm-surface:#12151e;--usm-surface-soft:#0e1119;
+  --usm-shadow-sm:0 1px 2px rgba(0,0,0,.40);
+  --usm-shadow:0 2px 10px rgba(0,0,0,.25), 0 18px 40px rgba(0,0,0,.28);
+  --usm-focus-ring:rgba(167,139,250,.32);
+  --usm-ui-border:#272b38;
+}
+
+html{background:var(--usm-canvas)}
+body{background-color:var(--usm-canvas)!important;color:var(--usm-ink)}
+html.dark body{background-color:var(--usm-canvas)!important;color:var(--usm-ink)}
+::selection{background:rgba(109,40,217,.16)}
+html.dark ::selection{background:rgba(167,139,250,.24)}
+
+/* ---- Primary actions: one violet, whichever utility the page happens to carry ------------- */
+html:not(.dark) body button.bg-indigo-600,html:not(.dark) body button.bg-violet-600,
+html:not(.dark) body button.bg-purple-600,html:not(.dark) body a.bg-indigo-600,
+html:not(.dark) body a.bg-violet-600,html:not(.dark) body .bg-indigo-600.text-white,
+html:not(.dark) body .bg-violet-600.text-white{
+  background-color:var(--usm-accent)!important;border-color:var(--usm-accent)!important;
+  box-shadow:0 2px 7px rgba(109,40,217,.20)}
+html:not(.dark) body button.bg-indigo-600:hover,html:not(.dark) body button.bg-violet-600:hover,
+html:not(.dark) body button.bg-purple-600:hover,html:not(.dark) body a.bg-indigo-600:hover,
+html:not(.dark) body a.bg-violet-600:hover{
+  background-color:var(--usm-accent-hover)!important;border-color:var(--usm-accent-hover)!important;
+  box-shadow:0 4px 12px rgba(109,40,217,.26)}
+html.dark body button.bg-indigo-600,html.dark body button.bg-violet-600,
+html.dark body button.bg-purple-600,html.dark body a.bg-indigo-600,
+html.dark body a.bg-violet-600,html.dark body .bg-indigo-600.text-white,
+html.dark body .bg-violet-600.text-white{
+  background-color:#7c3aed!important;border-color:#7c3aed!important;color:#fff!important}
+html.dark body button.bg-indigo-600:hover,html.dark body button.bg-violet-600:hover,
+html.dark body button.bg-purple-600:hover,html.dark body a.bg-indigo-600:hover,
+html.dark body a.bg-violet-600:hover{background-color:#6d28d9!important;border-color:#6d28d9!important}
+
+/* Solid violet surfaces that would otherwise put white text on the bright dark token. */
+html.dark #usm-requests-launch{background:#7c3aed;border-color:#7c3aed;color:#fff}
+html.dark #usm-requests-launch:hover{background:#6d28d9;border-color:#6d28d9;color:#fff}
+html.dark .usm-btn-primary{background:#7c3aed;color:#fff}
+html.dark .usm-btn-primary:hover{background:#6d28d9}
+html.dark .usm-pill[aria-pressed="true"],html.dark .usm-pill.is-active{background:#7c3aed;color:#fff}
+html.dark #usm-rail .usm-rail-mark{background:linear-gradient(140deg,#7c3aed,#6d28d9);color:#fff}
+html.dark header button.usm-header-profile .usm-avatar{background:#7c3aed;border-color:#a78bfa}
+
+/* ---- Brand inks and soft wells ------------------------------------------------------------ */
+html:not(.dark) body .text-indigo-600,html:not(.dark) body .text-violet-600,
+html:not(.dark) body .text-purple-600{color:var(--usm-accent)!important}
+html:not(.dark) body .text-indigo-500,html:not(.dark) body .text-violet-500{color:#7c3aed!important}
+html.dark body .text-indigo-600,html.dark body .text-violet-600,
+html.dark body .text-purple-600,
+html.dark body .text-indigo-400,html.dark body .text-violet-400,
+html.dark body .text-purple-400{color:var(--usm-accent)!important}
+html:not(.dark) body .bg-indigo-50,html:not(.dark) body .bg-violet-50,
+html:not(.dark) body .bg-indigo-100,html:not(.dark) body .bg-violet-100{
+  background-color:var(--usm-accent-soft)!important}
+
+/* ---- Surfaces, hairlines and type --------------------------------------------------------- */
+html:not(.dark) body .border-slate-200,html:not(.dark) body .border-slate-200\/80,
+html:not(.dark) body .border-slate-200\/60,html:not(.dark) body .border-slate-100{
+  border-color:var(--usm-line)!important}
+html.dark body .border-zinc-800,html.dark body .border-zinc-800\/60,
+html.dark body .border-zinc-800\/50,html.dark body .border-zinc-700{
+  border-color:var(--usm-line)!important}
+html:not(.dark) body .bg-slate-50{background-color:var(--usm-surface-soft)!important}
+html:not(.dark) body .text-slate-500{color:var(--usm-muted)!important}
+html.dark body .text-zinc-400,html.dark body .text-slate-400{color:var(--usm-muted)!important}
+
+html:not(.dark) section.bg-white,html:not(.dark) section[class*="bg-white"],
+html:not(.dark) div.bg-white,html:not(.dark) div[class*="bg-white"]{
+  border-color:var(--usm-line);box-shadow:0 1px 2px rgba(24,32,51,.03),0 12px 30px rgba(58,45,120,.035)}
+html.dark section.bg-white,html.dark section[class*="bg-white"],
+html.dark div.bg-white,html.dark div[class*="bg-white"]{
+  background-color:var(--usm-card)!important;border-color:var(--usm-line)!important;
+  box-shadow:0 2px 10px rgba(0,0,0,.22),0 18px 40px rgba(0,0,0,.20)}
+html:not(.dark) section.bg-white:hover,html:not(.dark) section[class*="bg-white"]:hover,
+html:not(.dark) div.bg-white:hover,html:not(.dark) div[class*="bg-white"]:hover{
+  border-color:#d8d3f0}
+html.dark section.bg-white:hover,html.dark section[class*="bg-white"]:hover,
+html.dark div.bg-white:hover,html.dark div[class*="bg-white"]:hover{border-color:#3b3957!important}
+
+body > header{background-color:rgba(255,255,255,.86)!important}
+html.dark body > header{background-color:rgba(12,14,21,.88)!important}
+
+html:not(.dark) body table thead th{background:#f5f6fc!important;color:#5f6b82!important;border-bottom-color:var(--usm-line)!important}
+html.dark body table thead th{background:#171a26!important;color:#a6afc2!important;border-bottom-color:var(--usm-line)!important}
+html:not(.dark) body table tbody tr:hover{background-color:rgba(109,40,217,.035)!important}
+html.dark body table tbody tr:hover{background-color:rgba(167,139,250,.055)!important}
+
+/* ---- Backdrop: an analogous violet / blue / rose wash ------------------------------------- */
+:root{
+  --usm-bg-tint-a:rgba(109,40,217,.14);--usm-bg-tint-b:rgba(37,99,235,.09);
+  --usm-bg-hue-1:rgba(109,40,217,.22);--usm-bg-hue-2:rgba(37,99,235,.17);
+  --usm-bg-hue-3:rgba(219,39,119,.11);--usm-bg-hue-4:rgba(67,56,202,.12);
+  --usm-bg-band-a:rgba(167,139,250,.05);--usm-bg-band-b:rgba(125,211,252,.045);
+  --usm-bg-band-c:rgba(251,207,232,.045);
+  --usm-bg-shade:rgba(15,23,42,.04);--usm-bg-dot:rgba(100,116,139,.12);
+}
+html.dark{
+  --usm-bg-ground:rgba(3,2,14,.68);
+  --usm-bg-hue-1:rgba(76,29,149,.26);--usm-bg-hue-2:rgba(30,58,138,.26);
+  --usm-bg-hue-3:rgba(88,28,135,.22);--usm-bg-hue-4:rgba(15,23,42,.30);
+  --usm-bg-band-a:rgba(16,6,40,.22);--usm-bg-band-b:rgba(12,6,52,.18);
+  --usm-bg-band-c:rgba(26,5,36,.18);
+  --usm-bg-shade:rgba(0,0,0,.30);--usm-bg-dot:rgba(148,163,184,.09);
+}
