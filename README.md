@@ -79,6 +79,50 @@ root**, `C:/xampp/private/usmsmart_sysweb.php`, or from the path in
 `USMSMART_SYSWEB_CONFIG`. Missing or placeholder values simply disable the
 snapshot; the rest of the portal keeps working.
 
+### Optional: writing issued cards to ccadmin
+
+The UDA export can also upsert each card into the card database after the UID
+has been converted. It stays off unless that same private config opts in and
+names a second login, because the snapshot login is read-only:
+
+```php
+return array(
+    'server' => 'ccadmin2.usm.my',
+    'database' => 'dbkadpintar',
+    'username' => '...',             // read-only snapshot login
+    'password' => '...',
+    'card_table' => 'dbo.ccadmin',
+    'card_columns' => array(
+        'identifier' => 'NoMatrik',  // optional; auto-detected when omitted
+        'uid' => 'CardUID',          // required for writes; never guessed
+        'serial' => 'NoSiriKad',     // optional
+        'policy' => 'Policy',        // optional
+    ),
+    'write_enabled' => true,
+    'write_username' => '...',       // separate login with INSERT/UPDATE
+    'write_password' => '...',
+    'write_table' => 'dbo.ccadmin',  // optional; defaults to card_table
+    'write_uid' => 'source',         // source = raw UID, converted = little-endian
+);
+```
+
+The write login needs `SELECT` on the table and `INFORMATION_SCHEMA.COLUMNS`,
+plus `INSERT` and `UPDATE`:
+
+```sql
+GRANT SELECT, INSERT, UPDATE ON dbo.ccadmin TO [usmsmart_writer];
+```
+
+Writes run only for an administrator's UDA export, after the MySQL commit, in a
+single transaction keyed on the identifier column. A failure is reported in the
+export dialog and the audit log, leaves the committed MySQL export intact, and
+is repaired by running the same export again. UID, serial, policy and expiry
+values are bound parameters; only column names, taken from the server's own
+catalogue, are interpolated. `write_uid` defaults to `source` because the read
+snapshot treats the stored UID as the raw card value and converts it for
+comparison; choose `converted` only if a controller consumes that column as the
+little-endian value this app stages for UDA.
+
 ## Front-end assets
 
 Everything is served locally; there are no runtime CDN calls.
@@ -104,11 +148,15 @@ Start Apache and MySQL, create a throwaway account, then:
 USM_USER=audit USM_PASS=... node tools/smoke-test.js   # renders, payloads, keyboard, mobile, both themes
 USM_USER=audit USM_PASS=... node tools/axe-audit.js    # WCAG 2.1 A/AA via axe-core, login + 5 dialog states
 node tools/tailwind-coverage.js                        # every class used in markup exists in compiled CSS
+node tools/schema-consistency.js                       # runtime tables/columns exist in database/schema.sql
 ```
 
 `smoke-test.js` exits non-zero on a console error, a failed request, a missing
 modal, broken keyboard behaviour or horizontal overflow at 390px.
 `axe-audit.js` exits non-zero on any serious or critical violation.
+`schema-consistency.js` needs no server: it exits non-zero when a table or
+column the PHP creates at runtime, or a statically named `INSERT` target, is
+missing from `database/schema.sql`.
 
 `tools/style-snapshot.js` writes a computed-style baseline for a page;
 `tools/style-diff.js` compares two runs. Useful for catching unintentional
@@ -119,9 +167,9 @@ database, but the account itself is real.
 
 GitHub Actions runs the static checks on every push and pull request
 (`.github/workflows/ci.yml`): PHP lint on every file, JavaScript syntax,
-Tailwind class coverage, and a rebuild that must leave `assets/tailwind.css`
-untouched. The browser suites stay local because they need MySQL and a
-signed-in throwaway account.
+schema drift against `database/schema.sql`, Tailwind class coverage, and a
+rebuild that must leave `assets/tailwind.css` untouched. The browser suites
+stay local because they need MySQL and a signed-in throwaway account.
 
 ## Backup and restore
 

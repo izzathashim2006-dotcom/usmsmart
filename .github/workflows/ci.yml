@@ -48,6 +48,11 @@ jobs:
             node --check "$file"
           done
 
+      # A table or column created at runtime but absent from the file a new
+      # installation loads only fails on a fresh machine.
+      - name: Check the schema file matches runtime DDL
+        run: node tools/schema-consistency.js
+
       # The Play CDN is gone, so a class with no compiled rule renders as plain
       # text. This catches a markup or JS change that skipped the build.
       - name: Check every class token has a rule

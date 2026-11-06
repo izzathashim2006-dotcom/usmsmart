@@ -88,6 +88,24 @@ if (!defined('USM_ROOT')) {
             }
             $pdo->commit();
 
+            // Card-system write. Opt-in and deliberately after the MySQL commit:
+            // the export stays saved if the card database refuses the batch, and
+            // re-running the export repairs it because every write is keyed on
+            // the identifier. Nothing here can roll the export back.
+            $ccadminCards = array();
+            foreach ($records as $r) {
+                $sourceUid = strtoupper(preg_replace('/\s+/', '', (string)($r['usmUid'] ?? '')));
+                $ccadminCards[] = array(
+                    'identifier' => trim((string)($r['matric'] ?? '')),
+                    'source_uid' => $sourceUid,
+                    'converted_uid' => usmsmartUidLittleEndian($sourceUid),
+                    'serial' => trim((string)($r['serialNo'] ?? '')),
+                    'policy' => trim((string)($r['policy'] ?? '')),
+                    'expiry' => ''
+                );
+            }
+            $ccadmin = usmsmartSyswebPushCards($ccadminCards);
+
             // Verify the committed records by reading them back from MySQL.
             // This report confirms the configured MySQL destination only; it does not
             // claim that a separate physical UDA controller/device has received them.
@@ -133,6 +151,12 @@ if (!defined('USM_ROOT')) {
             $sessionOk = is_array($savedSession) && $sessionCount === count($records) && $sessionDetailsCount === count($records);
             $overallPass = $verifiedCount === count($records) && $sessionOk;
             auditLog($pdo, 'dump_uda', 'uda_session', $sessionId, null, 'Transferred ' . count($records) . ' records to UDA; verification=' . ($overallPass ? 'PASS' : 'WARNING') . '; verified=' . $verifiedCount);
+            if (($ccadmin['status'] ?? '') !== 'not_configured') {
+                auditLog($pdo, 'uda_ccadmin_push', 'uda_session', $sessionId, null,
+                    'ccadmin ' . $ccadmin['status'] . ': ' . (int)$ccadmin['written'] . '/' . (int)$ccadmin['total']
+                    . ' into ' . ($ccadmin['table'] !== '' ? $ccadmin['table'] : 'the configured write table')
+                    . '; uid=' . $ccadmin['uid']);
+            }
             $report = array(
                 'result' => $overallPass ? 'PASS' : 'WARNING',
                 'requested_count' => count($records),
@@ -142,10 +166,20 @@ if (!defined('USM_ROOT')) {
                 'policy_checks_passed' => $policyChecksPassed,
                 'cardholder_type_checks_passed' => $typeChecksPassed,
                 'session' => array('id' => (int)$sessionId, 'exists' => is_array($savedSession), 'expected_count' => count($records), 'saved_count' => $sessionCount, 'details_count' => $sessionDetailsCount, 'result' => $sessionOk ? 'PASS' : 'FAIL'),
+                'ccadmin' => array(
+                    'status' => $ccadmin['status'],
+                    'written' => (int)$ccadmin['written'],
+                    'total' => (int)$ccadmin['total'],
+                    'table' => (string)$ccadmin['table'],
+                    'uid' => (string)$ccadmin['uid'],
+                    'message' => (string)$ccadmin['message']
+                ),
                 'items' => $verificationItems,
-                'scope_note' => 'Read-back verification is against the configured MySQL database. It does not confirm delivery to a separate UDA device/controller.'
+                'scope_note' => 'Read-back verification is against the configured MySQL database. It does not confirm delivery to a separate UDA device/controller. The ccadmin result reports the optional card-database write separately.'
             );
-            echo json_encode(array('success' => true, 'message' => $overallPass ? 'Eksport disimpan dan pengesahan baca-semula lulus.' : 'Eksport disimpan tetapi pengesahan menemui ketidakpadanan. Semak laporan.', 'verification_report' => $report), JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+            $message = $overallPass ? 'Eksport disimpan dan pengesahan baca-semula lulus.' : 'Eksport disimpan tetapi pengesahan menemui ketidakpadanan. Semak laporan.';
+            if ($ccadmin['status'] === 'failed') $message = 'Eksport disimpan, tetapi penulisan ke ccadmin gagal dan telah dibatalkan. Semak laporan.';
+            echo json_encode(array('success' => true, 'message' => $message, 'verification_report' => $report), JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) {
                 try { $pdo->rollBack(); } catch (Throwable $rollbackError) { error_log('USMSmart UDA export rollback failed: ' . $rollbackError->getMessage()); }

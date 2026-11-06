@@ -32,7 +32,9 @@ foreach ($tables as $table) {
     $row = $pdo->query('SHOW CREATE TABLE `' . str_replace('`', '``', $name) . '`')->fetch(PDO::FETCH_NUM);
     $sql = preg_replace('/^CREATE TABLE /', 'CREATE TABLE IF NOT EXISTS ', (string)$row[1]);
     $sql = preg_replace('/ AUTO_INCREMENT=\d+/', '', $sql);
-    $definitions[$name] = $sql;
+    // SHOW CREATE TABLE returns no terminator. Without one the mysql client
+    // reads the whole file as a single statement and every import fails.
+    $definitions[$name] = rtrim($sql, "; \t\n\r\0\x0B") . ';';
 }
 ksort($definitions);
 

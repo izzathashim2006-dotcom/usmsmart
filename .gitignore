@@ -2,6 +2,8 @@
 usmsmart_private_backups/
 *.bak
 *.sql
+# Except the structure-only schema, which a new installation needs.
+!database/schema.sql
 
 # Large local test harness copies
 indextest_files/

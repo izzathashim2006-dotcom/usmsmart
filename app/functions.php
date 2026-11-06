@@ -643,6 +643,165 @@ function usmsmartSyswebLiveCardIndex(array $records, &$source) {
     return $index;
 }
 
+/* ---- Card-system write path ------------------------------------------------
+   Everything above reads the Sysweb card database. This is the only code that
+   writes to it, and it is opt-in: the private config must set write_enabled and
+   carry a login distinct from the read-only one. A failed write never rolls
+   back a committed MySQL export; the operator is told, and re-running the same
+   export repairs it because every write is keyed on the identifier. */
+
+function usmsmartSyswebWriteTable(array $config) {
+    $table = trim((string)($config['write_table'] ?? ''));
+    return $table !== '' ? $table : trim((string)($config['card_table'] ?? ''));
+}
+
+function usmsmartSyswebWriteReady(array $config) {
+    if (empty($config['write_enabled'])) return false;
+    foreach (array('server', 'database', 'write_username', 'write_password') as $key) {
+        if (!usmsmartSyswebLiveFilled($config[$key] ?? '')) return false;
+    }
+    return usmsmartSyswebWriteTable($config) !== '';
+}
+
+// Deliberately a separate handle from the read snapshot: the writer is another
+// login, so it must not inherit the reader's cached connection.
+function usmsmartGetSyswebWritePdo(array $config) {
+    static $connection = null;
+    if ($connection instanceof PDO) return $connection;
+    $timeout = max(1, min(15, (int)($config['login_timeout'] ?? 5)));
+    $connection = new PDO(
+        sprintf('sqlsrv:Server=%s;Database=%s;Encrypt=yes;TrustServerCertificate=yes;LoginTimeout=%d',
+            $config['server'], $config['database'], $timeout),
+        $config['write_username'], $config['write_password'],
+        array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES => false));
+    return $connection;
+}
+
+// Column names come from the server's own catalogue, so a renamed column fails
+// this preflight instead of silently writing elsewhere. The UID column is never
+// guessed: the read side abstains there, and a wrong guess on a write would
+// corrupt a card rather than a report. $missing names what the operator has to
+// map.
+function usmsmartSyswebWritePlan(array $columns, array $overrides, &$missing) {
+    $plan = usmsmartSyswebLivePlan($columns, $overrides);
+    $missing = array();
+    foreach (array('identifier', 'uid') as $field) {
+        if (($plan[$field] ?? '') === '') $missing[] = $field;
+    }
+    return $plan;
+}
+
+// Values are bound; only identifiers are interpolated, and those have been
+// stripped to [A-Za-z0-9_] and bracketed. Empty optional fields are omitted so
+// the card table's own defaults apply, except the UID: without it nothing is
+// written, because that is the whole point of this path.
+function usmsmartSyswebWriteSql($table, array $plan, array $values) {
+    $target = usmsmartSyswebLiveTableName($table);
+    $ident = usmsmartSafeLiveColumnName($plan['identifier'] ?? '');
+    $uid = usmsmartSafeLiveColumnName($plan['uid'] ?? '');
+    $identifier = trim((string)($values['identifier'] ?? ''));
+    if ($target === '' || $ident === '' || $uid === '' || $identifier === '' || $ident === $uid) return array();
+    $fields = array();
+    foreach (array('uid', 'serial', 'expiry', 'policy') as $field) {
+        $column = usmsmartSafeLiveColumnName($plan[$field] ?? '');
+        $value = trim((string)($values[$field] ?? ''));
+        // One column cannot carry two meanings, and no field may overwrite the
+        // key: a mis-mapped config is refused rather than written.
+        if ($column === '' || $value === '' || $column === $ident || isset($fields[$column])) continue;
+        $fields[$column] = $value;
+    }
+    if (!isset($fields[$uid])) return array();
+    $assignments = array();
+    $updateParams = array();
+    foreach ($fields as $column => $value) {
+        $assignments[] = '[' . $column . '] = ?';
+        $updateParams[] = $value;
+    }
+    $updateParams[] = $identifier;
+    $columns = array_keys($fields);
+    return array(
+        'update' => array(
+            'UPDATE ' . $target . ' SET ' . implode(', ', $assignments) . ' WHERE [' . $ident . '] = ?',
+            $updateParams,
+        ),
+        'exists' => array('SELECT 1 FROM ' . $target . ' WHERE [' . $ident . '] = ?', array($identifier)),
+        'insert' => array(
+            'INSERT INTO ' . $target . ' ([' . $ident . '], [' . implode('], [', $columns) . ']) VALUES (?, ' . implode(', ', array_fill(0, count($columns), '?')) . ')',
+            array_merge(array($identifier), array_values($fields)),
+        ),
+    );
+}
+
+// $cards: identifier, source_uid, converted_uid, serial, expiry, policy.
+// Returns status not_configured | written | failed plus written/total and the
+// resolved table, so the export report and the audit trail can state what
+// actually happened. write_uid selects which UID form reaches the column:
+// "source" is the raw card UID (what the read side expects to find there),
+// "converted" is the little-endian value this app stages for UDA.
+function usmsmartSyswebPushCards(array $cards) {
+    $config = usmsmartSyswebLiveConfig();
+    $table = usmsmartSyswebWriteTable($config);
+    $uidMode = strtolower(trim((string)($config['write_uid'] ?? 'source'))) === 'converted' ? 'converted' : 'source';
+    $result = array('status' => 'not_configured', 'written' => 0, 'total' => count($cards), 'table' => $table, 'uid' => $uidMode, 'message' => '');
+    if (!usmsmartSyswebWriteReady($config)) {
+        $result['message'] = 'Penulisan ccadmin belum dikonfigurasi; eksport MySQL sahaja.';
+        return $result;
+    }
+    $live = null;
+    try {
+        $live = usmsmartGetSyswebWritePdo($config);
+        $columns = usmsmartSyswebLiveColumns($live, $table);
+        $missing = array();
+        $plan = usmsmartSyswebWritePlan($columns, is_array($config['card_columns'] ?? null) ? $config['card_columns'] : array(), $missing);
+        if (count($missing)) {
+            $result['message'] = 'Lajur ccadmin belum dipetakan: ' . implode(', ', $missing) . '. Tetapkan card_columns dalam konfigurasi.';
+            return $result;
+        }
+        $prepared = array();
+        foreach ($cards as $index => $card) {
+            $values = array(
+                'identifier' => trim((string)($card['identifier'] ?? '')),
+                'uid' => $uidMode === 'converted' ? trim((string)($card['converted_uid'] ?? '')) : trim((string)($card['source_uid'] ?? '')),
+                'serial' => trim((string)($card['serial'] ?? '')),
+                'expiry' => trim((string)($card['expiry'] ?? '')),
+                'policy' => trim((string)($card['policy'] ?? '')),
+            );
+            $statements = usmsmartSyswebWriteSql($table, $plan, $values);
+            if (!count($statements)) {
+                throw new RuntimeException('Rekod ' . ($values['identifier'] !== '' ? $values['identifier'] : '#' . ($index + 1)) . ' tidak lengkap untuk ditulis ke ' . $table . '.');
+            }
+            $prepared[] = $statements;
+        }
+        // One transaction for the batch: the card system receives all rows or
+        // none, and re-running the export is the retry.
+        $live->beginTransaction();
+        foreach ($prepared as $statements) {
+            $update = $live->prepare($statements['update'][0]);
+            $update->execute($statements['update'][1]);
+            if ($update->rowCount() >= 1) continue;
+            // NOCOUNT and unchanged rows can report 0; confirm before inserting.
+            $exists = $live->prepare($statements['exists'][0]);
+            $exists->execute($statements['exists'][1]);
+            if ($exists->fetchColumn()) continue;
+            $insert = $live->prepare($statements['insert'][0]);
+            $insert->execute($statements['insert'][1]);
+        }
+        $live->commit();
+        $result['status'] = 'written';
+        $result['written'] = count($prepared);
+    } catch (Throwable $e) {
+        if ($live instanceof PDO && $live->inTransaction()) {
+            try { $live->rollBack(); } catch (Throwable $rollbackError) { error_log('USMSmart ccadmin rollback failed: ' . $rollbackError->getMessage()); }
+        }
+        // The driver message repeats the host and login name, so it goes to the
+        // log only; the operator gets a message they can act on.
+        error_log('USMSmart ccadmin write failed: ' . $e->getMessage());
+        $result['status'] = 'failed';
+        $result['message'] = 'Penulisan ke ccadmin gagal dan telah dibatalkan. Eksport MySQL kekal; jalankan semula eksport selepas menyemak sambungan dan kebenaran tulis.';
+    }
+    return $result;
+}
+
 // Snapshot rows plus live rows, with the provenance the callers have to report.
 function usmsmartSyswebCardIndex($pdo, array $records, &$source) {
     $index = usmsmartGetCardRecordIndex($pdo);
@@ -1116,7 +1275,7 @@ function usmsmartAuditCategory($action) {
     if ($act === 'create' || $act === 'save_student') return 'create';
     if ($act === 'delete' || $act === 'delete_user' || $act === 'soft_delete_session') return 'delete';
     if ($act === 'import_csv') return 'import';
-    if ($act === 'export_csv' || $act === 'export_audit_csv' || $act === 'dump_uda') return 'export';
+    if ($act === 'export_csv' || $act === 'export_audit_csv' || $act === 'dump_uda' || $act === 'uda_ccadmin_push') return 'export';
     if ($act === 'login' || $act === 'logout' || $act === 'login_throttled') return 'session';
     if (strpos($act, 'backup') !== false) return 'backup';
     if (strpos($act, 'restore') !== false) return 'restore';
