@@ -2354,3 +2354,31 @@ html.dark #view-analytics .analytics-kpi .analytics-kpi-icon{
   html.dark #view-analytics .analytics-kpi-value{
     color:#111827 !important;-webkit-text-fill-color:#111827 !important;background:none !important}
 }
+
+/* ===== usmsmart-command-palette-2026-v1 ===== */
+/* Ctrl/Cmd+K search over the rail destinations, everyday actions and the loaded
+   student/staff records. Rows are plain buttons so Enter and Space work by
+   default; the active row is painted here because the list is rebuilt on every
+   keystroke and utility classes would have to be toggled from JS. */
+.usm-cmd-group{padding:2px 0}
+.usm-cmd-group+.usm-cmd-group{margin-top:4px;padding-top:8px;border-top:1px solid var(--usm-line)}
+.usm-cmd-group-label{margin:0 0 4px;padding:0 8px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--usm-muted)}
+.usm-cmd-item{display:flex;align-items:center;gap:10px;width:100%;padding:8px 9px;border:1px solid transparent;border-radius:10px;
+  background:transparent;color:var(--usm-ink);font-family:inherit;text-align:left;cursor:pointer;
+  transition:background-color .12s ease,border-color .12s ease}
+.usm-cmd-item.is-active{background:var(--usm-accent-soft);border-color:var(--usm-line)}
+.usm-cmd-icon{flex:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;
+  border-radius:8px;background:var(--usm-surface-soft);border:1px solid var(--usm-line);color:var(--usm-muted);font-size:11px}
+.usm-cmd-item.is-active .usm-cmd-icon{color:var(--usm-accent);border-color:var(--usm-accent-ring)}
+.usm-cmd-text{display:flex;min-width:0;flex:1;flex-direction:column;gap:1px}
+.usm-cmd-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:600;line-height:1.35}
+.usm-cmd-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;color:var(--usm-muted)}
+.usm-cmd-hit{background:transparent;color:var(--usm-accent);font-weight:700}
+.usm-cmd-empty{padding:26px 14px;text-align:center;font-size:11.5px;color:var(--usm-muted)}
+.usm-cmd-empty>i{display:block;margin-bottom:8px;font-size:18px;color:var(--usm-line-strong)}
+.usm-kbd{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;margin-right:3px;padding:0 4px;
+  border:1px solid var(--usm-line);border-bottom-width:2px;border-radius:5px;background:var(--usm-surface-soft);
+  color:var(--usm-muted);font-family:inherit;font-size:9px;font-weight:600}
+@media(prefers-reduced-motion:reduce){
+  .usm-cmd-item{transition:none}
+}

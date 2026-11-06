@@ -98,6 +98,7 @@
             <div class="flex items-center gap-1.5 text-[11px]">
                 <?php if (!empty($_SESSION['user_id']) && in_array(($_SESSION['role'] ?? ''), array('admin','viewer'), true) && $action === ''): ?>
                 <div class="usm-header-tools" role="group" aria-label="Panel maklumat">
+                    <button id="usm-command-launch" type="button" aria-label="Cari atau jalankan arahan (Ctrl+K)" title="Cari (Ctrl+K)" onclick="openCommandPalette()"><i class="fa-solid fa-search" aria-hidden="true"></i></button>
                     <button id="usm-db-status" type="button" class="usm-db-status is-checking" aria-controls="usm-health-panel" aria-expanded="false" aria-label="Data source status" title="Data sources: checking"><span class="usm-db-dot" aria-hidden="true"></span><span class="usm-db-label">Checking</span></button>
                     <button id="usm-requests-launch" type="button" aria-label="<?php echo (($_SESSION['role'] ?? '') === 'admin') ? 'Pending Approvals' : 'My Requests'; ?>" title="<?php echo (($_SESSION['role'] ?? '') === 'admin') ? 'Pending Approvals' : 'My Requests'; ?>"><i class="fa-solid fa-inbox" aria-hidden="true"></i></button>
                     <button id="usm-notifications-launch" type="button" aria-label="Notifications" title="Notifications"><i class="fa-solid fa-bell" aria-hidden="true"></i><span id="usm-notifications-badge" hidden>0</span></button>
@@ -2406,6 +2407,47 @@
         </div>
     </div>
     <!-- ===== END NEW ===== -->
+
+    <!-- ===== MODAL ALU-ALUAN (BOLEH DIMATIKAN TERUS) ===== -->
+    <div id="welcome-modal" class="fixed inset-0 z-[100] bg-slate-950/50 backdrop-blur-sm p-4 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="welcome-modal-title" aria-describedby="welcome-modal-desc" data-modal-close="closeWelcomeModal" onclick="if(event.target===this)closeWelcomeModal()">
+        <div class="w-full max-w-md rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] shadow-2xl page-transition font-mono">
+            <div class="relative p-6">
+                <button type="button" onclick="closeWelcomeModal()" class="absolute right-3 top-3 rounded-lg p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer" aria-label="Tutup alu-aluan"><i class="fa-solid fa-xmark text-base"></i></button>
+                <div class="flex items-center gap-3 pr-8">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-200/60 bg-indigo-50 text-lg text-indigo-600 dark:border-indigo-800/40 dark:bg-indigo-950/60 dark:text-indigo-400" aria-hidden="true"><i class="fa-solid fa-id-card-clip"></i></span>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Kampus Kejuruteraan USM</p>
+                        <h3 id="welcome-modal-title" class="mt-0.5 text-sm font-bold text-slate-900 dark:text-white"><span id="welcome-greeting">Selamat datang</span>, <span class="text-indigo-600 dark:text-indigo-400"><?php echo htmlspecialchars($usmHeroName, ENT_QUOTES, 'UTF-8'); ?></span></h3>
+                    </div>
+                </div>
+                <p id="welcome-modal-desc" class="mt-4 text-[11px] leading-relaxed text-slate-600 dark:text-zinc-300">Semua modul ada di rel kiri — Direktori Kad, Sysweb, laporan dan tetapan. Butang profil di atas membuka maklumat akaun, kata laluan dan passkey anda.</p>
+                <label class="mt-4 flex cursor-pointer items-start gap-2 text-[11px] text-slate-600 dark:text-zinc-300">
+                    <input id="welcome-never" type="checkbox" class="mt-0.5 rounded accent-indigo-600">
+                    <span>Jangan tunjukkan alu-aluan ini lagi pada pelayar ini.</span>
+                </label>
+                <div class="mt-5 flex justify-end">
+                    <button type="button" onclick="closeWelcomeModal()" class="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 cursor-pointer">Mula</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PALET ARAHAN (CTRL/CMD + K) ===== -->
+    <div id="command-palette" class="fixed inset-0 z-[3000] bg-slate-950/50 backdrop-blur-sm p-4 flex items-start justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="command-palette-title" data-modal-close="closeCommandPalette" onclick="if(event.target===this)closeCommandPalette()">
+        <div class="mt-[10vh] w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-[#121214]">
+            <h2 id="command-palette-title" class="sr-only">Cari dan jalankan arahan</h2>
+            <div class="flex items-center gap-2.5 border-b border-slate-100 px-4 py-3 dark:border-zinc-800">
+                <i class="fa-solid fa-search text-sm text-slate-400" aria-hidden="true"></i>
+                <input id="command-palette-input" type="text" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls="command-palette-list" autocomplete="off" spellcheck="false" placeholder="Cari pelajar, modul atau arahan…" class="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 dark:text-white">
+                <kbd class="usm-kbd">Esc</kbd>
+            </div>
+            <div id="command-palette-list" role="listbox" aria-label="Hasil carian" class="max-h-[55vh] overflow-y-auto p-2"></div>
+            <div class="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-2 text-[10px] text-slate-500 dark:border-zinc-800 dark:text-zinc-400">
+                <span><kbd class="usm-kbd">↑</kbd><kbd class="usm-kbd">↓</kbd> pilih <span class="mx-1">·</span> <kbd class="usm-kbd">Enter</kbd> buka</span>
+                <span>Ctrl K</span>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== MODAL INTEGRASI SYSWEB (LANGKAH SETERUSNYA SELEPAS EKSPORT UDA) ===== -->
     <div id="usm-sysweb-demo-modal" class="hidden fixed inset-0 z-[2000] bg-slate-950/60 backdrop-blur-sm p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="usm-sysweb-demo-title" data-modal-close="closeSyswebDemo">

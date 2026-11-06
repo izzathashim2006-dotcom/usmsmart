@@ -37,11 +37,13 @@
             const dashDate = document.getElementById('usm-dash-date');
             const dashTime = document.getElementById('usm-dash-time');
             const dashIcon = document.getElementById('usm-dash-icon');
+            const welcomeGreeting = document.getElementById('welcome-greeting');
             const paint = function () {
                 const now = new Date();
                 const greeting = greetingFor(now.getHours());
                 const date = longDate(now);
                 if (dashGreeting) dashGreeting.textContent = greeting;
+                if (welcomeGreeting) welcomeGreeting.textContent = greeting;
                 if (dashDate) dashDate.textContent = date;
                 if (dashTime) {
                     dashTime.textContent = clock12(now);
@@ -63,6 +65,308 @@
             }, (60 - new Date().getSeconds()) * 1000);
             document.addEventListener('visibilitychange', function () {
                 if (!document.hidden) paint();
+            });
+        })();
+
+        /* --- Welcome modal ---------------------------------------------
+           One orientation card per tab, arriving shortly after the dashboard
+           paints. Ticking the checkbox before closing stores the opt-out in
+           localStorage, so it never returns in this browser; closing any other
+           way only defers it to the next session. The preference is a browser
+           setting, not an account one, so it never touches the server. */
+        function usmWelcomeHidden() {
+            try { return window.localStorage.getItem('usmsmart_welcome_hidden') === '1'; } catch (error) { return false; }
+        }
+        function usmWelcomeSeen() {
+            try { return window.sessionStorage.getItem('usmsmart_welcome_seen') === '1'; } catch (error) { return false; }
+        }
+        function openWelcomeModal() {
+            const modal = document.getElementById('welcome-modal');
+            if (!modal) return;
+            const never = document.getElementById('welcome-never');
+            if (never) never.checked = false;
+            modal.classList.remove('hidden');
+        }
+        function closeWelcomeModal() {
+            const never = document.getElementById('welcome-never');
+            if (never && never.checked) {
+                try { window.localStorage.setItem('usmsmart_welcome_hidden', '1'); } catch (error) {}
+            }
+            try { window.sessionStorage.setItem('usmsmart_welcome_seen', '1'); } catch (error) {}
+            const modal = document.getElementById('welcome-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+        function usmWelcomeStart() {
+            if (usmWelcomeHidden() || usmWelcomeSeen()) return;
+            // Let the hero settle and the first fetch start before the overlay arrives.
+            window.setTimeout(openWelcomeModal, 350);
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', usmWelcomeStart);
+        } else {
+            usmWelcomeStart();
+        }
+
+        /* --- Command palette ---------------------------------------------
+           Ctrl/Cmd+K searches the rail destinations, the everyday actions and
+           the records already in memory for the directory. Nothing is fetched
+           and nothing is stored: the list is rebuilt from live state on each
+           keystroke, and rows are built as DOM nodes rather than HTML so a
+           student name can never inject markup. */
+        let usmPaletteResults = [];
+        let usmPaletteItems = [];
+        let usmPaletteIndex = -1;
+
+        function usmPaletteAdmin() {
+            try { return typeof USMSMART_IS_ADMIN !== 'undefined' && !!USMSMART_IS_ADMIN; } catch (error) { return false; }
+        }
+        function usmPaletteCommands() {
+            const destinations = [
+                { group: 'Bahagian', label: 'Transporter Utama', meta: 'Papan pemuka', icon: 'fa-bus', keywords: 'utama dashboard transporter rekod', run: function () { switchMainTab('transporter'); } },
+                { group: 'Bahagian', label: 'Analisis Grafik', meta: 'Statistik dan eksport', icon: 'fa-chart-column', keywords: 'analisis statistik graf chart laporan', run: function () { switchMainTab('analytics'); } },
+                { group: 'Bahagian', label: 'Sysweb', meta: 'Integrasi dan batch', icon: 'fa-network-wired', keywords: 'sysweb integrasi batch hantar', run: function () { navigateToSyswebSegment('header'); } },
+                { group: 'Bahagian', label: 'Direktori Kad', meta: 'Pelajar', icon: 'fa-id-card-clip', keywords: 'direktori kad pelajar directory', run: function () { navigateToDirectoryPage('student'); } },
+                { group: 'Bahagian', label: 'Direktori Staf', meta: 'Rekod staf tempatan', icon: 'fa-user-tie', keywords: 'direktori staf staff', run: function () { navigateToDirectoryPage('staff'); } },
+                { group: 'Bahagian', label: 'Sejarah & Log Audit', meta: 'Jejak rekod', icon: 'fa-clock-rotate-left', keywords: 'sejarah audit log jejak', run: function () { navigateToAuditHistory('directory'); } },
+                { group: 'Bahagian', label: 'Kualiti Data', meta: 'Isu dan pendua', icon: 'fa-triangle-exclamation', keywords: 'kualiti data isu pendua duplicate', run: function () { navigateToDataQuality(); } }
+            ];
+            if (usmPaletteAdmin()) {
+                destinations.push({ group: 'Bahagian', label: 'Pengurusan Akaun', meta: 'Pengguna dan peranan', icon: 'fa-users-gear', keywords: 'akaun pengguna user admin peranan', run: function () { navigateToUserManagement(); } });
+            }
+            const actions = [
+                { group: 'Tindakan', label: 'Profil Saya', meta: 'Nama, avatar, kata laluan, passkey', icon: 'fa-user-circle', keywords: 'profil akaun avatar kata laluan passkey', run: function () { openMyProfile(); } },
+                { group: 'Tindakan', label: 'Imbas Kad', meta: 'Kamera atau pengimbas', icon: 'fa-camera', keywords: 'imbas kad scan kamera qr', run: function () { openScannerModal(); } },
+                { group: 'Tindakan', label: 'Panduan Pengguna', meta: 'Buku panduan dalam aplikasi', icon: 'fa-book-open', keywords: 'panduan manual bantuan help', run: function () { openUserManual(); } },
+                { group: 'Tindakan', label: 'Tukar Tema', meta: 'Terang atau gelap', icon: 'fa-moon', keywords: 'tema gelap terang dark light appearance', run: function () { toggleDarkMode(); } },
+                { group: 'Tindakan', label: 'Cetak Halaman', meta: 'Pencetak pelayar', icon: 'fa-print', keywords: 'cetak print kertas', run: function () { window.print(); } }
+            ];
+            return destinations.concat(actions);
+        }
+        function usmPaletteCommandMatches(command, query) {
+            if (!query) return true;
+            const haystack = (command.label + ' ' + command.meta + ' ' + command.keywords).toLowerCase();
+            return haystack.indexOf(query) !== -1;
+        }
+        function usmPaletteStudents(query) {
+            if (!query) return [];
+            const scored = [];
+            (allMasterStudents || []).forEach(function (student) {
+                const name = String(student.name || '').toLowerCase();
+                const matric = String(student.matric || '').toLowerCase();
+                let score = -1;
+                if (name.indexOf(query) === 0) score = 0;
+                else if (matric.indexOf(query) === 0) score = 1;
+                else if (name.indexOf(query) !== -1) score = 2;
+                else if (matric.indexOf(query) !== -1) score = 3;
+                else {
+                    const rest = [student.usmUid, student.serialNo, student.school].map(function (value) { return String(value == null ? '' : value).toLowerCase(); }).join(' ');
+                    if (rest.indexOf(query) !== -1) score = 4;
+                }
+                if (score !== -1) scored.push({ student: student, score: score });
+            });
+            scored.sort(function (a, b) {
+                return a.score - b.score || String(a.student.name || '').localeCompare(String(b.student.name || ''), 'ms', { sensitivity: 'base' });
+            });
+            return scored.slice(0, 8).map(function (entry) {
+                const student = entry.student;
+                const meta = [student.matric, student.school].filter(Boolean).join(' · ');
+                return {
+                    group: 'Pelajar', label: student.name || 'Pelajar tanpa nama', meta: meta, icon: 'fa-graduation-cap',
+                    run: function () { openStudentProfile(student.id); }
+                };
+            });
+        }
+        function usmPaletteStaff(query) {
+            if (!query) return [];
+            const rows = (typeof allStaffDirectoryRecords !== 'undefined' && allStaffDirectoryRecords) || [];
+            return rows.filter(function (record) {
+                return [record.name, record.staffNo, record.department, record.cardUid, record.cardSerial].some(function (value) {
+                    return String(value == null ? '' : value).toLowerCase().indexOf(query) !== -1;
+                });
+            }).slice(0, 5).map(function (record) {
+                const meta = [record.staffNo, record.department].filter(Boolean).join(' · ');
+                return {
+                    group: 'Staf', label: record.name || 'Staf tanpa nama', meta: meta, icon: 'fa-user-tie',
+                    run: function () {
+                        navigateToDirectoryPage('staff');
+                        const search = document.getElementById('staff-directory-search');
+                        if (search) search.value = String(record.name || record.staffNo || '');
+                        filterStaffDirectory();
+                    }
+                };
+            });
+        }
+        function usmPaletteBuild(input) {
+            const query = String(input == null ? '' : input).trim().toLowerCase();
+            const commands = usmPaletteCommands().filter(function (command) { return usmPaletteCommandMatches(command, query); });
+            if (query) {
+                commands.sort(function (a, b) {
+                    const ai = a.label.toLowerCase().indexOf(query);
+                    const bi = b.label.toLowerCase().indexOf(query);
+                    return (ai < 0 ? 9 : ai) - (bi < 0 ? 9 : bi);
+                });
+            }
+            if (!query) return commands;
+            return commands.concat(usmPaletteStudents(query), usmPaletteStaff(query));
+        }
+        function usmPaletteHighlight(text, query) {
+            const span = document.createElement('span');
+            const raw = String(text == null ? '' : text);
+            const at = query ? raw.toLowerCase().indexOf(query) : -1;
+            if (at === -1) { span.textContent = raw; return span; }
+            span.appendChild(document.createTextNode(raw.slice(0, at)));
+            const mark = document.createElement('mark');
+            mark.className = 'usm-cmd-hit';
+            mark.textContent = raw.slice(at, at + query.length);
+            span.appendChild(mark);
+            span.appendChild(document.createTextNode(raw.slice(at + query.length)));
+            return span;
+        }
+        function usmPaletteSetActive(index) {
+            if (!usmPaletteItems.length) {
+                usmPaletteIndex = -1;
+                const input = document.getElementById('command-palette-input');
+                if (input) input.removeAttribute('aria-activedescendant');
+                return;
+            }
+            usmPaletteIndex = Math.max(0, Math.min(usmPaletteItems.length - 1, index));
+            usmPaletteItems.forEach(function (item, position) {
+                const active = position === usmPaletteIndex;
+                item.classList.toggle('is-active', active);
+                item.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            const input = document.getElementById('command-palette-input');
+            const active = usmPaletteItems[usmPaletteIndex];
+            if (input && active) input.setAttribute('aria-activedescendant', active.id);
+            if (active && typeof active.scrollIntoView === 'function') active.scrollIntoView({ block: 'nearest' });
+        }
+        function usmPaletteRender() {
+            const list = document.getElementById('command-palette-list');
+            const input = document.getElementById('command-palette-input');
+            if (!list || !input) return;
+            const query = input.value.trim();
+            const needle = query.toLowerCase();
+            const results = usmPaletteBuild(query);
+            usmPaletteResults = results;
+            usmPaletteItems = [];
+            usmPaletteIndex = -1;
+            list.textContent = '';
+            if (!results.length) {
+                const empty = document.createElement('div');
+                empty.className = 'usm-cmd-empty';
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid fa-search';
+                icon.setAttribute('aria-hidden', 'true');
+                const line = document.createElement('div');
+                line.textContent = query ? 'Tiada padanan untuk “' + query + '”.' : 'Taip nama pelajar, matrik atau nama modul.';
+                empty.append(icon, line);
+                list.appendChild(empty);
+                input.removeAttribute('aria-activedescendant');
+                return;
+            }
+            let groupName = '';
+            let groupBox = null;
+            results.forEach(function (item, index) {
+                if (item.group !== groupName) {
+                    groupName = item.group;
+                    groupBox = document.createElement('div');
+                    groupBox.className = 'usm-cmd-group';
+                    groupBox.setAttribute('role', 'group');
+                    groupBox.setAttribute('aria-label', groupName);
+                    const heading = document.createElement('p');
+                    heading.className = 'usm-cmd-group-label';
+                    heading.textContent = groupName;
+                    groupBox.appendChild(heading);
+                    list.appendChild(groupBox);
+                }
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'usm-cmd-item';
+                button.id = 'usm-cmd-opt-' + index;
+                button.setAttribute('role', 'option');
+                button.setAttribute('aria-selected', 'false');
+                const icon = document.createElement('span');
+                icon.className = 'usm-cmd-icon';
+                icon.setAttribute('aria-hidden', 'true');
+                const glyph = document.createElement('i');
+                glyph.className = 'fa-solid ' + item.icon;
+                icon.appendChild(glyph);
+                const text = document.createElement('span');
+                text.className = 'usm-cmd-text';
+                const label = document.createElement('span');
+                label.className = 'usm-cmd-label';
+                label.appendChild(usmPaletteHighlight(item.label, needle));
+                const meta = document.createElement('span');
+                meta.className = 'usm-cmd-meta';
+                meta.textContent = item.meta || '';
+                text.append(label, meta);
+                button.append(icon, text);
+                button.addEventListener('click', function () { usmPaletteRun(index); });
+                button.addEventListener('mouseenter', function () { usmPaletteSetActive(index); });
+                groupBox.appendChild(button);
+                usmPaletteItems.push(button);
+            });
+            usmPaletteSetActive(0);
+        }
+        function usmPaletteRun(index) {
+            const item = usmPaletteResults[index];
+            if (!item) return;
+            closeCommandPalette();
+            // Let the dialog layer finish the close (it returns focus to the
+            // launcher on the next microtask) before an action opens another
+            // dialog, otherwise that focus return can pull focus back out.
+            window.setTimeout(function () {
+                try { item.run(); } catch (error) {
+                    showToast(error && error.message ? error.message : 'Arahan tidak dapat dijalankan.');
+                }
+            }, 0);
+        }
+        function openCommandPalette() {
+            const palette = document.getElementById('command-palette');
+            if (!palette) return;
+            const input = document.getElementById('command-palette-input');
+            if (input) input.value = '';
+            usmPaletteRender();
+            palette.classList.remove('hidden');
+            if (input) input.setAttribute('aria-expanded', 'true');
+            // The shared dialog layer focuses the first field once it sees the
+            // class change, and records the pre-open element for focus return.
+            // Defer our own focus so that recorded element is still the button.
+            if (input) window.requestAnimationFrame(function () { input.focus({ preventScroll: true }); });
+        }
+        function closeCommandPalette() {
+            const palette = document.getElementById('command-palette');
+            if (palette) palette.classList.add('hidden');
+            const input = document.getElementById('command-palette-input');
+            if (input) input.setAttribute('aria-expanded', 'false');
+        }
+        function usmPaletteObstructed() {
+            const dialogs = document.querySelectorAll('[data-modal-close]');
+            for (let i = 0; i < dialogs.length; i++) {
+                const dialog = dialogs[i];
+                if (dialog.id === 'command-palette') continue;
+                if (!dialog.classList.contains('hidden') && !dialog.hasAttribute('hidden') && dialog.getClientRects().length) return true;
+            }
+            return false;
+        }
+        (function () {
+            const palette = document.getElementById('command-palette');
+            const input = document.getElementById('command-palette-input');
+            if (!palette || !input) return;
+            input.addEventListener('input', usmPaletteRender);
+            input.addEventListener('keydown', function (event) {
+                if (event.key === 'ArrowDown') { event.preventDefault(); usmPaletteSetActive(usmPaletteIndex + 1); return; }
+                if (event.key === 'ArrowUp') { event.preventDefault(); usmPaletteSetActive(usmPaletteIndex - 1); return; }
+                if (event.key === 'Enter') { event.preventDefault(); usmPaletteRun(usmPaletteIndex); }
+            });
+            document.addEventListener('keydown', function (event) {
+                if (event.isComposing) return;
+                if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+                if (String(event.key || '').toLowerCase() !== 'k') return;
+                event.preventDefault();
+                if (!palette.classList.contains('hidden')) { closeCommandPalette(); return; }
+                if (usmPaletteObstructed()) return;
+                openCommandPalette();
             });
         })();
 
