@@ -151,21 +151,27 @@
             
             <div class="bg-white dark:bg-[#111113] border border-slate-200/60 dark:border-zinc-800/50 rounded-2xl p-4 shadow-clean flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
-                        <i class="fa-solid fa-users-gear"></i>
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-base shrink-0">
+                        <i class="fa-solid fa-id-card-clip" aria-hidden="true"></i>
                     </div>
-                    <div>
-                        <h3 class="font-semibold text-xs text-slate-800 dark:text-zinc-100 uppercase tracking-wide">Direktori Kad Pelajar &amp; Staf</h3>
-                        <p class="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">Satu halaman untuk rekod pelajar dan staf Kampus Kejuruteraan USM.</p>
+                    <div class="min-w-0">
+                        <h3 class="font-semibold text-sm text-slate-800 dark:text-zinc-100"><span id="usm-dash-greeting">Selamat datang</span>, <span class="text-indigo-600 dark:text-indigo-400"><?php echo htmlspecialchars($usmWelcomeName, ENT_QUOTES, 'UTF-8'); ?></span></h3>
+                        <p class="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">
+                            <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-calendar-check text-[9px]" aria-hidden="true"></i><span id="usm-dash-date">Hari ini</span></span>
+                            <span aria-hidden="true">·</span>
+                            <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-clock text-[9px]" aria-hidden="true"></i><time id="usm-dash-time" datetime="">--:--</time></span>
+                        </p>
                     </div>
                 </div>
-                <button onclick="navigateToDirectoryPage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-id-card-clip"></i><span>Buka Direktori Kad</span>
-                    <i class="fa-solid fa-arrow-right text-[9px]"></i>
-                </button>
-                <button type="button" onclick="navigateToSyswebSegment('transporter')" class="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer" title="Buka Segmen Integrasi Sysweb">
-                    <i class="fa-solid fa-network-wired"></i><span>Segmen Sysweb</span><i class="fa-solid fa-arrow-right text-[9px]"></i>
-                </button>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="navigateToDirectoryPage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-id-card-clip"></i><span>Buka Direktori Kad</span>
+                        <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                    </button>
+                    <button type="button" onclick="navigateToSyswebSegment('transporter')" class="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer" title="Buka Segmen Integrasi Sysweb">
+                        <i class="fa-solid fa-network-wired"></i><span>Segmen Sysweb</span><i class="fa-solid fa-arrow-right text-[9px]"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- BANNER PERINGATAN KAD HAMPIR LUPUT (1-CLICK ACCESS) -->

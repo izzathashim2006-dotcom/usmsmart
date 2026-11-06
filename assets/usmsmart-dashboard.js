@@ -9,24 +9,59 @@
             }
             return nativeFetch(resource, options);
         };
-        // The greeting card follows the visitor's clock and locale. The PHP process runs in the
-        // server's zone, not the campus one, so a greeting computed there would be hours off.
-        (function initWelcomeCard() {
-            const hour = new Date().getHours();
-            const greeting = document.getElementById('usm-welcome-greeting');
-            if (greeting) {
-                greeting.textContent = hour < 12 ? 'Selamat pagi'
+        // The greeting panels follow the visitor's clock and locale. The PHP process runs in
+        // the server's zone, not the campus one, so a greeting computed there would be hours off.
+        // The dashboard clock re-renders on the minute boundary so it never shows a stale minute.
+        (function initGreetingPanels() {
+            const greetingFor = function (hour) {
+                return hour < 12 ? 'Selamat pagi'
                     : hour < 15 ? 'Selamat tengah hari'
                     : hour < 19 ? 'Selamat petang'
                     : 'Selamat malam';
-            }
-            const date = document.getElementById('usm-welcome-date');
-            if (!date) return;
-            try {
-                date.textContent = new Intl.DateTimeFormat('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
-            } catch (error) {
-                date.textContent = new Date().toLocaleDateString();
-            }
+            };
+            const longDate = function (now) {
+                try {
+                    return new Intl.DateTimeFormat('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now);
+                } catch (error) {
+                    return now.toLocaleDateString();
+                }
+            };
+            const clock12 = function (now) {
+                try {
+                    return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).format(now);
+                } catch (error) {
+                    return now.toLocaleTimeString();
+                }
+            };
+            const dashGreeting = document.getElementById('usm-dash-greeting');
+            const dashDate = document.getElementById('usm-dash-date');
+            const dashTime = document.getElementById('usm-dash-time');
+            const welcomeGreeting = document.getElementById('usm-welcome-greeting');
+            const welcomeDate = document.getElementById('usm-welcome-date');
+            const paint = function () {
+                const now = new Date();
+                const greeting = greetingFor(now.getHours());
+                const date = longDate(now);
+                if (dashGreeting) dashGreeting.textContent = greeting;
+                if (dashDate) dashDate.textContent = date;
+                if (dashTime) {
+                    dashTime.textContent = clock12(now);
+                    dashTime.setAttribute('datetime', now.toISOString());
+                }
+                if (welcomeGreeting) welcomeGreeting.textContent = greeting;
+                if (welcomeDate) welcomeDate.textContent = date;
+            };
+            paint();
+            if (!dashTime) return;
+            // Repaint when the minute turns, then once a minute. A background tab throttles
+            // timers, so a return to the tab also repaints instead of waiting for the next tick.
+            setTimeout(function () {
+                paint();
+                setInterval(paint, 60000);
+            }, (60 - new Date().getSeconds()) * 1000);
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) paint();
+            });
         })();
 
         let allMasterStudents = [];
