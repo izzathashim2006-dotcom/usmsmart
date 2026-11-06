@@ -156,6 +156,13 @@ still serve it from the project folder.
 - All writes go through the global CSRF guard for authenticated POSTs.
 - Sessions are per-tab (`USMBOOT` / `USMTAB_<hash>`), HttpOnly, SameSite=Lax,
   regenerated on login, and expire after 30 minutes of inactivity.
+- Login throttling keeps two budgets over the same 15-minute window: five
+  failures for one username/source pair, and thirty for the source across all
+  usernames, so rotating usernames cannot reset the budget. Both key on
+  `REMOTE_ADDR`; behind a reverse proxy every client shares the proxy address
+  and therefore one budget, so raise the limit or resolve the real client IP at
+  the proxy. Exhausting either budget writes a `login_throttled` audit row once,
+  not on every blocked retry.
 - The dashboard has one modal keyboard layer (`data-modal-close` on each
   dialog) that handles Escape, the Tab trap and focus return.
 - The root `.htaccess` refuses `.git/`, `tools/` and `database/` over HTTP and

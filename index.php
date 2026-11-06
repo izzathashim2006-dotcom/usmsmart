@@ -78,7 +78,12 @@ try {
         if (!$authVersionColumns) {
             $pdo->exec("ALTER TABLE usmsmart_users ADD COLUMN auth_version INT UNSIGNED NOT NULL DEFAULT 1 AFTER last_login_at");
         }
-        $pdo->exec("CREATE TABLE IF NOT EXISTS usmsmart_login_attempts (id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, username_key VARCHAR(80) NOT NULL, ip_hash CHAR(64) NOT NULL, attempted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_login_attempt_lookup (username_key, ip_hash, attempted_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS usmsmart_login_attempts (id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, username_key VARCHAR(80) NOT NULL, ip_hash CHAR(64) NOT NULL, attempted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_login_attempt_lookup (username_key, ip_hash, attempted_at), INDEX idx_login_attempt_ip (ip_hash, attempted_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        // The per-IP login budget counts by source alone, which the pair index cannot serve.
+        $loginIpIndex = $pdo->query("SELECT 1 FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usmsmart_login_attempts' AND INDEX_NAME = 'idx_login_attempt_ip' LIMIT 1")->fetchColumn();
+        if (!$loginIpIndex) {
+            $pdo->exec("ALTER TABLE usmsmart_login_attempts ADD INDEX idx_login_attempt_ip (ip_hash, attempted_at)");
+        }
         // Add account status to existing installations without affecting current users.
         $userColumns = $pdo->query("SHOW COLUMNS FROM usmsmart_users LIKE 'is_active'")->fetchAll(PDO::FETCH_ASSOC);
         if (!$userColumns) {

@@ -35,12 +35,19 @@ if (!defined('USM_ROOT')) {
         $usernameKey = strtolower(substr($user, 0, 80));
         $remoteAddress = (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown');
         $ipHash = hash('sha256', $remoteAddress);
-        // Five failed attempts for this username/IP pair within 15 minutes trigger a temporary lockout.
+        // Two budgets. Five failures against one username/IP pair stop that pair; a wider per-IP
+        // budget stops username rotation, which a per-pair limit never sees. The IP budget is much
+        // looser on purpose: a campus NAT can put many honest users behind a single address.
+        $pairLimit = 5;
+        $ipLimit = 30;
         $cleanup = $pdo->prepare('DELETE FROM usmsmart_login_attempts WHERE attempted_at < (CURRENT_TIMESTAMP - INTERVAL 1 DAY)');
         $cleanup->execute();
-        $countStmt = $pdo->prepare('SELECT COUNT(*) FROM usmsmart_login_attempts WHERE username_key = ? AND ip_hash = ? AND attempted_at >= (CURRENT_TIMESTAMP - INTERVAL 15 MINUTE)');
+        $countStmt = $pdo->prepare('SELECT COUNT(*) AS ip_hits, COALESCE(SUM(username_key = ?), 0) AS pair_hits FROM usmsmart_login_attempts WHERE ip_hash = ? AND attempted_at >= (CURRENT_TIMESTAMP - INTERVAL 15 MINUTE)');
         $countStmt->execute(array($usernameKey, $ipHash));
-        if ((int)$countStmt->fetchColumn() >= 5) {
+        $hits = $countStmt->fetch(PDO::FETCH_ASSOC) ?: array();
+        $pairHits = (int)($hits['pair_hits'] ?? 0);
+        $ipHits = (int)($hits['ip_hits'] ?? 0);
+        if ($pairHits >= $pairLimit || $ipHits >= $ipLimit) {
             http_response_code(429); header('Retry-After: 900');
             echo json_encode(array('success'=>false,'message'=>'Terlalu banyak percubaan log masuk. Cuba semula selepas 15 minit.')); exit;
         }
@@ -49,6 +56,15 @@ if (!defined('USM_ROOT')) {
         if (!$account || !(int)$account['is_active'] || !password_verify($pass, $account['password_hash'])) {
             $fail = $pdo->prepare('INSERT INTO usmsmart_login_attempts (username_key, ip_hash) VALUES (?, ?)');
             $fail->execute(array($usernameKey, $ipHash));
+            // Mark the attempt that exhausts a budget, not the blocked retries that follow: once a
+            // cap is reached the checks above exit early, so each row records the start of a lockout
+            // instead of flooding the log for the rest of the window.
+            if ($pairHits + 1 >= $pairLimit) {
+                auditLog($pdo, 'login_throttled', 'user', null, null, 'Login throttled after ' . $pairLimit . ' failures for username attempt "' . $usernameKey . '" from source ' . substr($ipHash, 0, 12));
+            }
+            if ($ipHits + 1 >= $ipLimit) {
+                auditLog($pdo, 'login_throttled', 'user', null, null, 'Login throttled after ' . $ipLimit . ' failures in 15 minutes from source ' . substr($ipHash, 0, 12));
+            }
             usleep(250000); http_response_code(401); echo json_encode(array('success'=>false,'message'=>'Nama pengguna atau kata laluan tidak betul.')); exit;
         }
         $clearAttempts = $pdo->prepare('DELETE FROM usmsmart_login_attempts WHERE username_key = ? AND ip_hash = ?');

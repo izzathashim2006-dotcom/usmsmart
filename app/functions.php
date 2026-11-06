@@ -1117,7 +1117,7 @@ function usmsmartAuditCategory($action) {
     if ($act === 'delete' || $act === 'delete_user' || $act === 'soft_delete_session') return 'delete';
     if ($act === 'import_csv') return 'import';
     if ($act === 'export_csv' || $act === 'export_audit_csv' || $act === 'dump_uda') return 'export';
-    if ($act === 'login' || $act === 'logout') return 'session';
+    if ($act === 'login' || $act === 'logout' || $act === 'login_throttled') return 'session';
     if (strpos($act, 'backup') !== false) return 'backup';
     if (strpos($act, 'restore') !== false) return 'restore';
     return 'other';
