@@ -76,6 +76,139 @@
                 <div class="feature"><i class="fa-solid fa-chart-line"></i><span>Analitik dan sejarah aktiviti yang jelas</span></div>
                 <div class="feature"><i class="fa-solid fa-lock"></i><span>Akses mengikut peranan pengguna</span></div>
             </div>
+            <div class="preview" aria-hidden="true">
+                <div class="preview-bar">
+                    <span class="preview-dots"><i></i><i></i><i></i></span>
+                    <span class="preview-bar-title">Modul USMSmart</span>
+                    <span class="preview-tag">PRATONTON</span>
+                </div>
+                <div class="preview-stage">
+                    <div class="preview-track">
+                        <!-- Tarik rekod -->
+                        <div class="preview-scene">
+                            <div class="preview-scene-head"><span><i class="fa-solid fa-cloud-arrow-down"></i>Tarik Rekod</span><em>Transporter</em></div>
+                            <p class="preview-desc">Tarik rekod pelajar dan staf terus dari pangkalan data kampus.</p>
+                            <div class="preview-toolbar">
+                                <span class="preview-chip"><i class="fa-solid fa-filter"></i>StatusKad 02</span>
+                                <span class="preview-chip"><i class="fa-solid fa-graduation-cap"></i>Pelajar</span>
+                                <span class="preview-action"><i class="fa-solid fa-cloud-arrow-down"></i>Tarik rekod</span>
+                            </div>
+                            <div class="preview-panel">
+                                <div class="preview-panel-head"><span>Rekod diterima</span><b>128</b></div>
+                                <div class="preview-progress"><span></span></div>
+                                <div class="preview-note"><i class="fa-solid fa-circle-check"></i>Sedia untuk semakan UID</div>
+                            </div>
+                        </div>
+                        <!-- Semakan UID -->
+                        <div class="preview-scene">
+                            <div class="preview-scene-head"><span><i class="fa-solid fa-shield-halved"></i>Semakan UID</span><em>StatusKad 02</em></div>
+                            <p class="preview-desc">Sahkan UID layak, kesan pendua dan eksport senarai bersih.</p>
+                            <div class="preview-head"><span>Nama</span><span>UID</span><span>Semakan</span></div>
+                            <div class="preview-row">
+                                <span class="preview-name">Nur Aisyah</span>
+                                <span class="preview-uid">A19F2C4B</span>
+                                <span class="preview-badge"><span class="preview-badge-ok"><i class="fa-solid fa-check"></i>Layak</span></span>
+                            </div>
+                            <div class="preview-row">
+                                <span class="preview-name">Muhammad Danish</span>
+                                <span class="preview-uid">A19F2C4B</span>
+                                <span class="preview-badge"><span class="preview-badge-bad"><i class="fa-solid fa-triangle-exclamation"></i>Berulang</span></span>
+                            </div>
+                            <div class="preview-row">
+                                <span class="preview-name">Tan Wei Ling</span>
+                                <span class="preview-uid">7C3E91AF</span>
+                                <span class="preview-badge"><span class="preview-badge-ok"><i class="fa-solid fa-check"></i>Layak</span></span>
+                            </div>
+                            <div class="preview-uid-summary"><span>2 layak · 1 disekat</span><span><i class="fa-solid fa-file-csv"></i>Eksport CSV</span></div>
+                        </div>
+                        <!-- Analisis grafik -->
+                        <div class="preview-scene">
+                            <div class="preview-scene-head"><span><i class="fa-solid fa-chart-column"></i>Analisis Grafik</span><em>2026</em></div>
+                            <p class="preview-desc">Pantau jumlah rekod, kadar layak dan taburan sekolah.</p>
+                            <div class="preview-kpis">
+                                <span><b>1,284</b><small>rekod</small></span>
+                                <span><b>98.2%</b><small>layak</small></span>
+                                <span><b>46</b><small>sekolah</small></span>
+                            </div>
+                            <div class="preview-chart">
+                                <span style="--h:38%"></span><span style="--h:61%"></span><span style="--h:47%"></span><span style="--h:76%"></span><span style="--h:55%"></span><span style="--h:88%"></span><span style="--h:69%"></span>
+                            </div>
+                        </div>
+                        <!-- Sysweb -->
+                        <div class="preview-scene">
+                            <div class="preview-scene-head"><span><i class="fa-solid fa-network-wired"></i>Integrasi Sysweb</span><em class="preview-live">Gerbang aktif</em></div>
+                            <p class="preview-desc">Hantar rekod ke gerbang Sysweb dan pantau statusnya.</p>
+                            <div class="preview-stats">
+                                <div><small>Jumlah</small><b>1,596</b></div>
+                                <div><small>Pelajar</small><b>1,284</b></div>
+                                <div><small>Staf</small><b>312</b></div>
+                            </div>
+                            <div class="preview-transfer">
+                                <div class="preview-transfer-head"><span>Penghantaran rekod</span><span>00000000+UID</span></div>
+                                <div class="preview-progress is-ok"><span></span></div>
+                                <div class="preview-note"><i class="fa-solid fa-circle-check"></i>Gerbang Sysweb menerima rekod</div>
+                            </div>
+                        </div>
+                        <!-- Direktori kad -->
+                        <div class="preview-scene">
+                            <div class="preview-scene-head"><span><i class="fa-solid fa-id-card-clip"></i>Direktori Kad</span><em>Pelajar &amp; Staf</em></div>
+                            <p class="preview-desc">Cari pemegang kad pelajar dan staf dengan status terkini.</p>
+                            <div class="preview-person"><span class="preview-avatar">NA</span><span class="preview-person-name">Nur Aisyah<small>2024123456</small></span><span class="preview-chip is-ok">Kad aktif</span></div>
+                            <div class="preview-person"><span class="preview-avatar">MD</span><span class="preview-person-name">Muhammad Danish<small>2024123457</small></span><span class="preview-chip is-ok">Kad aktif</span></div>
+                            <div class="preview-person"><span class="preview-avatar">TW</span><span class="preview-person-name">Tan Wei Ling<small>2024123458</small></span><span class="preview-chip is-ok">Kad aktif</span></div>
+                        </div>
+                        <!-- Log audit -->
+                        <div class="preview-scene">
+                            <div class="preview-scene-head"><span><i class="fa-solid fa-clock-rotate-left"></i>Sejarah &amp; Log Audit</span><em>Hari ini</em></div>
+                            <p class="preview-desc">Jejak tarikan, eksport dan perubahan akaun mengikut masa.</p>
+                            <div class="preview-log"><span class="preview-log-icon"><i class="fa-solid fa-cloud-arrow-down"></i></span><span class="preview-log-main">Tarik rekod<small>128 rekod pelajar</small></span><time>10:42</time></div>
+                            <div class="preview-log"><span class="preview-log-icon"><i class="fa-solid fa-file-export"></i></span><span class="preview-log-main">Eksport UDA<small>42 UID dihantar</small></span><time>10:45</time></div>
+                            <div class="preview-log"><span class="preview-log-icon"><i class="fa-solid fa-user-plus"></i></span><span class="preview-log-main">Akaun baharu<small>Peranan viewer</small></span><time>10:48</time></div>
+                        </div>
+                        <!-- Pengurusan akaun -->
+                        <div class="preview-scene">
+                            <div class="preview-scene-head"><span><i class="fa-solid fa-users-gear"></i>Pengurusan Akaun</span><em>Peranan</em></div>
+                            <p class="preview-desc">Urus pengguna serta peranan admin dan viewer dengan selamat.</p>
+                            <div class="preview-person"><span class="preview-avatar">AM</span><span class="preview-person-name">aminah<small>Akses penuh</small></span><span class="preview-chip is-violet">Admin</span></div>
+                            <div class="preview-person"><span class="preview-avatar">FR</span><span class="preview-person-name">farid<small>Baca sahaja</small></span><span class="preview-chip">Viewer</span></div>
+                            <div class="preview-person"><span class="preview-avatar">VW</span><span class="preview-person-name">viewer01<small>Baca sahaja</small></span><span class="preview-chip">Viewer</span></div>
+                        </div>
+                        <!-- Kualiti data -->
+                        <div class="preview-scene">
+                            <div class="preview-scene-head"><span><i class="fa-solid fa-triangle-exclamation"></i>Kualiti Data</span><em>Integriti rekod</em></div>
+                            <p class="preview-desc">Kesan rekod tidak lengkap sebelum ia merebak ke sistem.</p>
+                            <div class="preview-stats">
+                                <div><small>Lengkap</small><b>1,142</b></div>
+                                <div class="is-amber"><small>Semak</small><b>86</b></div>
+                                <div class="is-rose"><small>Tidak lengkap</small><b>56</b></div>
+                            </div>
+                            <div class="preview-issues">
+                                <div class="preview-issue"><span><i class="fa-solid fa-user-slash"></i>Nama kosong</span><b>12</b></div>
+                                <div class="preview-issue"><span><i class="fa-solid fa-link-slash"></i>UID belum dikaitkan</span><b>74</b></div>
+                            </div>
+                        </div>
+                        <!-- Ulangan slaid pertama: menjadikan gelung tidak kelihatan. -->
+                        <div class="preview-scene">
+                            <div class="preview-scene-head"><span><i class="fa-solid fa-cloud-arrow-down"></i>Tarik Rekod</span><em>Transporter</em></div>
+                            <p class="preview-desc">Tarik rekod pelajar dan staf terus dari pangkalan data kampus.</p>
+                            <div class="preview-toolbar">
+                                <span class="preview-chip"><i class="fa-solid fa-filter"></i>StatusKad 02</span>
+                                <span class="preview-chip"><i class="fa-solid fa-graduation-cap"></i>Pelajar</span>
+                                <span class="preview-action"><i class="fa-solid fa-cloud-arrow-down"></i>Tarik rekod</span>
+                            </div>
+                            <div class="preview-panel">
+                                <div class="preview-panel-head"><span>Rekod diterima</span><b>128</b></div>
+                                <div class="preview-progress"><span></span></div>
+                                <div class="preview-note"><i class="fa-solid fa-circle-check"></i>Sedia untuk semakan UID</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="preview-foot">
+                    <span class="preview-foot-label">8 modul · slaid automatik</span>
+                    <span class="preview-cycle"><i></i></span>
+                </div>
+            </div>
         </section>
         <section class="card" aria-labelledby="authTitle">
             <div class="card-icon"><i class="fa-solid <?php echo $setupMode ? 'fa-user-shield' : 'fa-arrow-right-to-bracket'; ?>"></i></div>

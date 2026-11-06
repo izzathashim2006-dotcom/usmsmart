@@ -564,3 +564,236 @@ html.dark .submit{background:#7c3aed;border-color:#7c3aed;color:#fff;
   box-shadow:0 6px 16px rgba(0,0,0,.35)}
 html.dark .submit:hover{background:#6d28d9;border-color:#6d28d9}
 html.dark .eyebrow{background:#251d3f!important;color:#c4b5fd!important;border-color:#3b2f5c!important}
+
+
+/* ===== usmsmart-login-preview-v2 ===== */
+/* A looping, decorative carousel of every main USMSmart module - Tarik Rekod, Semakan UID,
+   Analisis Grafik, Sysweb, Direktori Kad, Log Audit, Pengurusan Akaun and Kualiti Data - so the
+   sign-in page shows the breadth of the portal instead of only describing it. One continuous
+   horizontal track slides page to page; a clone of the first page at the end makes the loop
+   seamless. No data, no focusable controls, aria-hidden, and under reduced-motion the global rule
+   strips every animation, leaving the first module as a static preview. */
+.preview{max-width:470px;margin-top:30px;border:1px solid rgba(196,181,253,.18);border-radius:16px;background:rgba(10,14,25,.62);box-shadow:0 22px 48px rgba(2,6,23,.38),inset 0 1px 0 rgba(255,255,255,.05);color:#e5e9f4;font-size:11px;line-height:1.45;text-shadow:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+html.dark .preview{background:rgba(8,10,18,.68);border-color:rgba(167,139,250,.2)}
+.preview-bar{display:flex;align-items:center;gap:9px;padding:9px 12px;border-bottom:1px solid rgba(148,163,184,.14);border-radius:15px 15px 0 0;background:rgba(255,255,255,.03)}
+.preview-dots{display:inline-flex;gap:4px;flex:0 0 auto}.preview-dots i{width:6px;height:6px;border-radius:50%;background:#475569}
+.preview-dots i:first-child{background:#f87171}.preview-dots i:nth-child(2){background:#fbbf24}.preview-dots i:nth-child(3){background:#34d399}
+.preview-bar-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:700;letter-spacing:.01em;color:#d7dcee}
+.preview-tag{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;padding:2px 6px;border:1px solid rgba(251,191,36,.32);border-radius:999px;background:rgba(251,191,36,.1);color:#fcd34d;font:8.5px 'JetBrains Mono',monospace;letter-spacing:.1em}
+.preview-tag::before{content:"";width:4px;height:4px;border-radius:50%;background:#fbbf24;animation:previewBlink 1.8s ease-in-out infinite}
+.preview-stage{position:relative;height:166px;overflow:hidden}
+.preview-track{display:flex;width:900%;height:100%;animation:previewTrack 36s cubic-bezier(.36,.12,.14,.98) infinite;will-change:transform}
+.preview-scene{display:flex;flex:0 0 11.1111%;width:11.1111%;height:100%;min-width:0;box-sizing:border-box;padding:12px 12px 9px;flex-direction:column}
+.preview-scene-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:9px;color:#d7dcee;font-size:9.5px;font-weight:700;line-height:1.3;letter-spacing:.01em}
+.preview-scene-head>span{display:inline-flex;align-items:center;gap:5px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preview-scene-head i{flex:0 0 auto;font-size:8.5px;color:#a5b4fc}
+.preview-scene-head em{flex:0 0 auto;padding-top:1px;font:500 8px 'JetBrains Mono',monospace;font-style:normal;letter-spacing:.05em;color:#8f9ab3;white-space:nowrap}
+.preview-scene-head em.preview-live{color:#6ee7b7}
+.preview-toolbar{display:flex;align-items:center;gap:5px;margin-bottom:10px}
+.preview-chip{display:inline-flex;align-items:center;gap:4px;min-width:0;padding:3px 6px;border:1px solid rgba(148,163,184,.2);border-radius:6px;background:rgba(255,255,255,.04);color:#b9c2d6;font-size:8.5px;white-space:nowrap}
+.preview-chip i{font-size:7.5px;color:#a5b4fc}
+.preview-chip.is-ok{border-color:rgba(52,211,153,.32);background:rgba(16,185,129,.12);color:#6ee7b7}
+.preview-chip.is-violet{border-color:rgba(167,139,250,.34);background:rgba(139,92,246,.14);color:#ddd6fe}
+.preview-action{display:inline-flex;align-items:center;gap:4px;margin-left:auto;padding:4px 7px;border:1px solid rgba(167,139,250,.45);border-radius:6px;background:linear-gradient(145deg,#7c3aed,#6d28d9);box-shadow:0 2px 8px rgba(76,29,149,.35);color:#fff;font-size:8.5px;font-weight:700;white-space:nowrap}
+.preview-panel{padding:8px 9px;border:1px solid rgba(148,163,184,.16);border-radius:9px;background:rgba(255,255,255,.03)}
+.preview-panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:8.5px;color:#9aa6bd}
+.preview-panel-head b{font-size:14px;font-weight:750;letter-spacing:-.02em;color:#eef0f8;font-variant-numeric:tabular-nums}
+.preview-progress{height:4px;border-radius:999px;background:rgba(148,163,184,.16);overflow:hidden}
+.preview-progress>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7c3aed,#c4b5fd);transform:scaleX(1);transform-origin:left}
+.preview-progress.is-ok>span{background:linear-gradient(90deg,#10b981,#6ee7b7);animation:previewFill 36s cubic-bezier(.3,.7,.2,1) infinite}
+.preview-note{display:flex;align-items:center;gap:5px;margin-top:7px;font-size:8.5px;color:#a7f3d0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preview-note i{flex:0 0 auto;font-size:7.5px;color:#34d399}
+.preview-note.is-muted{color:#9aa6bd}.preview-note.is-muted i{color:#fbbf24}
+.preview-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-bottom:10px}
+.preview-kpis span{display:flex;flex-direction:column;gap:1px;min-width:0;padding:5px 7px;border:1px solid rgba(148,163,184,.16);border-radius:7px;background:rgba(255,255,255,.035)}
+.preview-kpis b{font-size:12px;font-weight:750;letter-spacing:-.02em;color:#f1f3fa;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preview-kpis small{font-size:7.5px;color:#8f9ab3}
+.preview-chart{display:flex;align-items:flex-end;gap:6px;height:72px;padding:0 2px;border-bottom:1px solid rgba(148,163,184,.18);background:repeating-linear-gradient(to top,transparent 0 17px,rgba(148,163,184,.07) 17px 18px)}
+.preview-chart span{flex:1;height:var(--h,50%);border-radius:4px 4px 0 0;background:linear-gradient(180deg,#c4b5fd,#7c3aed);box-shadow:0 0 10px rgba(124,58,237,.16);transform-origin:bottom;animation:previewBars 36s cubic-bezier(.22,.8,.3,1) infinite}
+.preview-chart span:nth-child(2n){background:linear-gradient(180deg,#a5b4fc,#6d28d9)}
+.preview-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-bottom:10px}
+.preview-stats>div{min-width:0;padding:6px 7px;border:1px solid rgba(52,211,153,.18);border-radius:8px;background:rgba(16,185,129,.07)}
+.preview-stats small{display:block;margin-bottom:2px;font-size:7.5px;letter-spacing:.07em;text-transform:uppercase;color:#8f9ab3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preview-stats b{font-size:13px;font-weight:750;letter-spacing:-.02em;color:#d1fae5;font-variant-numeric:tabular-nums}
+.preview-stats .is-amber{border-color:rgba(251,191,36,.24);background:rgba(251,191,36,.08)}
+.preview-stats .is-amber b{color:#fde68a}
+.preview-stats .is-rose{border-color:rgba(251,113,133,.24);background:rgba(244,63,94,.08)}
+.preview-stats .is-rose b{color:#fecdd3}
+.preview-transfer{margin-top:auto}
+.preview-transfer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:8.5px;color:#9aa6bd;white-space:nowrap}
+.preview-transfer-head span:last-child{font:7.5px 'JetBrains Mono',monospace;color:#6ee7b7}
+.preview-head,.preview-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(58px,.9fr) auto;gap:7px;align-items:center}
+.preview-head{padding:0 0 5px;border-bottom:1px solid rgba(148,163,184,.14);color:#8f9ab3;font:7.5px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase}
+.preview-head span:last-child{text-align:right}
+.preview-row{padding:6px 0;border-bottom:1px solid rgba(148,163,184,.09)}
+.preview-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px;font-weight:600;color:#e8ecf7}
+.preview-uid{font:9px 'JetBrains Mono',monospace;letter-spacing:.04em;color:#a5b4fc;white-space:nowrap}
+.preview-badge{display:inline-grid;justify-self:end}
+.preview-badge>span{grid-area:1/1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:2px 6px;border:1px solid transparent;border-radius:999px;font-size:8px;font-weight:700;white-space:nowrap}
+.preview-badge>span i{font-size:7px}
+.preview-badge-ok{border-color:rgba(52,211,153,.38);background:rgba(16,185,129,.14);color:#6ee7b7}
+.preview-badge-bad{border-color:rgba(251,113,133,.42);background:rgba(244,63,94,.14);color:#fda4af}
+.preview-uid-summary{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:6px;font-size:8px;color:#aab4c9}
+.preview-uid-summary span:last-child{display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border:1px solid rgba(196,181,253,.28);border-radius:5px;background:rgba(255,255,255,.05);color:#ddd6fe;font-weight:600;white-space:nowrap}
+.preview-person,.preview-log{display:flex;align-items:center;gap:7px;min-width:0;padding:6px 0;border-bottom:1px solid rgba(148,163,184,.09)}
+.preview-person:last-child,.preview-log:last-child{border-bottom:0}
+.preview-avatar{display:grid;place-items:center;flex:0 0 20px;width:20px;height:20px;border:1px solid rgba(167,139,250,.25);border-radius:50%;background:rgba(139,92,246,.18);color:#ddd6fe;font-size:7.5px;font-weight:700;letter-spacing:.02em}
+.preview-person-name{display:flex;flex:1;flex-direction:column;gap:1px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px;font-weight:600;color:#e8ecf7}
+.preview-person-name small{font:7px 'JetBrains Mono',monospace;color:#8f9ab3;letter-spacing:.04em}
+.preview-log-icon{display:grid;place-items:center;flex:0 0 20px;width:20px;height:20px;border-radius:6px;background:rgba(148,163,184,.12);color:#a5b4fc;font-size:7.5px}
+.preview-log-main{display:flex;flex:1;flex-direction:column;gap:1px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;font-weight:600;color:#e2e7f3}
+.preview-log-main small{font-size:7.5px;font-weight:500;color:#8f9ab3}
+.preview-log time{flex:0 0 auto;font:7.5px 'JetBrains Mono',monospace;color:#8f9ab3;white-space:nowrap}
+.preview-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px 9px;border-top:1px solid rgba(148,163,184,.14);border-radius:0 0 15px 15px;background:rgba(255,255,255,.025)}
+.preview-foot-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px;color:#8f9ab3}
+.preview-cycle{flex:0 0 120px;height:3px;overflow:hidden;border-radius:999px;background:rgba(148,163,184,.18)}
+.preview-cycle i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7c3aed,#c4b5fd);transform:scaleX(1);transform-origin:left;animation:previewCycle 36s linear infinite}
+@keyframes previewBlink{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes previewTrack{
+  0%,8%{transform:translateX(0)}
+  9.17%,20.5%{transform:translateX(-11.1111%)}
+  21.67%,33%{transform:translateX(-22.2222%)}
+  34.17%,45.5%{transform:translateX(-33.3333%)}
+  46.67%,58%{transform:translateX(-44.4444%)}
+  59.17%,70.5%{transform:translateX(-55.5555%)}
+  71.67%,83%{transform:translateX(-66.6666%)}
+  84.17%,95.5%{transform:translateX(-77.7777%)}
+  96.67%,100%{transform:translateX(-88.8888%)}
+}
+@keyframes previewBars{0%,20%{transform:scaleY(.08)}25%,100%{transform:scaleY(1)}}
+@keyframes previewFill{0%,32%{transform:scaleX(0)}38%,100%{transform:scaleX(1)}}
+@keyframes previewCycle{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+
+
+/* ===== usmsmart-login-preview-cozy-v1 ===== */
+/* The module preview keeps a palette of its own -- toasted amber, terracotta and warm paper --
+   so it reads as a small, cosy product shot rather than a copy of the violet sign-in card it
+   floats beside. Every page opens with one line explaining what that module does. One page every
+   five seconds. Presentation only; no markup behaviour, auth, passkey or theme logic changed. */
+.preview{border-color:rgba(246,205,164,.22);background:rgba(38,25,17,.68);border-radius:18px;
+  box-shadow:0 22px 50px rgba(24,14,8,.42),inset 0 1px 0 rgba(255,238,220,.06);color:#f4e7d7;
+  animation:previewBreathe 13s ease-in-out infinite}
+html.dark .preview{background:rgba(24,16,11,.72);border-color:rgba(246,205,164,.2)}
+.preview-bar{border-bottom-color:rgba(246,205,164,.14);border-radius:17px 17px 0 0;background:rgba(255,236,214,.045)}
+.preview-bar-title{color:#f3e1cd}
+.preview-tag{border-color:rgba(242,180,106,.34);background:rgba(242,180,106,.11);color:#f8d5a6}
+.preview-tag::before{background:#f2b46a}
+.preview-stage{height:190px}
+.preview-track{animation:previewTrackCozy 40s cubic-bezier(.45,.05,.22,.99) infinite}
+.preview-scene{padding:10px 12px 8px}
+.preview-scene-head{color:#f2e2d0;margin-bottom:7px}
+.preview-scene-head i{color:#eab27c}
+.preview-scene-head em{color:#b8a18c}
+.preview-scene-head em.preview-live{color:#a9d5b4}
+.preview-desc{flex:0 0 auto;margin:0 0 8px;min-height:19px;color:#c9b19a;font-size:8.5px;line-height:1.45}
+/* Pages settle in like a live screen instead of switching like slides: each module's blocks
+   rise a few pixels in a short stagger as the page lands. The first page gets a one-off entrance
+   on load, and its clone stays static so the loop seam never shows a blank frame. */
+.preview-scene>*{animation:previewRiseCozy 40s cubic-bezier(.2,.7,.3,1) infinite both;
+  animation-delay:calc(var(--enter,0s) + var(--stagger,0s))}
+.preview-scene:nth-child(2){--enter:5s}
+.preview-scene:nth-child(3){--enter:10s}
+.preview-scene:nth-child(4){--enter:15s}
+.preview-scene:nth-child(5){--enter:20s}
+.preview-scene:nth-child(6){--enter:25s}
+.preview-scene:nth-child(7){--enter:30s}
+.preview-scene:nth-child(8){--enter:35s}
+.preview-scene>:nth-child(1){--stagger:0s}
+.preview-scene>:nth-child(2){--stagger:.05s}
+.preview-scene>:nth-child(3){--stagger:.1s}
+.preview-scene>:nth-child(4){--stagger:.16s}
+.preview-scene>:nth-child(5){--stagger:.22s}
+.preview-scene>:nth-child(6){--stagger:.28s}
+.preview-scene>:nth-child(7){--stagger:.34s}
+.preview-scene>:nth-child(8){--stagger:.4s}
+.preview-scene:first-child>*{animation-name:previewIntroCozy;animation-duration:.55s;animation-iteration-count:1}
+.preview-scene:last-child>*{animation:none;opacity:1;transform:none}
+.preview-chip{border-color:rgba(229,201,169,.22);background:rgba(255,236,214,.05);color:#ddc8b2}
+.preview-chip i{color:#eab27c}
+.preview-chip.is-ok{border-color:rgba(160,200,168,.34);background:rgba(120,175,130,.13);color:#b4dcbc}
+.preview-chip.is-violet{border-color:rgba(242,180,106,.36);background:rgba(230,160,90,.15);color:#f8d5a6}
+.preview-action{border-color:rgba(242,180,106,.5);background:linear-gradient(145deg,#d8894c,#b05a24);box-shadow:0 2px 9px rgba(120,60,20,.4)}
+.preview-panel{border-color:rgba(229,201,169,.16);background:rgba(255,236,214,.045)}
+.preview-panel-head{color:#c2ab95}
+.preview-panel-head b{color:#fbf1e4}
+.preview-progress{background:rgba(229,201,169,.18)}
+.preview-progress>span{background:linear-gradient(90deg,#b05a24,#f6cf9a)}
+.preview-progress.is-ok>span{background:linear-gradient(90deg,#5ba97a,#a8d5b3);animation:previewFillCozy 40s cubic-bezier(.3,.7,.2,1) infinite}
+.preview-note{color:#b9dfc2}
+.preview-note i{color:#86c79a}
+.preview-note.is-muted{color:#c2ab95}.preview-note.is-muted i{color:#f2b46a}
+.preview-kpis{margin-bottom:8px}
+.preview-kpis span{border-color:rgba(229,201,169,.16);background:rgba(255,236,214,.045)}
+.preview-kpis b{color:#fbf2e6}
+.preview-kpis small{color:#b8a18c}
+.preview-chart{height:66px;border-bottom-color:rgba(229,201,169,.18);background:repeating-linear-gradient(to top,transparent 0 17px,rgba(229,201,169,.07) 17px 18px)}
+.preview-chart span{background:linear-gradient(180deg,#f6cf9a,#c9773d);box-shadow:0 0 10px rgba(201,119,61,.18);animation:previewBarsCozy 40s cubic-bezier(.22,.8,.3,1) infinite}
+.preview-chart span:nth-child(2n){background:linear-gradient(180deg,#eab27c,#a44f1c)}
+.preview-stats{margin-bottom:8px}
+.preview-stats>div{border-color:rgba(160,200,168,.2);background:rgba(120,175,130,.08)}
+.preview-stats small{color:#b8a18c}
+.preview-stats b{color:#d9ecd9}
+.preview-stats .is-amber{border-color:rgba(242,180,106,.26);background:rgba(242,180,106,.09)}
+.preview-stats .is-amber b{color:#f8d9ae}
+.preview-stats .is-rose{border-color:rgba(224,138,125,.26);background:rgba(224,138,125,.09)}
+.preview-stats .is-rose b{color:#f3c3bb}
+.preview-transfer-head{color:#c2ab95}
+.preview-transfer-head span:last-child{color:#b9dfc2}
+.preview-head{border-bottom-color:rgba(229,201,169,.16);color:#b8a18c}
+.preview-row{padding:5px 0;border-bottom-color:rgba(229,201,169,.1)}
+.preview-name{color:#f7ebde}
+.preview-uid{color:#eab27c}
+.preview-badge-ok{border-color:rgba(160,200,168,.4);background:rgba(120,175,130,.15);color:#b4dcbc}
+.preview-badge-bad{border-color:rgba(224,138,125,.44);background:rgba(224,138,125,.15);color:#f3b8ae}
+.preview-uid-summary{color:#cbb49e}
+.preview-uid-summary span:last-child{border-color:rgba(246,205,164,.3);background:rgba(255,236,214,.06);color:#f8d5a6}
+.preview-person,.preview-log{padding:5px 0;border-bottom-color:rgba(229,201,169,.1)}
+.preview-avatar{border-color:rgba(242,180,106,.28);background:rgba(230,160,90,.18);color:#f8d5a6}
+.preview-person-name{color:#f7ebde}
+.preview-person-name small{color:#b8a18c}
+.preview-log-icon{background:rgba(229,201,169,.13);color:#eab27c}
+.preview-log-main{color:#f7ecdf}
+.preview-log-main small{color:#b8a18c}
+.preview-log time{color:#b8a18c}
+.preview-issues{display:grid;gap:5px;margin-top:9px}
+.preview-issue{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 7px;border:1px solid rgba(229,201,169,.14);border-radius:7px;background:rgba(255,236,214,.04);font-size:8.5px;color:#dcc8b3;white-space:nowrap;overflow:hidden}
+.preview-issue span{display:inline-flex;align-items:center;gap:5px;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.preview-issue i{font-size:7.5px;color:#eab27c}
+.preview-issue b{flex:0 0 auto;font:8px 'JetBrains Mono',monospace;color:#f8d5a6}
+.preview-foot{border-top-color:rgba(246,205,164,.14);border-radius:0 0 17px 17px;background:rgba(255,236,214,.03)}
+.preview-foot-label{color:#b8a18c}
+.preview-cycle{background:rgba(229,201,169,.2)}
+.preview-cycle i{background:linear-gradient(90deg,#b05a24,#f6cf9a);animation:previewCycleCozy 40s linear infinite}
+/* Five seconds per module: the page rests, then glides for a little over a second. */
+@keyframes previewTrackCozy{
+  0%,9.75%{transform:translateX(0)}
+  12.5%,22.25%{transform:translateX(-11.1111%)}
+  25%,34.75%{transform:translateX(-22.2222%)}
+  37.5%,47.25%{transform:translateX(-33.3333%)}
+  50%,59.75%{transform:translateX(-44.4444%)}
+  62.5%,72.25%{transform:translateX(-55.5555%)}
+  75%,84.75%{transform:translateX(-66.6666%)}
+  87.5%,97.25%{transform:translateX(-77.7777%)}
+  100%{transform:translateX(-88.8888%)}
+}
+@keyframes previewBarsCozy{0%,26%{transform:scaleY(.08)}29%,100%{transform:scaleY(1)}}
+@keyframes previewFillCozy{0%,40%{transform:scaleX(0)}46%,100%{transform:scaleX(1)}}
+@keyframes previewCycleCozy{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+@keyframes previewRiseCozy{
+  0%{opacity:0;transform:translateY(6px)}
+  .9%{opacity:1;transform:translateY(0)}
+  96%{opacity:1;transform:translateY(0)}
+  100%{opacity:0;transform:translateY(6px)}
+}
+@keyframes previewIntroCozy{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes previewBreathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@media(prefers-reduced-motion:reduce){
+  .preview,.preview-scene>*{animation:none!important;opacity:1!important;transform:none!important}
+}
+/* Short laptop screens: the preview is taller than the card, so give the column back a little
+   room rather than letting the page scroll. */
+@media(min-width:900px) and (max-height:830px){
+  .shell{padding:26px 0}
+  .preview{margin-top:20px}
+}
+
