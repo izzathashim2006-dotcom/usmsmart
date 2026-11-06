@@ -2244,6 +2244,117 @@ html.dark .usm-hero-pill>i{color:#fbbf24}
 #usm-main .usm-hero{border-radius:24px !important}
 @media(max-width:640px){#usm-main .usm-hero{border-radius:20px !important}}
 
+/* ===== usmsmart-hero-daypart-2026-v1 ===== */
+/* The hero already follows the visitor's clock for its greeting and sun/moon mark; this block
+   lets the panel around it follow the light too. JS sets data-daypart to dawn | day | dusk | night.
+   Dawn has no rules on purpose — it is the cream panel above, so a page without JS, or a clock
+   between 05:00 and 07:59, keeps exactly the look that was already tuned. Every phase reuses
+   the same type scale and only repaints surfaces: border, wash, blobs, mark chip, text inks and
+   the two pills. Dark rules out-specify html.dark .usm-hero (0,2,1) rather than relying on order. */
+
+/* Day — 08:00-16:59: bright sky wash with a cool blue accent. */
+.usm-hero[data-daypart="day"]{border-color:#dbe7f4;
+  background:
+    radial-gradient(120% 120% at 12% 8%, rgba(125,211,252,.30), transparent 55%),
+    radial-gradient(100% 100% at 88% 92%, rgba(165,180,252,.20), transparent 55%),
+    linear-gradient(150deg,#f8fcff 0%,#f1f8ff 46%,#f5f7ff 100%);
+  box-shadow:0 18px 44px rgba(30,64,120,.09), inset 0 1px 0 rgba(255,255,255,.85)}
+.usm-hero[data-daypart="day"] .usm-hero-blob-a{background:radial-gradient(circle,#7dd3fc,transparent 68%)}
+.usm-hero[data-daypart="day"] .usm-hero-blob-b{background:radial-gradient(circle,#a5b4fc,transparent 68%)}
+.usm-hero[data-daypart="day"] .usm-hero-mark{background:linear-gradient(150deg,#d7ecff,#bfe0ff);color:#0b5c94;
+  box-shadow:0 12px 26px rgba(3,105,161,.18), inset 0 1px 0 rgba(255,255,255,.7)}
+.usm-hero[data-daypart="day"] .usm-hero-eyebrow{color:#54708f}
+.usm-hero[data-daypart="day"] .usm-hero-title{color:#132436}
+.usm-hero[data-daypart="day"] .usm-hero-name{color:#0369a1}
+.usm-hero[data-daypart="day"] .usm-hero-sub{color:#5b7189}
+.usm-hero[data-daypart="day"] .usm-hero-pill{background:rgba(255,255,255,.72);border-color:rgba(173,199,226,.60);color:#4b6480}
+.usm-hero[data-daypart="day"] .usm-hero-pill>i{color:#0369a1}
+
+/* Dusk — 17:00-19:59: the amber panel warms toward rose without losing the cream base. */
+.usm-hero[data-daypart="dusk"]{border-color:#f3dccf;
+  background:
+    radial-gradient(120% 120% at 12% 8%, rgba(251,146,60,.32), transparent 55%),
+    radial-gradient(100% 100% at 88% 92%, rgba(244,114,182,.22), transparent 55%),
+    linear-gradient(150deg,#fff8f2 0%,#fdf0ef 46%,#f8f1ff 100%);
+  box-shadow:0 18px 44px rgba(140,64,32,.11), inset 0 1px 0 rgba(255,255,255,.82)}
+.usm-hero[data-daypart="dusk"] .usm-hero-blob-a{background:radial-gradient(circle,#fb923c,transparent 68%)}
+.usm-hero[data-daypart="dusk"] .usm-hero-blob-b{background:radial-gradient(circle,#f9a8d4,transparent 68%)}
+.usm-hero[data-daypart="dusk"] .usm-hero-mark{background:linear-gradient(150deg,#ffe0c7,#ffc9b4);color:#9a3412;
+  box-shadow:0 12px 26px rgba(194,65,12,.20), inset 0 1px 0 rgba(255,255,255,.68)}
+.usm-hero[data-daypart="dusk"] .usm-hero-eyebrow{color:#86644f}
+.usm-hero[data-daypart="dusk"] .usm-hero-title{color:#3a241c}
+.usm-hero[data-daypart="dusk"] .usm-hero-name{color:#c2410c}
+.usm-hero[data-daypart="dusk"] .usm-hero-sub{color:#7f6656}
+.usm-hero[data-daypart="dusk"] .usm-hero-pill{background:rgba(255,255,255,.66);border-color:rgba(224,193,172,.62);color:#74584a}
+.usm-hero[data-daypart="dusk"] .usm-hero-pill>i{color:#c2410c}
+
+/* Night — 20:00-04:59: cool moonlit lavender, still a light-theme panel. */
+.usm-hero[data-daypart="night"]{border-color:#ddd9ec;
+  background:
+    radial-gradient(120% 120% at 12% 8%, rgba(129,140,248,.24), transparent 55%),
+    radial-gradient(100% 100% at 88% 92%, rgba(167,139,250,.28), transparent 55%),
+    linear-gradient(150deg,#f8f8fd 0%,#f3f2fb 46%,#f1f0fa 100%);
+  box-shadow:0 18px 44px rgba(58,50,110,.11), inset 0 1px 0 rgba(255,255,255,.85)}
+.usm-hero[data-daypart="night"] .usm-hero-blob-a{background:radial-gradient(circle,#a5b4fc,transparent 68%)}
+.usm-hero[data-daypart="night"] .usm-hero-blob-b{background:radial-gradient(circle,#c4b5fd,transparent 68%)}
+.usm-hero[data-daypart="night"] .usm-hero-mark{background:linear-gradient(150deg,#e2e1f8,#d2d0f0);color:#4338ca;
+  box-shadow:0 12px 26px rgba(55,48,163,.18), inset 0 1px 0 rgba(255,255,255,.7)}
+.usm-hero[data-daypart="night"] .usm-hero-eyebrow{color:#5f5b78}
+.usm-hero[data-daypart="night"] .usm-hero-title{color:#1f2136}
+.usm-hero[data-daypart="night"] .usm-hero-name{color:#4338ca}
+.usm-hero[data-daypart="night"] .usm-hero-sub{color:#66647d}
+.usm-hero[data-daypart="night"] .usm-hero-pill{background:rgba(255,255,255,.70);border-color:rgba(200,197,222,.65);color:#56536b}
+.usm-hero[data-daypart="night"] .usm-hero-pill>i{color:#4338ca}
+
+/* Day — dark theme: a cooler ink-blue panel than the default warm one. */
+html.dark .usm-hero[data-daypart="day"]{border-color:#26313f;
+  background:
+    radial-gradient(120% 120% at 12% 8%, rgba(56,189,248,.16), transparent 55%),
+    radial-gradient(100% 100% at 88% 92%, rgba(99,102,241,.20), transparent 55%),
+    linear-gradient(150deg,#111823 0%,#131b26 46%,#121723 100%);
+  box-shadow:0 18px 44px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.05)}
+html.dark .usm-hero[data-daypart="day"] .usm-hero-mark{background:linear-gradient(150deg,rgba(56,189,248,.22),rgba(59,130,246,.16));color:#7dd3fc;
+  box-shadow:0 12px 26px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08)}
+html.dark .usm-hero[data-daypart="day"] .usm-hero-eyebrow{color:#8ba3bb}
+html.dark .usm-hero[data-daypart="day"] .usm-hero-title{color:#e8f1fa}
+html.dark .usm-hero[data-daypart="day"] .usm-hero-name{color:#38bdf8}
+html.dark .usm-hero[data-daypart="day"] .usm-hero-sub{color:#a3b6c8}
+html.dark .usm-hero[data-daypart="day"] .usm-hero-pill{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.09);color:#c6d5e3}
+html.dark .usm-hero[data-daypart="day"] .usm-hero-pill>i{color:#38bdf8}
+
+/* Dusk — dark theme: the warm default gains rose instead of losing it. */
+html.dark .usm-hero[data-daypart="dusk"]{border-color:#3a2724;
+  background:
+    radial-gradient(120% 120% at 12% 8%, rgba(251,113,133,.18), transparent 55%),
+    radial-gradient(100% 100% at 88% 92%, rgba(167,139,250,.20), transparent 55%),
+    linear-gradient(150deg,#1b1214 0%,#1e1517 46%,#1a1622 100%);
+  box-shadow:0 18px 44px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.05)}
+html.dark .usm-hero[data-daypart="dusk"] .usm-hero-mark{background:linear-gradient(150deg,rgba(251,146,60,.24),rgba(244,114,182,.16));color:#fdba74;
+  box-shadow:0 12px 26px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08)}
+html.dark .usm-hero[data-daypart="dusk"] .usm-hero-eyebrow{color:#b49789}
+html.dark .usm-hero[data-daypart="dusk"] .usm-hero-title{color:#f7e9e2}
+html.dark .usm-hero[data-daypart="dusk"] .usm-hero-name{color:#fb923c}
+html.dark .usm-hero[data-daypart="dusk"] .usm-hero-sub{color:#c3a99c}
+html.dark .usm-hero[data-daypart="dusk"] .usm-hero-pill{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.09);color:#ddcabe}
+html.dark .usm-hero[data-daypart="dusk"] .usm-hero-pill>i{color:#fb923c}
+
+/* Night — dark theme: deep indigo with a violet glow; the page's own canvas is ink-blue. */
+html.dark .usm-hero[data-daypart="night"]{border-color:#24263c;
+  background:
+    radial-gradient(120% 120% at 12% 8%, rgba(99,102,241,.24), transparent 55%),
+    radial-gradient(100% 100% at 88% 92%, rgba(167,139,250,.20), transparent 55%),
+    linear-gradient(150deg,#0d1020 0%,#101326 46%,#12152b 100%);
+  box-shadow:0 18px 44px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.05)}
+html.dark .usm-hero[data-daypart="night"] .usm-hero-mark{background:linear-gradient(150deg,rgba(129,140,248,.26),rgba(167,139,250,.18));color:#c7d2fe;
+  box-shadow:0 12px 26px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.08)}
+html.dark .usm-hero[data-daypart="night"] .usm-hero-eyebrow{color:#9a9ec0}
+html.dark .usm-hero[data-daypart="night"] .usm-hero-title{color:#e9eaff}
+html.dark .usm-hero[data-daypart="night"] .usm-hero-name{color:#a5b4fc}
+html.dark .usm-hero[data-daypart="night"] .usm-hero-sub{color:#a9adc9}
+html.dark .usm-hero[data-daypart="night"] .usm-hero-pill{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10);color:#cfd2e8}
+html.dark .usm-hero[data-daypart="night"] .usm-hero-pill>i{color:#a5b4fc}
+
+
 /* ===== usmsmart-analytics-stats-2026-v1 ===== */
 /* The analytics figures carry one modern treatment: tabular JetBrains Mono numerals, a
    two-tone gradient ink per metric, a soft tinted wash on the card and a gradient icon chip.

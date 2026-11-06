@@ -19,6 +19,15 @@
                     : hour < 19 ? 'Selamat petang'
                     : 'Selamat malam';
             };
+            // The hero's palette follows the same clock but on its own four bands, because the
+            // light changes faster around sunrise and sunset than the greeting changes wording.
+            // Dawn keeps the original cream panel; the other phases only add a data attribute.
+            const dayPartFor = function (hour) {
+                if (hour >= 5 && hour < 8) return 'dawn';
+                if (hour >= 8 && hour < 17) return 'day';
+                if (hour >= 17 && hour < 20) return 'dusk';
+                return 'night';
+            };
             const longDate = function (now) {
                 try {
                     return new Intl.DateTimeFormat('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now);
@@ -37,10 +46,12 @@
             const dashDate = document.getElementById('usm-dash-date');
             const dashTime = document.getElementById('usm-dash-time');
             const dashIcon = document.getElementById('usm-dash-icon');
+            const dashHero = document.querySelector('.usm-hero');
             const welcomeGreeting = document.getElementById('welcome-greeting');
             const paint = function () {
                 const now = new Date();
-                const greeting = greetingFor(now.getHours());
+                const hour = now.getHours();
+                const greeting = greetingFor(hour);
                 const date = longDate(now);
                 if (dashGreeting) dashGreeting.textContent = greeting;
                 if (welcomeGreeting) welcomeGreeting.textContent = greeting;
@@ -50,10 +61,11 @@
                     dashTime.setAttribute('datetime', now.toISOString());
                 }
                 if (dashIcon) {
-                    const daytime = now.getHours() >= 6 && now.getHours() < 19;
+                    const daytime = hour >= 6 && hour < 19;
                     dashIcon.classList.toggle('fa-sun', daytime);
                     dashIcon.classList.toggle('fa-moon', !daytime);
                 }
+                if (dashHero) dashHero.setAttribute('data-daypart', dayPartFor(hour));
             };
             paint();
             if (!dashTime) return;
