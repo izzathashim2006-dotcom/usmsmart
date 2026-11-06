@@ -2138,3 +2138,37 @@ html.dark{
   --usm-bg-band-c:rgba(26,5,36,.18);
   --usm-bg-shade:rgba(0,0,0,.30);--usm-bg-dot:rgba(148,163,184,.09);
 }
+
+/* ===== usmsmart-directory-merge-2026-v1 ===== */
+/* The rail used to carry two directory entries - an indigo one for students and a green one for
+   staff - so the same records read as two products. They are one page now: a single header owns
+   the title and the record-type switch, and each panel keeps the table, filters and forms it
+   already had. Nothing here changes behaviour; the switch only decides which panel is visible. */
+.usm-dir-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 15px;background:var(--usm-surface);border:1px solid var(--usm-line);
+  border-radius:var(--usm-r-lg);box-shadow:0 2px 10px rgba(24,32,51,.04)}
+.usm-dir-head-lead{display:flex;align-items:center;gap:12px;min-width:0}
+.usm-dir-back{appearance:none;flex:none;display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border:1px solid var(--usm-line-strong);border-radius:var(--usm-r-md);
+  background:var(--usm-surface);color:var(--usm-ink);font-family:inherit;font-size:12px;line-height:1;
+  cursor:pointer;transition:background-color .14s ease,border-color .14s ease,color .14s ease}
+.usm-dir-back:hover{background:var(--usm-accent-soft);border-color:var(--usm-accent);color:var(--usm-accent)}
+.usm-dir-back:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring)}
+.usm-dir-eyebrow{margin:0;font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--usm-muted)}
+.usm-dir-title{margin:2px 0 0;font-size:15px;font-weight:700;line-height:1.25;color:var(--usm-ink)}
+.usm-dir-switch{display:inline-flex;align-items:center;gap:2px;padding:3px;
+  border:1px solid var(--usm-line);border-radius:var(--usm-r-md);background:var(--usm-surface-soft)}
+.usm-dir-switch-btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:34px;padding:7px 15px;border:0;border-radius:var(--usm-r-sm);background:transparent;
+  color:var(--usm-muted);font-family:inherit;font-size:12px;font-weight:600;line-height:1;cursor:pointer;
+  transition:background-color .14s ease,color .14s ease,box-shadow .14s ease}
+.usm-dir-switch-btn>i{flex:none;font-size:11px}
+.usm-dir-switch-btn:hover{background:var(--usm-surface);color:var(--usm-ink)}
+.usm-dir-switch-btn.is-active{background:var(--usm-accent);color:#fff;box-shadow:0 2px 7px rgba(109,40,217,.22)}
+.usm-dir-switch-btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring)}
+html.dark .usm-dir-switch-btn.is-active{background:#7c3aed;color:#fff}
+@media(max-width:640px){
+  .usm-dir-head{padding:11px 13px}
+  .usm-dir-switch{width:100%}
+  .usm-dir-switch-btn{flex:1 1 0}
+}

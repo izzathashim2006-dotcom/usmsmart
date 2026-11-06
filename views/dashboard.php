@@ -69,7 +69,6 @@
         <div class="usm-rail-group">
             <p class="usm-rail-eyebrow">Data &amp; Rekod</p>
             <button type="button" class="usm-rail-link seg-directory" data-usm-view="view-directory-page" onclick="navigateToDirectoryPage()" title="Direktori Kad Pelajar &amp; Staf"><i class="fa-solid fa-id-card-clip" aria-hidden="true"></i><span class="usm-rail-label">Direktori Kad</span></button>
-            <button type="button" class="usm-rail-link seg-staff" data-usm-view="view-staff-directory" onclick="navigateToStaffDirectory()" title="Direktori Staf"><i class="fa-solid fa-user-tie" aria-hidden="true"></i><span class="usm-rail-label">Direktori Staf</span></button>
             <button type="button" class="usm-rail-link seg-audit" data-usm-view="view-audit-history" onclick="navigateToAuditHistory('directory')" title="Sejarah Rekod &amp; Log Audit"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span class="usm-rail-label">Sejarah &amp; Log Audit</span></button>
             <?php if (($_SESSION['role'] ?? '') === 'admin') { ?>
             <button type="button" class="usm-rail-link seg-users" data-usm-view="view-user-management" onclick="navigateToUserManagement()" title="Pengurusan Akaun"><i class="fa-solid fa-users-gear" aria-hidden="true"></i><span class="usm-rail-label">Pengurusan Akaun</span></button>
@@ -131,16 +130,13 @@
                         <i class="fa-solid fa-users-gear"></i>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-xs text-slate-800 dark:text-zinc-100 uppercase tracking-wide">Modul Direktori Pelajar (Master CRUD Page)</h3>
-                        <p class="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">Pengurusan data pelajar Kampus Kejuruteraan USM.</p>
+                        <h3 class="font-semibold text-xs text-slate-800 dark:text-zinc-100 uppercase tracking-wide">Direktori Kad Pelajar &amp; Staf</h3>
+                        <p class="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">Satu halaman untuk rekod pelajar dan staf Kampus Kejuruteraan USM.</p>
                     </div>
                 </div>
                 <button onclick="navigateToDirectoryPage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-graduation-cap"></i><span>Buka Direktori Pelajar</span>
+                    <i class="fa-solid fa-id-card-clip"></i><span>Buka Direktori Kad</span>
                     <i class="fa-solid fa-arrow-right text-[9px]"></i>
-                </button>
-                <button type="button" onclick="navigateToStaffDirectory()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-id-badge"></i><span>Buka Direktori Staf</span><i class="fa-solid fa-arrow-right text-[9px]"></i>
                 </button>
                 <button type="button" onclick="navigateToSyswebSegment('transporter')" class="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-lg text-[11px] font-semibold transition flex items-center gap-2 cursor-pointer" title="Buka Segmen Integrasi Sysweb">
                     <i class="fa-solid fa-network-wired"></i><span>Segmen Sysweb</span><i class="fa-solid fa-arrow-right text-[9px]"></i>
@@ -469,15 +465,28 @@
             </section>
         </div>
 
-        <!-- HALAMAN KHAS 1: DIREKTORI PELAJAR -->
+        <!-- HALAMAN KHAS 1: DIREKTORI KAD (PELAJAR + STAF, ONE PAGE) -->
         <div id="view-directory-page" class="hidden page-transition space-y-6">
+            <!-- One directory, two record types: the switch keeps a single entry point. -->
+            <div class="usm-dir-head">
+                <div class="usm-dir-head-lead">
+                    <button type="button" onclick="backToMainTransporter()" class="usm-dir-back" title="Kembali ke Utama" aria-label="Kembali ke Utama"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+                    <div>
+                        <p class="usm-dir-eyebrow">DIREKTORI KAD</p>
+                        <h2 class="usm-dir-title">Pelajar &amp; Staf</h2>
+                    </div>
+                </div>
+                <div class="usm-dir-switch" role="tablist" aria-label="Jenis rekod">
+                    <button type="button" id="dir-tab-student" role="tab" aria-selected="true" aria-controls="dir-panel-student" onclick="switchDirectoryPanel('student')" onkeydown="handleDirectoryTabKey(event)" class="usm-dir-switch-btn is-active"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><span>Pelajar</span></button>
+                    <button type="button" id="dir-tab-staff" role="tab" aria-selected="false" aria-controls="view-staff-directory" onclick="switchDirectoryPanel('staff')" onkeydown="handleDirectoryTabKey(event)" class="usm-dir-switch-btn"><i class="fa-solid fa-user-tie" aria-hidden="true"></i><span>Staf</span></button>
+                </div>
+            </div>
+
+            <div id="dir-panel-student" role="tabpanel" aria-labelledby="dir-tab-student">
             <section class="bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-clean">
                 <div class="p-5 bg-slate-50/80 dark:bg-zinc-900 border-b border-slate-200/80 dark:border-zinc-800 flex flex-col gap-4 font-mono">
                     <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div class="flex items-center gap-3">
-                            <button onclick="backToMainTransporter()" class="w-9 h-9 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 flex items-center justify-center text-slate-700 dark:text-zinc-300 hover:bg-slate-100 transition cursor-pointer" title="Kembali ke Utama">
-                                <i class="fa-solid fa-arrow-left text-xs"></i>
-                            </button>
                             <div>
                                 <p class="text-[10px] uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400 font-bold mb-1">REKOD PELAJAR</p><h2 class="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-wider">Direktori & Pengurusan Pelajar</h2>
                                 <p class="text-[10px] text-slate-500 dark:text-zinc-400">Master CRUD + Sandaran / Restore DB & Cetak Kad.</p>
@@ -723,6 +732,61 @@
                     </div>
                 </div>
             </section>
+            </div>
+
+            <div id="view-staff-directory" role="tabpanel" aria-labelledby="dir-tab-staff" class="hidden space-y-6">
+                <section class="bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-clean">
+                    <div class="p-5 sm:p-6 bg-slate-50/80 dark:bg-zinc-900 border-b border-slate-200/80 dark:border-zinc-800 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-id-badge"></i></div>
+                            <div>
+                                <p class="text-[10px] uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400 font-bold mb-1">REKOD STAF</p>
+                                <h2 class="font-bold text-lg text-slate-900 dark:text-white">Pengurusan Rekod Staf</h2>
+                                <p class="text-xs text-slate-600 dark:text-zinc-400 mt-1">Data ujian disimpan dalam MySQL tempatan, berasingan daripada rekod rasmi USM.</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="exportStaffDirectoryToSysweb()" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 px-4 py-2.5 text-xs font-semibold transition cursor-pointer" title="Eksport senarai staf ke Sysweb"><i class="fa-solid fa-network-wired text-indigo-600 dark:text-indigo-400"></i>Eksport ke Sysweb</button>
+                            <button type="button" onclick="openLocalStaffForm()" <?php echo (($_SESSION['role'] ?? '') !== 'admin') ? 'hidden' : ''; ?> class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 text-xs font-bold shadow-sm"><i class="fa-solid fa-user-plus"></i>Tambah Staf</button>
+                            <button type="button" id="sync-live-staff-button" onclick="syncLiveStaffToLocal()" <?php echo (($_SESSION['role'] ?? '') !== 'admin') ? 'hidden' : ''; ?> class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 px-4 py-2.5 text-xs font-semibold transition"><i class="fa-solid fa-cloud-arrow-down text-indigo-600 dark:text-indigo-400"></i>Import dari SQL Server</button>
+                            <button type="button" onclick="loadStaffDirectory(true)" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 px-4 py-2.5 text-xs font-semibold transition"><i class="fa-solid fa-rotate"></i>Muat Semula</button>
+                        </div>
+                    </div>
+                    <div class="p-4 sm:p-5 space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="rounded-xl border border-slate-200 dark:border-zinc-800/60 bg-slate-50 dark:bg-zinc-900/60 p-4"><p class="text-[10px] uppercase tracking-wide text-slate-500 dark:text-zinc-400 font-bold">Jumlah rekod ujian</p><p id="staff-directory-count" class="text-3xl font-bold text-slate-900 dark:text-white mt-1">—</p></div>
+                            <div class="sm:col-span-2"><label for="staff-directory-search" class="block text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-zinc-400 mb-1.5">Carian staf</label><input id="staff-directory-search" type="search" oninput="filterStaffDirectory()" placeholder="Cari nama, nombor staf, jabatan, UID kad, siri kad atau status…" class="w-full rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3.5 py-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500"></div>
+                        </div>
+                        <div class="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/70 px-4 py-3 text-xs text-amber-900 dark:text-amber-200"><i class="fa-solid fa-flask mr-2"></i><strong>Mod ujian tempatan:</strong> Tambah, kemas kini dan padam hanya mengubah jadual <code>usmsmart_staff_directory</code> dalam MySQL. Jadual rasmi SQL Server <code>dbo.Staf</code> kekal baca sahaja.</div>
+
+                        <div id="local-staff-form-panel" class="hidden rounded-2xl border border-slate-200 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-900/40 p-4 sm:p-5">
+                            <div class="flex items-center justify-between gap-3 mb-4"><div><h3 id="local-staff-form-title" class="font-bold text-sm text-slate-900 dark:text-white">Tambah rekod staf</h3><p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">Semua medan disimpan ke pangkalan data MySQL tempatan.</p></div><button type="button" onclick="closeLocalStaffForm()" class="w-8 h-8 rounded-lg bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700" aria-label="Tutup borang"><i class="fa-solid fa-xmark"></i></button></div>
+                            <form id="local-staff-form" onsubmit="submitLocalStaffForm(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <input type="hidden" id="local-staff-id" value="0">
+                                <div><label for="local-staff-no" class="block text-[11px] font-semibold mb-1">No. staf <span class="text-rose-600">*</span></label><input id="local-staff-no" maxlength="80" required class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
+                                <div><label for="local-staff-name" class="block text-[11px] font-semibold mb-1">Nama penuh <span class="text-rose-600">*</span></label><input id="local-staff-name" maxlength="180" required class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
+                                <div><label for="local-staff-department" class="block text-[11px] font-semibold mb-1">Jabatan</label><input id="local-staff-department" maxlength="180" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
+                                <div><label for="local-staff-uid" class="block text-[11px] font-semibold mb-1">UID kad (heks)</label><input id="local-staff-uid" maxlength="50" placeholder="4A3B2C1D" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm font-mono"></div>
+                                <div><label for="local-staff-card" class="block text-[11px] font-semibold mb-1">No. siri kad</label><input id="local-staff-card" maxlength="100" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
+                                <div><label for="local-staff-status" class="block text-[11px] font-semibold mb-1">Status kad</label><select id="local-staff-status" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"><option>Aktif</option><option>Tidak Aktif</option><option>Luput</option><option>Dalam Proses</option><option>Tidak Dinyatakan</option></select></div>
+                                <div><label for="local-staff-joined" class="block text-[11px] font-semibold mb-1">Tarikh mula / diberi</label><input id="local-staff-joined" type="date" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
+                                <div><label for="local-staff-expiry" class="block text-[11px] font-semibold mb-1">Tarikh tamat kad</label><input id="local-staff-expiry" type="date" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
+                                <div class="sm:col-span-2"><label for="local-staff-notes" class="block text-[11px] font-semibold mb-1">Catatan</label><input id="local-staff-notes" maxlength="500" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm" placeholder="Catatan ringkas (pilihan)"></div>
+                                <div class="sm:col-span-2 lg:col-span-3 flex flex-wrap justify-end gap-2 pt-2"><button type="button" onclick="closeLocalStaffForm()" class="rounded-lg bg-slate-100 dark:bg-zinc-800 px-4 py-2.5 text-xs font-semibold">Batal</button><button type="submit" id="local-staff-submit" class="rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1.5"></i>Simpan Rekod</button></div>
+                            </form>
+                        </div>
+
+                        <div id="staff-directory-message" class="rounded-xl border border-slate-200 bg-slate-50 text-slate-700 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300 px-4 py-3 text-xs" role="status">Memuatkan rekod ujian staf tempatan…</div>
+                        <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-zinc-800">
+                            <table class="min-w-[1160px] w-full text-xs text-left">
+                                <thead><tr><th class="px-3 py-3 font-semibold">Nama staf</th><th class="px-3 py-3 font-semibold">No. staf</th><th class="px-3 py-3 font-semibold">Jabatan</th><th class="px-3 py-3 font-semibold">UID kad</th><th class="px-3 py-3 font-semibold">No. siri kad</th><th class="px-3 py-3 font-semibold">Status kad</th><th class="px-3 py-3 font-semibold">Tarikh tamat</th><th class="px-3 py-3 font-semibold">Tindakan</th></tr></thead>
+                                <tbody id="staff-directory-tbody" class="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300"><tr><td colspan="8" class="px-3 py-8 text-center text-slate-500">Belum memuatkan data staf.</td></tr></tbody>
+                            </table>
+                        </div>
+                        <p class="text-[10px] text-slate-500 dark:text-zinc-400">Rekod pelajar dan staf berkongsi satu halaman. Data staf ialah jadual ujian MySQL tempatan; jadual rasmi <code>dbo.Staf</code> kekal baca sahaja. Hanya Admin boleh membuat perubahan.</p>
+                    </div>
+                </section>
+            </div>
         </div>
 
         <!-- HALAMAN KHAS: PENGURUSAN AKAUN PENGGUNA (ADMIN) -->
@@ -1084,61 +1148,6 @@
 
 
         <!-- HALAMAN KHAS 2: BORANG EDIT / TAMBAH PELAJAR -->
-        <!-- STAFF DIRECTORY: GREEN THEME, LOCAL MYSQL CRUD TEST DATA; LIVE dbo.Staf IS READ-ONLY -->
-        <div id="view-staff-directory" class="hidden page-transition space-y-6">
-            <section class="bg-white dark:bg-[#121214] border border-emerald-200 dark:border-emerald-900/60 rounded-2xl overflow-hidden shadow-clean">
-                <div class="p-5 sm:p-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-zinc-900 border-b border-emerald-200 dark:border-emerald-900/60 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <button type="button" onclick="backToMainTransporter()" class="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 border border-emerald-200 dark:border-emerald-900 flex items-center justify-center text-emerald-800 dark:text-emerald-300" title="Kembali ke Utama"><i class="fa-solid fa-arrow-left"></i></button>
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-id-badge"></i></div>
-                        <div>
-                            <p class="text-[10px] uppercase tracking-[.18em] text-emerald-700 dark:text-emerald-300 font-bold mb-1">DIREKTORI STAF · MODUL HIJAU</p>
-                            <h2 class="font-bold text-lg text-slate-900 dark:text-white">Pengurusan Rekod Staf</h2>
-                            <p class="text-xs text-slate-600 dark:text-zinc-400 mt-1">Data ujian disimpan dalam MySQL tempatan, berasingan daripada rekod rasmi USM.</p>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <button type="button" onclick="exportStaffDirectoryToSysweb()" class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-800 hover:bg-teal-900 text-white px-4 py-2.5 text-xs font-bold shadow-sm cursor-pointer" title="Eksport senarai staf ke Sysweb"><i class="fa-solid fa-network-wired"></i>Eksport ke Sysweb</button>
-                        <button type="button" onclick="openLocalStaffForm()" <?php echo (($_SESSION['role'] ?? '') !== 'admin') ? 'hidden' : ''; ?> class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 text-xs font-bold"><i class="fa-solid fa-user-plus"></i>Tambah Staf</button>
-                        <button type="button" id="sync-live-staff-button" onclick="syncLiveStaffToLocal()" <?php echo (($_SESSION['role'] ?? '') !== 'admin') ? 'hidden' : ''; ?> class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white px-4 py-2.5 text-xs font-bold"><i class="fa-solid fa-cloud-arrow-down"></i>Import dari SQL Server</button>
-                        <button type="button" onclick="loadStaffDirectory(true)" class="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-zinc-900 text-emerald-800 dark:text-emerald-300 px-4 py-2.5 text-xs font-semibold"><i class="fa-solid fa-rotate"></i>Muat Semula</button>
-                    </div>
-                </div>
-                <div class="p-4 sm:p-5 space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div class="rounded-xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/20 p-4"><p class="text-[10px] uppercase tracking-wide text-emerald-700 dark:text-emerald-300 font-bold">Jumlah rekod ujian</p><p id="staff-directory-count" class="text-3xl font-bold text-emerald-800 dark:text-emerald-200 mt-1">—</p></div>
-                        <div class="sm:col-span-2"><label for="staff-directory-search" class="block text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-zinc-400 mb-1.5">Carian staf</label><input id="staff-directory-search" type="search" oninput="filterStaffDirectory()" placeholder="Cari nama, nombor staf, jabatan, UID kad, siri kad atau status…" class="w-full rounded-xl border border-emerald-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3.5 py-3 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"></div>
-                    </div>
-                    <div class="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/70 px-4 py-3 text-xs text-amber-900 dark:text-amber-200"><i class="fa-solid fa-flask mr-2"></i><strong>Mod ujian tempatan:</strong> Tambah, kemas kini dan padam hanya mengubah jadual <code>usmsmart_staff_directory</code> dalam MySQL. Jadual rasmi SQL Server <code>dbo.Staf</code> kekal baca sahaja.</div>
-
-                    <div id="local-staff-form-panel" class="hidden rounded-2xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/40 dark:bg-emerald-950/10 p-4 sm:p-5">
-                        <div class="flex items-center justify-between gap-3 mb-4"><div><h3 id="local-staff-form-title" class="font-bold text-sm text-emerald-900 dark:text-emerald-200">Tambah rekod staf</h3><p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">Semua medan disimpan ke pangkalan data MySQL tempatan.</p></div><button type="button" onclick="closeLocalStaffForm()" class="w-8 h-8 rounded-lg bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700" aria-label="Tutup borang"><i class="fa-solid fa-xmark"></i></button></div>
-                        <form id="local-staff-form" onsubmit="submitLocalStaffForm(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            <input type="hidden" id="local-staff-id" value="0">
-                            <div><label for="local-staff-no" class="block text-[11px] font-semibold mb-1">No. staf <span class="text-rose-600">*</span></label><input id="local-staff-no" maxlength="80" required class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
-                            <div><label for="local-staff-name" class="block text-[11px] font-semibold mb-1">Nama penuh <span class="text-rose-600">*</span></label><input id="local-staff-name" maxlength="180" required class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
-                            <div><label for="local-staff-department" class="block text-[11px] font-semibold mb-1">Jabatan</label><input id="local-staff-department" maxlength="180" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
-                            <div><label for="local-staff-uid" class="block text-[11px] font-semibold mb-1">UID kad (heks)</label><input id="local-staff-uid" maxlength="50" placeholder="4A3B2C1D" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm font-mono"></div>
-                            <div><label for="local-staff-card" class="block text-[11px] font-semibold mb-1">No. siri kad</label><input id="local-staff-card" maxlength="100" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
-                            <div><label for="local-staff-status" class="block text-[11px] font-semibold mb-1">Status kad</label><select id="local-staff-status" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"><option>Aktif</option><option>Tidak Aktif</option><option>Luput</option><option>Dalam Proses</option><option>Tidak Dinyatakan</option></select></div>
-                            <div><label for="local-staff-joined" class="block text-[11px] font-semibold mb-1">Tarikh mula / diberi</label><input id="local-staff-joined" type="date" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
-                            <div><label for="local-staff-expiry" class="block text-[11px] font-semibold mb-1">Tarikh tamat kad</label><input id="local-staff-expiry" type="date" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm"></div>
-                            <div class="sm:col-span-2"><label for="local-staff-notes" class="block text-[11px] font-semibold mb-1">Catatan</label><input id="local-staff-notes" maxlength="500" class="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm" placeholder="Catatan ringkas (pilihan)"></div>
-                            <div class="sm:col-span-2 lg:col-span-3 flex flex-wrap justify-end gap-2 pt-2"><button type="button" onclick="closeLocalStaffForm()" class="rounded-lg bg-slate-100 dark:bg-zinc-800 px-4 py-2.5 text-xs font-semibold">Batal</button><button type="submit" id="local-staff-submit" class="rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1.5"></i>Simpan Rekod</button></div>
-                        </form>
-                    </div>
-
-                    <div id="staff-directory-message" class="rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:border-emerald-900 dark:text-emerald-200 px-4 py-3 text-xs" role="status">Memuatkan rekod ujian staf tempatan…</div>
-                    <div class="overflow-x-auto rounded-xl border border-emerald-200 dark:border-zinc-800">
-                        <table class="min-w-[1160px] w-full text-xs text-left">
-                            <thead class="bg-emerald-700 text-white"><tr><th class="px-3 py-3 font-semibold">Nama staf</th><th class="px-3 py-3 font-semibold">No. staf</th><th class="px-3 py-3 font-semibold">Jabatan</th><th class="px-3 py-3 font-semibold">UID kad</th><th class="px-3 py-3 font-semibold">No. siri kad</th><th class="px-3 py-3 font-semibold">Status kad</th><th class="px-3 py-3 font-semibold">Tarikh tamat</th><th class="px-3 py-3 font-semibold">Tindakan</th></tr></thead>
-                            <tbody id="staff-directory-tbody" class="divide-y divide-emerald-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300"><tr><td colspan="8" class="px-3 py-8 text-center text-slate-500">Belum memuatkan data staf.</td></tr></tbody>
-                        </table>
-                    </div>
-                    <p class="text-[10px] text-slate-500 dark:text-zinc-400">Direktori pelajar kekal dalam modul biru/indigo. Direktori staf menggunakan tema hijau dan jadual ujian MySQL yang berasingan. Hanya Admin boleh membuat perubahan.</p>
-                </div>
-            </section>
-        </div>
 
         <!-- HALAMAN KHAS: SEGMEN & PORTAL INTEGRASI SYSWEB -->
         <div id="view-sysweb" class="hidden page-transition space-y-6">

@@ -3035,19 +3035,49 @@
             }
         }
 
-        function navigateToDirectoryPage() {
+        // Direktori Kad holds both record types. The rail has one entry; this switch decides which
+        // table it shows. Both panels keep their own filters, forms and fetch calls untouched.
+        let directoryPanel = 'student';
+
+        function switchDirectoryPanel(panel, focusTab = false) {
+            const name = panel === 'staff' ? 'staff' : 'student';
+            const studentPanel = document.getElementById('dir-panel-student');
+            const staffPanel = document.getElementById('view-staff-directory');
+            if (!studentPanel || !staffPanel) return;
+            directoryPanel = name;
+            const staffActive = name === 'staff';
+            studentPanel.classList.toggle('hidden', staffActive);
+            staffPanel.classList.toggle('hidden', !staffActive);
+            [['student', 'dir-tab-student'], ['staff', 'dir-tab-staff']].forEach(([key, id]) => {
+                const button = document.getElementById(id);
+                if (!button) return;
+                const on = key === name;
+                button.classList.toggle('is-active', on);
+                button.setAttribute('aria-selected', on ? 'true' : 'false');
+                button.tabIndex = on ? 0 : -1;
+                if (on && focusTab) button.focus();
+            });
+            if (staffActive) loadStaffDirectory(!staffDirectoryLoaded);
+        }
+
+        function handleDirectoryTabKey(event) {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            event.preventDefault();
+            switchDirectoryPanel(directoryPanel === 'staff' ? 'student' : 'staff', true);
+        }
+
+        function navigateToDirectoryPage(panel = 'student') {
             hideAllMainViews();
-            document.getElementById('view-directory-page').classList.remove('hidden');
+            const view = document.getElementById('view-directory-page');
+            if (view) view.classList.remove('hidden');
+            switchDirectoryPanel(panel);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         let allStaffDirectoryRecords = [];
         let staffDirectoryLoaded = false;
         function navigateToStaffDirectory() {
-            hideAllMainViews();
-            document.getElementById('view-staff-directory').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            loadStaffDirectory(!staffDirectoryLoaded);
+            navigateToDirectoryPage('staff');
         }
         async function syncLiveStaffToLocal() {
             if (!USMSMART_IS_ADMIN) { showToast('Hanya Admin boleh mengimport data staf.'); return; }
@@ -3108,9 +3138,9 @@
                 const expiry = String(record.expiryDate || '').slice(0, 10);
                 const status = String(record.cardStatus || 'Tidak dinyatakan');
                 const statusLower = status.toLocaleLowerCase();
-                const statusClass = /aktif|active|valid/.test(statusLower) && !/tidak/.test(statusLower) ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : (/tamat|expired|luput/.test(statusLower) ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300' : 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300');
-                const actions = USMSMART_IS_ADMIN ? '<div class="flex items-center gap-1.5"><button type="button" onclick="editLocalStaff(' + Number(record.id) + ')" class="rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 px-2.5 py-2 font-semibold" title="Kemaskini"><i class="fa-solid fa-pen-to-square mr-1"></i>Edit</button><button type="button" onclick="exportSingleStaffToSysweb(' + Number(record.id) + ')" class="rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300 px-2.5 py-2 font-semibold" title="Eksport ke Sysweb"><i class="fa-solid fa-network-wired mr-1"></i>Sysweb</button><button type="button" onclick="deleteLocalStaff(' + Number(record.id) + ')" class="rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 px-2.5 py-2 font-semibold" title="Padam"><i class="fa-solid fa-trash-can mr-1"></i>Padam</button></div>' : '<div class="flex items-center gap-1.5"><button type="button" onclick="exportSingleStaffToSysweb(' + Number(record.id) + ')" class="rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300 px-2.5 py-2 font-semibold" title="Eksport ke Sysweb"><i class="fa-solid fa-network-wired mr-1"></i>Sysweb</button></div>';
-                return '<tr class="hover:bg-emerald-50/60 dark:hover:bg-emerald-950/10">' +
+                const statusClass = /aktif|active|valid/.test(statusLower) && !/tidak/.test(statusLower) ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400' : (/tamat|expired|luput/.test(statusLower) ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300' : 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300');
+                const actions = USMSMART_IS_ADMIN ? '<div class="flex items-center gap-1.5"><button type="button" onclick="editLocalStaff(' + Number(record.id) + ')" class="rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 px-2.5 py-2 font-semibold" title="Kemaskini"><i class="fa-solid fa-pen-to-square mr-1"></i>Edit</button><button type="button" onclick="exportSingleStaffToSysweb(' + Number(record.id) + ')" class="rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300 px-2.5 py-2 font-semibold" title="Eksport ke Sysweb"><i class="fa-solid fa-network-wired mr-1"></i>Sysweb</button><button type="button" onclick="deleteLocalStaff(' + Number(record.id) + ')" class="rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 px-2.5 py-2 font-semibold" title="Padam"><i class="fa-solid fa-trash-can mr-1"></i>Padam</button></div>' : '<div class="flex items-center gap-1.5"><button type="button" onclick="exportSingleStaffToSysweb(' + Number(record.id) + ')" class="rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300 px-2.5 py-2 font-semibold" title="Eksport ke Sysweb"><i class="fa-solid fa-network-wired mr-1"></i>Sysweb</button></div>';
+                return '<tr class="hover:bg-indigo-50/60 dark:hover:bg-indigo-950/10">' +
                     '<td class="px-3 py-3 font-semibold text-slate-900 dark:text-white">' + escapeHtml(record.name || '—') + (record.notes ? '<div class="mt-1 text-[10px] font-normal text-slate-500">' + escapeHtml(record.notes) + '</div>' : '') + '</td>' +
                     '<td class="px-3 py-3 whitespace-nowrap font-mono">' + escapeHtml(record.staffNo || '—') + '</td>' +
                     '<td class="px-3 py-3">' + escapeHtml(record.department || '—') + '</td>' +
