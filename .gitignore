@@ -27,4 +27,17 @@ Desktop.ini
 
 # Local database credentials (config/database.example.php is the committed template)
 config/database.local.php
+# Local SMTP credentials for password-reset e-mail (config/mail.example.php is the template)
+config/mail.local.php
+# Local Google OAuth client id (config/google.example.php is the template) and the
+# runtime JWKS cache the token verifier refreshes from Google.
+config/google.local.php
+config/google-jwks.cache.json
 node_modules/
+
+# Local manual media (large video) and one-off dev/video tools — kept out of git
+media/
+tools/manual-video/
+tools/patch-js-gsi-prompt.php
+tools/qa-google-token.php
+tools/test-smtp-mail.php
