@@ -514,4 +514,184 @@ if ($action === 'next_card_serial' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         }
         exit;
     }
+
+    /* ===== Guided duplicate merge =========================================-----
+       Combines two records into one survivor. The dropped record is removed inside
+       a transaction so a UNIQUE clash (serial/UID/matric) rolls the whole merge back
+       rather than leaving a half-merged directory. Admin-only; audited. */
+    if ($action === 'merge_students' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, private');
+        if (($_SESSION['role'] ?? '') !== 'admin') { http_response_code(403); echo json_encode(array('success'=>false,'message'=>'Akses pentadbir diperlukan.')); exit; }
+        $csrf = (string)($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        if ($csrf === '' || !hash_equals((string)($_SESSION['usmsmart_csrf_token'] ?? ''), $csrf)) { http_response_code(403); echo json_encode(array('success'=>false,'message'=>'Token keselamatan tidak sah.')); exit; }
+        $input = json_decode(file_get_contents('php://input'), true);
+        $keepId = (int)($input['keepId'] ?? 0);
+        $dropId = (int)($input['dropId'] ?? 0);
+        $overrides = isset($input['overrides']) && is_array($input['overrides']) ? $input['overrides'] : array();
+        if ($keepId <= 0 || $dropId <= 0 || $keepId === $dropId) { http_response_code(400); echo json_encode(array('success'=>false,'message'=>'Pilih dua rekod berbeza untuk digabungkan.')); exit; }
+        $fieldMap = array('name'=>'name','matric'=>'matric','school'=>'school','usmUid'=>'usm_uid','serialNo'=>'serial_no','policy'=>'policy','dateJoined'=>'date_joined','expiryDate'=>'expiry_date','nationality'=>'nationality','educationLevel'=>'education_level','studentCategory'=>'student_category');
+        try {
+            $select = $pdo->prepare("SELECT * FROM students_view WHERE id = ?");
+            $select->execute(array($keepId)); $keep = $select->fetch(PDO::FETCH_ASSOC);
+            $select->execute(array($dropId)); $drop = $select->fetch(PDO::FETCH_ASSOC);
+            if (!$keep || !$drop) { http_response_code(404); echo json_encode(array('success'=>false,'message'=>'Salah satu rekod tidak ditemui.')); exit; }
+            $final = $keep;
+            foreach ($overrides as $camel => $value) {
+                if (!isset($fieldMap[$camel])) { continue; }
+                $col = $fieldMap[$camel];
+                $value = trim((string)$value);
+                if ($col === 'expiry_date' || $col === 'date_joined') { if ($value !== '' && !isValidIsoDate($value)) { continue; } }
+                if ($col === 'name' && $value === '') { continue; }
+                $final[$col] = $value;
+            }
+            $pdo->beginTransaction();
+            $del = $pdo->prepare("DELETE FROM students_view WHERE id = ?");
+            $del->execute(array($dropId));
+            $upd = $pdo->prepare("UPDATE students_view SET name=?, matric=?, school=?, usm_uid=?, serial_no=?, policy=?, date_joined=?, expiry_date=?, nationality=?, education_level=?, student_category=? WHERE id=?");
+            $upd->execute(array($final['name'],$final['matric'],$final['school'],$final['usm_uid'],$final['serial_no'],$final['policy'],$final['date_joined'],$final['expiry_date'],$final['nationality'] ?? '',$final['education_level'] ?? '',$final['student_category'] ?? '',$keepId));
+            $historyRow = array('matric'=>$final['matric'],'name'=>$final['name'],'school'=>$final['school'],'usm_uid'=>$final['usm_uid'],'serial_no'=>$final['serial_no'],'policy'=>$final['policy'],'date_joined'=>$final['date_joined'],'expiry_date'=>$final['expiry_date']);
+            recordStudentCardHistory($pdo, $keepId, 'updated', $historyRow, $keep);
+            $pdo->commit();
+            auditLog($pdo, 'merge', 'student', $keepId, $final['matric'], json_encode(array('type'=>'merge','kept'=>$keepId,'dropped'=>$dropId,'dropped_name'=>$drop['name'],'fields'=>array_keys($overrides)), JSON_UNESCAPED_UNICODE));
+            echo json_encode(array('success'=>true,'message'=>'Rekod digabungkan. Rekod #' . $dropId . ' dibuang dan #' . $keepId . ' dikekalkan.','keepId'=>$keepId), JSON_UNESCAPED_UNICODE);
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) { $pdo->rollBack(); }
+            error_log('USMSmart merge failed: ' . $e->getMessage());
+            http_response_code(422);
+            echo json_encode(array('success'=>false,'message'=>'Gabungan gagal — kemungkinan nilai pendua bercanggah dengan rekod lain. Semak UID, matrik dan nombor siri.'));
+        }
+        exit;
+    }
+
+    /* ===== Bulk field restore (undo for bulk edit / renew) ================-----
+       Restores specific fields per record from a client snapshot. Whitelisted columns
+       only; each row is card-history tracked and the whole batch is audited. */
+    if ($action === 'bulk_restore_fields' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, private');
+        if (($_SESSION['role'] ?? '') !== 'admin') { http_response_code(403); echo json_encode(array('success'=>false,'message'=>'Akses pentadbir diperlukan.')); exit; }
+        $csrf = (string)($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        if ($csrf === '' || !hash_equals((string)($_SESSION['usmsmart_csrf_token'] ?? ''), $csrf)) { http_response_code(403); echo json_encode(array('success'=>false,'message'=>'Token keselamatan tidak sah.')); exit; }
+        $input = json_decode(file_get_contents('php://input'), true);
+        $items = isset($input['items']) && is_array($input['items']) ? array_values($input['items']) : array();
+        if (empty($items)) { http_response_code(400); echo json_encode(array('success'=>false,'message'=>'Tiada rekod untuk dipulihkan.')); exit; }
+        if (count($items) > 500) { http_response_code(400); echo json_encode(array('success'=>false,'message'=>'Had maksimum 500 rekod pada satu masa.')); exit; }
+        $restored = 0;
+        try {
+            $pdo->beginTransaction();
+            $select = $pdo->prepare("SELECT id,name,matric,school,usm_uid,serial_no,policy,date_joined,expiry_date FROM students_view WHERE id = ?");
+            foreach ($items as $item) {
+                $id = (int)($item['id'] ?? 0);
+                if ($id <= 0) { continue; }
+                $sets = array(); $params = array();
+                if (array_key_exists('school', $item)) { $sets[] = 'school = ?'; $params[] = mb_substr(trim((string)$item['school']), 0, 255); }
+                if (array_key_exists('policy', $item)) { $sets[] = 'policy = ?'; $params[] = mb_substr(trim((string)$item['policy']), 0, 100); }
+                if (array_key_exists('expiryDate', $item)) { $d = trim((string)$item['expiryDate']); if ($d !== '' && !isValidIsoDate($d)) { continue; } $sets[] = 'expiry_date = ?'; $params[] = $d; }
+                if (empty($sets)) { continue; }
+                $params[] = $id;
+                $upd = $pdo->prepare("UPDATE students_view SET " . implode(', ', $sets) . " WHERE id = ?");
+                $upd->execute($params);
+                $restored += $upd->rowCount() > 0 ? 1 : 0;
+                $select->execute(array($id)); $row = $select->fetch(PDO::FETCH_ASSOC);
+                if ($row) { recordStudentCardHistory($pdo, $id, 'updated', $row); }
+            }
+            $pdo->commit();
+            auditLog($pdo, 'bulk_restore', 'student', null, null, json_encode(array('type'=>'bulk_restore','count'=>$restored), JSON_UNESCAPED_UNICODE));
+            echo json_encode(array('success'=>true,'restored'=>$restored,'message'=>$restored . ' rekod dipulihkan.'), JSON_UNESCAPED_UNICODE);
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) { $pdo->rollBack(); }
+            error_log('USMSmart bulk restore failed: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(array('success'=>false,'message'=>'Pemulihan gagal. Cuba lagi.'));
+        }
+        exit;
+    }
+
+    /* ===== Operations digest: manual admin trigger ======================----- */
+    if ($action === 'send_ops_digest' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, private');
+        if (($_SESSION['role'] ?? '') !== 'admin') { http_response_code(403); echo json_encode(array('success'=>false,'message'=>'Akses pentadbir diperlukan.')); exit; }
+        $csrf = (string)($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        if ($csrf === '' || !hash_equals((string)($_SESSION['usmsmart_csrf_token'] ?? ''), $csrf)) { http_response_code(403); echo json_encode(array('success'=>false,'message'=>'Token keselamatan tidak sah.')); exit; }
+        require_once USM_ROOT . '/app/ops-digest.php';
+        $result = usmsmartSendOpsDigest($pdo, 'manual');
+        if (empty($result['success'])) { http_response_code($result['recipients'] > 0 ? 502 : 400); }
+        echo json_encode($result, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    /* ===== ccadmin live write: setup, read-only test, push converted UIDs =====
+       The write engine (usmsmartSyswebPushCards) already runs after the UDA export
+       converts each UID. These endpoints let an administrator configure that path
+       and push selected cards on demand. Every endpoint is admin-only and re-checks
+       CSRF; credentials are write-only and the target host is fixed to the read
+       server. No endpoint here writes a card row except push_cards_ccadmin, which
+       only fires on an explicit admin confirmation. */
+    if (in_array($action, array('sysweb_write_state', 'sysweb_write_save', 'sysweb_write_test', 'push_cards_ccadmin'), true) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, private');
+        if (($_SESSION['role'] ?? '') !== 'admin') { http_response_code(403); echo json_encode(array('success'=>false,'message'=>'Akses pentadbir diperlukan.')); exit; }
+        $csrf = (string)($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        if ($csrf === '' || !hash_equals((string)($_SESSION['usmsmart_csrf_token'] ?? ''), $csrf)) { http_response_code(403); echo json_encode(array('success'=>false,'message'=>'Token keselamatan tidak sah.')); exit; }
+        $input = json_decode(file_get_contents('php://input'), true);
+        $input = is_array($input) ? $input : array();
+
+        if ($action === 'sysweb_write_state') {
+            echo json_encode(array('success'=>true,'state'=>usmsmartSyswebWritePublicState()), JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        if ($action === 'sysweb_write_save') {
+            $result = usmsmartSyswebWriteSave($input);
+            if (!empty($result['success'])) {
+                $keys = array_keys(array_intersect_key($input, array_flip(array('write_enabled','write_username','write_password','write_table','write_uid','card_columns'))));
+                auditLog($pdo, 'ccadmin_write_config', 'system', null, null, 'Updated ccadmin write config keys: ' . implode(', ', $keys));
+            } else { http_response_code(400); }
+            echo json_encode($result, JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        if ($action === 'sysweb_write_test') {
+            $result = usmsmartSyswebWriteTest();
+            if (empty($result['success'])) http_response_code(502);
+            echo json_encode($result, JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        // push_cards_ccadmin: convert each selected card's UID, then write to ccadmin.
+        $ids = array_values(array_filter(array_unique(array_map('intval', (array)($input['ids'] ?? array()))), function ($v) { return $v > 0; }));
+        if (!count($ids)) { http_response_code(400); echo json_encode(array('success'=>false,'message'=>'Tiada rekod dipilih untuk ditulis.')); exit; }
+        if (count($ids) > 500) { http_response_code(400); echo json_encode(array('success'=>false,'message'=>'Had maksimum 500 rekod pada satu masa.')); exit; }
+        try {
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $stmt = $pdo->prepare("SELECT id, matric, usm_uid, serial_no, policy, expiry_date FROM students_view WHERE id IN ($placeholders)");
+            $stmt->execute($ids);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            error_log('USMSmart ccadmin push lookup failed: ' . $e->getMessage());
+            http_response_code(500); echo json_encode(array('success'=>false,'message'=>'Gagal membaca rekod terpilih.')); exit;
+        }
+        $cards = array(); $skipped = array();
+        foreach ($rows as $r) {
+            $identifier = trim((string)($r['matric'] ?? ''));
+            $sourceUid = strtoupper(preg_replace('/\s+/', '', (string)($r['usm_uid'] ?? '')));
+            $convertedUid = usmsmartUidLittleEndian($sourceUid);
+            if ($identifier === '' || $convertedUid === '') { $skipped[] = $identifier !== '' ? $identifier : ('#' . $r['id']); continue; }
+            $cards[] = array(
+                'identifier' => $identifier,
+                'source_uid' => $sourceUid,
+                'converted_uid' => $convertedUid,
+                'serial' => trim((string)($r['serial_no'] ?? '')),
+                'policy' => trim((string)($r['policy'] ?? '')),
+                'expiry' => trim((string)($r['expiry_date'] ?? '')),
+            );
+        }
+        if (!count($cards)) { http_response_code(400); echo json_encode(array('success'=>false,'message'=>'Tiada kad dengan UID hexadecimal yang sah untuk ditulis.','skipped'=>$skipped)); exit; }
+        $result = usmsmartSyswebPushCards($cards);
+        auditLog($pdo, 'ccadmin_push', 'system', null, null,
+            'ccadmin ' . $result['status'] . ': ' . (int)$result['written'] . '/' . (int)$result['total']
+            . ' into ' . ($result['table'] !== '' ? $result['table'] : '(unset)') . '; uid=' . $result['uid']
+            . (count($skipped) ? '; skipped=' . implode(',', $skipped) : ''));
+        echo json_encode(array('success'=>true,'result'=>$result,'skipped'=>$skipped), JSON_UNESCAPED_UNICODE);
+        exit;
+    }
     

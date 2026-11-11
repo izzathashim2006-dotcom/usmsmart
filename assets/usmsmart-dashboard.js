@@ -14,6 +14,12 @@
         // The clock re-renders on the minute boundary so it never shows a stale minute.
         (function initGreetingPanels() {
             const greetingFor = function (hour) {
+                if (window.__usmLang === 'en') {
+                    return hour < 12 ? 'Good morning'
+                        : hour < 15 ? 'Good afternoon'
+                        : hour < 19 ? 'Good evening'
+                        : 'Good night';
+                }
                 return hour < 12 ? 'Selamat pagi'
                     : hour < 15 ? 'Selamat tengah hari'
                     : hour < 19 ? 'Selamat petang'
@@ -30,7 +36,7 @@
             };
             const longDate = function (now) {
                 try {
-                    return new Intl.DateTimeFormat('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now);
+                    return new Intl.DateTimeFormat(window.__usmLang === 'en' ? 'en-GB' : 'ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now);
                 } catch (error) {
                     return now.toLocaleDateString();
                 }
@@ -78,6 +84,7 @@
             document.addEventListener('visibilitychange', function () {
                 if (!document.hidden) paint();
             });
+            window.addEventListener('usm:langchange', paint);
         })();
 
         /* --- Welcome modal ---------------------------------------------
@@ -4890,6 +4897,10 @@
                 document.getElementById('profile-role-display').textContent = (p.role || '').toUpperCase() || '—';
                 document.getElementById('profile-display-name').value = p.display_name || '';
                 document.getElementById('profile-email').value = p.email || '';
+                const gmailInput = document.getElementById('profile-gmail');
+                if (gmailInput) gmailInput.value = p.gmail || '';
+                paintGoogleLinkState(p.gmail);
+                renderGoogleLinkButton();
                 document.getElementById('profile-created-display').textContent = p.created_at || '—';
                 document.getElementById('profile-lastlogin-display').textContent = p.last_login_at || 'Belum pernah';
                 currentAvatarVersion = String(p.avatar_updated_at || '');
@@ -4905,26 +4916,170 @@
             const btn = document.getElementById('profile-info-submit');
             const displayName = document.getElementById('profile-display-name').value.trim();
             const email = document.getElementById('profile-email').value.trim();
+            const gmail = (document.getElementById('profile-gmail')?.value || '').trim();
             btn.disabled = true;
             btn.querySelector('span').textContent = 'Menyimpan…';
             try {
                 const res = await fetch('index.php?action=update_my_profile', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ display_name: displayName, email: email })
+                    body: JSON.stringify({ display_name: displayName, email: email, gmail: gmail })
                 });
                 const result = await res.json();
                 if (!res.ok || !result.success) throw new Error(result.message || 'Profil tidak dapat disimpan.');
                 showToast(result.message);
+                paintGoogleLinkState(gmail);
                 currentProfileData = Object.assign({}, currentProfileData, {
                     display_name: displayName || null,
-                    email: email || null
+                    email: email || null,
+                    gmail: gmail || null
                 });
+                renderGoogleLinkButton();
             } catch (err) {
                 showToast('Gagal menyimpan profil: ' + err.message);
             } finally {
                 btn.disabled = false;
                 btn.querySelector('span').textContent = 'Simpan Maklumat';
+            }
+        }
+
+        // ===== Google account linking via Google Identity Services (no typing) =====
+        let usmGoogleLinkInitialized = false;
+        let usmGoogleLinkRenderTimer = null;
+
+        function initGoogleLinkGsi() {
+            if (!window.USMSMART_GOOGLE_CLIENT_ID) return false;
+            if (!(window.google && window.google.accounts && window.google.accounts.id)) return false;
+            if (!usmGoogleLinkInitialized) {
+                window.google.accounts.id.initialize({
+                    client_id: window.USMSMART_GOOGLE_CLIENT_ID,
+                    callback: function (response) {
+                        if (response && response.credential) submitGoogleLinkCredential(response.credential);
+                    },
+                    auto_select: false,
+                    cancel_on_tap_outside: true,
+                    use_fedcm_for_prompt: true
+                });
+                usmGoogleLinkInitialized = true;
+            }
+            return true;
+        }
+
+        // Single painter for the Google link card: badge, linked identity row and
+        // the connect/manual areas all move together so no state shows half of both.
+        function paintGoogleLinkState(gmail) {
+            const linked = !!gmail;
+            const badge = document.getElementById('profile-gmail-badge');
+            if (badge) {
+                badge.textContent = linked ? 'Dipautkan' : 'Belum dipaut';
+                badge.className = 'usm-glink-badge' + (linked ? ' is-on' : '');
+            }
+            const row = document.getElementById('google-linked-row');
+            if (row) row.classList.toggle('is-linked', linked);
+            const email = document.getElementById('google-linked-email');
+            if (email) email.textContent = gmail || '—';
+            const area = document.getElementById('google-connect-area');
+            if (area) area.classList.toggle('is-hidden', linked);
+            const manual = document.getElementById('google-manual-block');
+            if (manual) manual.classList.toggle('is-hidden', linked);
+        }
+
+        // Official Google chooser button in the profile card: one click picks the real
+        // Google account signed in on the device. Hidden while an account is linked.
+        function renderGoogleLinkButton() {
+            const container = document.getElementById('google-signin-btn-container');
+            if (!container) return;
+            const fallback = document.getElementById('btn-connect-google');
+            const linked = !!(currentProfileData && currentProfileData.gmail);
+            if (linked || !window.USMSMART_GOOGLE_CLIENT_ID) {
+                container.innerHTML = '';
+                if (fallback) fallback.classList.remove('hidden');
+                return;
+            }
+            if (!initGoogleLinkGsi()) {
+                if (fallback) fallback.classList.remove('hidden');
+                if (!usmGoogleLinkRenderTimer) {
+                    let tries = 0;
+                    usmGoogleLinkRenderTimer = setInterval(function () {
+                        const ready = initGoogleLinkGsi();
+                        if (ready || ++tries > 40) {
+                            clearInterval(usmGoogleLinkRenderTimer);
+                            usmGoogleLinkRenderTimer = null;
+                            if (ready) renderGoogleLinkButton();
+                        }
+                    }, 250);
+                }
+                return;
+            }
+            if (!container.hasChildNodes()) {
+                window.google.accounts.id.renderButton(container, {
+                    theme: 'outline', size: 'large', shape: 'pill',
+                    text: 'continue_with', logo_alignment: 'left', width: 300
+                });
+            }
+            // One Google button at a time: the official pill replaces the fallback.
+            if (fallback) fallback.classList.toggle('hidden', container.hasChildNodes());
+        }
+
+        async function submitGoogleLinkCredential(credential) {
+            try {
+                const res = await fetch('index.php?action=link_google_account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential: credential })
+                });
+                const result = await res.json();
+                if (!res.ok || !result.success) throw new Error(result.message || 'Gagal memautkan akaun Google.');
+                showToast(result.message);
+                const gmailInput = document.getElementById('profile-gmail');
+                if (gmailInput) gmailInput.value = result.gmail;
+                paintGoogleLinkState(result.gmail);
+                currentProfileData = Object.assign({}, currentProfileData, { gmail: result.gmail });
+                renderGoogleLinkButton();
+            } catch (err) {
+                showToast(err.message);
+            }
+        }
+
+        async function connectGoogleAccountPrompt() {
+            if (!window.USMSMART_GOOGLE_CLIENT_ID) {
+                showToast('Pautan Google belum diaktifkan oleh pentadbir. Gunakan alamat Gmail manual di bawah sebagai alternatif.');
+                return;
+            }
+            if (!initGoogleLinkGsi()) {
+                showToast('Perkhidmatan Google belum dimuatkan. Semak sambungan internet dan cuba sebentar lagi.');
+                return;
+            }
+            renderGoogleLinkButton();
+            // One Tap first; when the browser suppresses it, the official chooser
+            // button rendered above is the visible one-click path.
+            window.google.accounts.id.prompt(function (notification) {
+                if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                    showToast('Sila pilih akaun Google anda pada butang Google di atas — tanpa perlu menaip.');
+                }
+            });
+        }
+
+        async function unlinkGoogleAccount() {
+            if (!window.confirm('Adakah anda pasti untuk memutuskan pautan akaun Google? Anda tidak akan menerima OTP Gmail sekiranya terlupa kata laluan.')) {
+                return;
+            }
+            try {
+                const res = await fetch('index.php?action=unlink_google_account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const result = await res.json();
+                if (!res.ok || !result.success) throw new Error(result.message || 'Gagal memutuskan pautan akaun.');
+                showToast(result.message);
+                const gmailInput = document.getElementById('profile-gmail');
+                if (gmailInput) gmailInput.value = '';
+                paintGoogleLinkState(null);
+                currentProfileData = Object.assign({}, currentProfileData, { gmail: null });
+                renderGoogleLinkButton();
+            } catch (err) {
+                showToast(err.message);
             }
         }
 
@@ -5043,6 +5198,7 @@
                 document.getElementById('users-active-count').textContent = active;
                 document.getElementById('users-admin-count').textContent = admins;
                 filterUserManagementTable();
+                loadResetRequests();
             } catch (err) {
                 tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-rose-600">' + escapeHtml(err.message) + '</td></tr>';
                 document.getElementById('user-management-count').textContent = 'Gagal memuatkan senarai akaun.';
@@ -5068,7 +5224,7 @@
                         '<td class="p-3.5"><span class="inline-flex rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase ' + roleClass + '">' + escapeHtml(String(u.role)) + '</span></td>' +
                         '<td class="p-3.5"><span class="inline-flex rounded-lg border px-2.5 py-1 text-[10px] font-semibold ' + statusClass + '">' + (active ? 'Aktif' : 'Nyahaktif') + '</span></td>' +
                         '<td class="p-3.5 text-[11px] text-slate-500 dark:text-zinc-400 whitespace-nowrap">' + lastLogin + '</td>' +
-                        '<td class="p-3.5"><div class="flex justify-end gap-1.5"><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'role\')" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-800 text-[10px]" title="Tukar peranan"><i class="fa-solid fa-shield-halved"></i></button><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'password\')" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-800 text-[10px]" title="Set semula kata laluan"><i class="fa-solid fa-key"></i></button><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'status\')" class="px-2.5 py-1.5 rounded-lg border ' + (active ? 'border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-900 dark:hover:bg-rose-950/40' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-900 dark:hover:bg-emerald-950/40') + ' text-[10px]" title="' + (active ? 'Nyahaktifkan akaun' : 'Aktifkan akaun') + '"><i class="fa-solid ' + (active ? 'fa-user-slash' : 'fa-user-check') + '"></i></button><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'delete\')" class="px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[10px]" title="Padam akaun"><i class="fa-solid fa-trash"></i></button></div></td></tr>';
+                        '<td class="p-3.5"><div class="flex justify-end gap-1.5"><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'role\')" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-800 text-[10px]" title="Tukar peranan"><i class="fa-solid fa-shield-halved"></i></button><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'password\')" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-800 text-[10px]" title="Set semula kata laluan"><i class="fa-solid fa-key"></i></button><button type="button" onclick="generateResetLink(' + Number(u.id) + ')" class="px-2.5 py-1.5 rounded-lg border border-violet-200 dark:border-violet-900 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/40 text-[10px]" title="Jana pautan set semula sekali guna"><i class="fa-solid fa-link"></i></button><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'status\')" class="px-2.5 py-1.5 rounded-lg border ' + (active ? 'border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-900 dark:hover:bg-rose-950/40' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-900 dark:hover:bg-emerald-950/40') + ' text-[10px]" title="' + (active ? 'Nyahaktifkan akaun' : 'Aktifkan akaun') + '"><i class="fa-solid ' + (active ? 'fa-user-slash' : 'fa-user-check') + '"></i></button><button type="button" onclick="manageUserFromTable(' + Number(u.id) + ',\'delete\')" class="px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[10px]" title="Padam akaun"><i class="fa-solid fa-trash"></i></button></div></td></tr>';
                 }).join('');
             }
             document.getElementById('user-management-count').textContent = 'Menunjukkan ' + rows.length + ' daripada ' + userManagementRows.length + ' akaun';
@@ -5105,6 +5261,125 @@
                 showToast(result.message || 'Akaun berjaya dikemas kini'); await loadUserManagement();
             } catch (err) { showToast('Gagal mengurus akaun: ' + err.message); }
         }
+
+        // ===== Self-service password reset: administrator delivery queue =====
+        // Requests arrive from the public "Lupa kata laluan?" screen. When no mail transport
+        // could deliver the link, it waits here: the admin generates the one-time link (shown
+        // once, copyable) and hands it to the user, or cancels the request.
+        function resetRequestTime(value) {
+            const parsed = new Date(String(value || '').replace(' ', 'T'));
+            if (Number.isNaN(parsed.getTime())) return escapeHtml(String(value || ''));
+            return new Intl.DateTimeFormat('ms-MY', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(parsed);
+        }
+
+        async function loadResetRequests() {
+            if (!USMSMART_IS_ADMIN) return;
+            const panel = document.getElementById('reset-requests-panel');
+            const list = document.getElementById('reset-requests-list');
+            if (!panel || !list) return;
+            try {
+                const response = await fetch('index.php?action=list_reset_requests', { cache: 'no-store' });
+                const result = await response.json();
+                if (!response.ok || !result.success || !Array.isArray(result.requests)) throw new Error(result.message || 'Senarai permintaan tidak tersedia');
+                const requests = result.requests;
+                document.getElementById('reset-requests-count').textContent = String(requests.length);
+                if (!requests.length) { panel.classList.add('hidden'); list.innerHTML = ''; return; }
+                panel.classList.remove('hidden');
+                list.innerHTML = requests.map(r => {
+                    const byEmail = r.delivery === 'email';
+                    const channel = byEmail
+                        ? '<span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300"><i class="fa-solid fa-envelope"></i>E-mel dihantar</span>'
+                        : '<span class="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-100/70 dark:bg-amber-950/50 px-2.5 py-1 text-[10px] font-semibold text-amber-700 dark:text-amber-300"><i class="fa-solid fa-user-shield"></i>Menunggu pentadbir</span>';
+                    return '<div class="p-4 flex flex-col lg:flex-row lg:items-center gap-3 bg-white/60 dark:bg-zinc-900/30">' +
+                        '<div class="flex items-center gap-3 flex-1 min-w-0"><span class="w-9 h-9 shrink-0 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center"><i class="fa-solid fa-user"></i></span><span class="min-w-0"><span class="block font-semibold text-xs text-slate-900 dark:text-white truncate">' + escapeHtml(String(r.username)) + '</span><span class="block mt-0.5 text-[10px] text-slate-400">Diminta ' + resetRequestTime(r.created_at) + ' · tamat ' + resetRequestTime(r.expires_at) + '</span></span></div>' +
+                        '<div class="flex items-center gap-2 flex-wrap">' + channel +
+                        '<button type="button" onclick="generateResetLink(' + Number(r.user_id) + ')" class="px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-[10px] font-semibold transition" title="Jana pautan sekali guna (membatalkan pautan sedia ada)"><i class="fa-solid fa-link mr-1.5"></i>Jana pautan</button>' +
+                        '<button type="button" onclick="cancelResetRequest(' + Number(r.id) + ',\'' + escapeHtml(String(r.username)).replace(/'/g, '&#39;') + '\')" class="px-3 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[10px] font-semibold transition" title="Batalkan permintaan ini"><i class="fa-solid fa-xmark mr-1.5"></i>Batal</button>' +
+                        '</div></div>';
+                }).join('');
+            } catch (err) {
+                panel.classList.add('hidden');
+                showToast('Permintaan set semula gagal dimuatkan: ' + err.message);
+            }
+        }
+
+        async function generateResetLink(userId) {
+            if (!USMSMART_IS_ADMIN) { showToast('Akses Admin diperlukan.'); return; }
+            const target = userManagementRows.find(u => Number(u.id) === Number(userId));
+            const username = target ? String(target.username) : 'akaun #' + userId;
+            if (!confirm('Jana pautan set semula sekali guna untuk ' + username + '? Pautan sedia ada (jika ada) akan dibatalkan.')) return;
+            const data = new FormData(); data.append('user_id', String(userId));
+            try {
+                const response = await fetch('index.php?action=admin_reset_link', { method: 'POST', body: data });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.message || 'Pautan tidak dapat dijana');
+                openResetLinkModal(result.link, result.username, result.expires_at);
+                loadResetRequests();
+            } catch (err) { showToast('Gagal menjana pautan: ' + err.message); }
+        }
+
+        function openResetLinkModal(link, username, expiresAt) {
+            const modal = document.getElementById('reset-link-modal');
+            const input = document.getElementById('reset-link-value');
+            const meta = document.getElementById('reset-link-meta');
+            const copyBtn = document.getElementById('reset-link-copy');
+            if (!modal || !input) return;
+            input.value = String(link || '');
+            meta.textContent = 'Untuk ' + String(username || '') + ' · sah sehingga ' + resetRequestTime(expiresAt);
+            copyBtn.innerHTML = '<i class="fa-solid fa-copy mr-1.5"></i>Salin';
+            modal.classList.remove('hidden');
+            input.focus(); input.select();
+        }
+
+        function closeResetLinkModal() {
+            const modal = document.getElementById('reset-link-modal');
+            const input = document.getElementById('reset-link-value');
+            if (modal) modal.classList.add('hidden');
+            // The link is shown once: leaving the dialog wipes it from the DOM too.
+            if (input) input.value = '';
+        }
+
+        async function copyResetLink() {
+            const input = document.getElementById('reset-link-value');
+            const copyBtn = document.getElementById('reset-link-copy');
+            if (!input || !input.value) return;
+            let copied = false;
+            try {
+                if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(input.value); copied = true; }
+            } catch (err) { copied = false; }
+            if (!copied) {
+                input.focus(); input.select();
+                try { copied = document.execCommand('copy'); } catch (err) { copied = false; }
+            }
+            if (copied) {
+                copyBtn.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Disalin';
+                showToast('Pautan disalin. Serahkan kepada pengguna melalui saluran selamat.');
+                window.setTimeout(() => { copyBtn.innerHTML = '<i class="fa-solid fa-copy mr-1.5"></i>Salin'; }, 2200);
+            } else {
+                showToast('Salin manual: pautan telah dipilih, tekan Ctrl+C.');
+            }
+        }
+
+        async function cancelResetRequest(requestId, username) {
+            if (!USMSMART_IS_ADMIN) { showToast('Akses Admin diperlukan.'); return; }
+            if (!confirm('Batalkan permintaan set semula untuk ' + username + '? Pautan yang belum digunakan akan dimansuhkan.')) return;
+            const data = new FormData(); data.append('request_id', String(requestId));
+            try {
+                const response = await fetch('index.php?action=cancel_reset_request', { method: 'POST', body: data });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.message || 'Permintaan tidak dapat dibatalkan');
+                showToast(result.message || 'Permintaan dibatalkan');
+                loadResetRequests();
+            } catch (err) { showToast('Gagal membatalkan: ' + err.message); }
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                const modal = document.getElementById('reset-link-modal');
+                if (modal && !modal.classList.contains('hidden')) closeResetLinkModal();
+            }
+        });
+        // ===== END password reset queue =====
 
         // Audit statistics reuse the analytics card language and chart theme. Everything here is built
         // from the FILTERED log, so these figures describe the rows the list is showing — unlike the four
@@ -7509,9 +7784,29 @@
             const blockedBody = document.getElementById('uid-blocked-tbody');
             if (blockedBody) {
                 blockedBody.innerHTML = blockedRows.length
-                    ? blockedRows.map(record => {
+                    ? blockedRows.map((record, index) => {
                         const chips = (record.reasons || []).map(reason => '<span class="inline-flex items-center whitespace-nowrap rounded-md bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">' + escapeHtml(reason.label || reason.code || 'Disekat') + '</span>').join(' ');
-                        return '<tr>' + cells(record) + '<td class="p-3"><div class="flex flex-wrap gap-1">' + chips + '</div></td></tr>';
+                        const holders = Array.isArray(record.holders) ? record.holders : [];
+                        const detailId = 'uid-holder-detail-' + index;
+                        let toggle = '';
+                        let detailRow = '';
+                        if (holders.length > 1) {
+                            toggle = ' <button type="button" class="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800" onclick="toggleUidHolders(\'' + detailId + '\')" aria-expanded="false" aria-controls="' + detailId + '"><i class="fa-solid fa-users"></i> Pemilik (' + holders.length + ')</button>';
+                            detailRow = '<tr id="' + detailId + '" class="hidden"><td colspan="7" class="bg-slate-50/70 px-3 pb-3 dark:bg-zinc-950/50">'
+                                + '<p class="mb-2 text-[10px] uppercase tracking-wider text-slate-500 dark:text-zinc-400">Kad yang memegang UID ' + escapeHtml(record.uid || '-') + '</p>'
+                                + '<div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-zinc-800"><table class="w-full text-left text-[11px]">'
+                                + '<thead class="bg-white text-slate-500 dark:bg-zinc-900 dark:text-zinc-400"><tr><th class="px-2 py-1.5">Nama</th><th class="px-2 py-1.5">Jenis</th><th class="px-2 py-1.5">ID</th><th class="px-2 py-1.5">StatusKad</th><th class="px-2 py-1.5">Tamat</th></tr></thead><tbody>'
+                                + holders.map(holder => {
+                                    const isSelf = holder.cardholderType === record.cardholderType && holder.identifier === record.identifier;
+                                    return '<tr class="border-t border-slate-100 text-slate-600 dark:border-zinc-800 dark:text-zinc-300"><td class="px-2 py-1.5 font-medium text-slate-900 dark:text-white">' + escapeHtml(holder.name || '-') + (isSelf ? ' <span class="ml-1 whitespace-nowrap rounded bg-emerald-100 px-1 py-0.5 text-[9px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">Rekod ini</span>' : '') + '</td>'
+                                        + '<td class="px-2 py-1.5">' + (holder.cardholderType === 'staff' ? 'Staf' : 'Pelajar') + '</td>'
+                                        + '<td class="px-2 py-1.5 font-mono">' + escapeHtml(holder.identifier || '-') + '</td>'
+                                        + '<td class="px-2 py-1.5 font-mono">' + escapeHtml(holder.cardStatus || '-') + '</td>'
+                                        + '<td class="px-2 py-1.5 font-mono">' + escapeHtml(holder.expiryDate || '-') + '</td></tr>';
+                                }).join('')
+                                + '</tbody></table></div></td></tr>';
+                        }
+                        return '<tr>' + cells(record) + '<td class="p-3"><div class="flex flex-wrap items-center gap-1">' + chips + toggle + '</div></td></tr>' + detailRow;
                     }).join('')
                     : '<tr><td colspan="7" class="p-4 text-center text-slate-500 dark:text-zinc-400">Tiada rekod disekat.</td></tr>';
             }
@@ -7521,6 +7816,15 @@
             });
             const csvButton = document.getElementById('uid-eligibility-csv');
             if (csvButton) csvButton.disabled = eligibleRows.length === 0;
+        }
+
+        function toggleUidHolders(rowId) {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+            row.classList.toggle('hidden');
+            const expanded = !row.classList.contains('hidden');
+            const button = document.querySelector('[aria-controls="' + rowId + '"]');
+            if (button) button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
         }
 
         function downloadUidEligibilityCsv() {
@@ -7686,4 +7990,1044 @@
                     if (shown) onShow(dialog); else onHide(dialog);
                 }).observe(dialog, { attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
             });
+        })();
+
+        /* --- Voice search -------------------------------------------------
+           A microphone on every search field dictates the query through the
+           Web Speech API, then fires the field's own input/change handlers so
+           each list filters exactly as if the words had been typed. Nothing in
+           the markup changes: the button is injected at runtime and the wrapper
+           inherits the input's sizing classes. When a browser has no
+           SpeechRecognition the control stays visible but explains itself
+           instead of failing silently. Only one dictation runs at a time. */
+        (function initVoiceSearch() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const supported = !!SpeechRecognition;
+            const TARGET_IDS = [
+                'master-search', 'command-palette-input', 'staff-directory-search',
+                'audit-search-input', 'sysweb-search-input', 'quality-search',
+                'session-history-filter', 'table-search', 'uda-search',
+                'uda-live-search', 'user-management-search', 'usm-approval-search'
+            ];
+            const INLINE_IDS = new Set(['command-palette-input']);
+            // Width utilities move to the wrapper so it occupies the same box
+            // the input did; everything visual stays on the input itself. The
+            // palette input sits in a flex row and is handled inline, so only
+            // width classes ever need moving here.
+            const SIZING_RE = /^(?:(?:sm|md|lg|xl|2xl):)?(?:w-|min-w-|max-w-)/;
+            const LANG = (document.documentElement.getAttribute('lang') === 'ms') ? 'ms-MY' : (navigator.language || 'en-US');
+            const IDLE_TITLE = supported
+                ? 'Carian suara — klik dan sebut nama, matrik atau kata kunci'
+                : 'Carian suara tidak disokong dalam pelayar ini';
+            const MIC_SVG = '<svg class="usm-voice-mic" viewBox="0 0 384 512" fill="currentColor" aria-hidden="true"><path d="M192 0C139 0 96 43 96 96V256c0 53 43 96 96 96s96-43 96-96V96c0-53-43-96-96-96zM64 208c0-8.8-7.2-16-16-16s-16 7.2-16 16v48c0 88.4 67.6 161 154 169.2V464H128c-8.8 0-16 7.2-16 16s7.2 16 16 16h128c8.8 0 16-7.2 16-16s-7.2-16-16-16H208V425.2C294.4 417 362 344.4 362 256V208c0-8.8-7.2-16-16-16s-16 7.2-16 16v48c0 75.1-60.9 136-136 136s-136-60.9-136-136V208z"/></svg>';
+            const BARS = '<span class="usm-voice-bars" aria-hidden="true"><span></span><span></span><span></span><span></span></span>';
+
+            let active = null; // { rec, btn, field, input, gotResult }
+
+            function notice(msg) { if (typeof showToast === 'function') showToast(msg); }
+            function isVisible(el) { return !!(el && el.getClientRects().length); }
+            function emit(input) {
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            function resetUI(a) {
+                if (a.watch) { window.cancelAnimationFrame(a.watch); a.watch = 0; }
+                a.btn.classList.remove('is-listening');
+                a.btn.setAttribute('aria-pressed', 'false');
+                a.btn.setAttribute('aria-label', 'Carian suara');
+                a.btn.title = IDLE_TITLE;
+                if (a.field) a.field.classList.remove('is-listening');
+            }
+            function stopActive() {
+                if (!active) return;
+                const a = active;
+                active = null;
+                try { a.rec.abort(); } catch (e) { try { a.rec.stop(); } catch (e2) {} }
+                resetUI(a);
+            }
+            // Runs only while a dictation is live: stops the mic the moment its
+            // field leaves the screen (palette closed, section switched), even
+            // when that is a class change the child-list observer cannot see.
+            function watchActive() {
+                if (!active) return;
+                if (!isVisible(active.input)) { stopActive(); return; }
+                active.watch = window.requestAnimationFrame(watchActive);
+            }
+            function start(input, btn, field) {
+                if (!supported) {
+                    notice('Carian suara tidak disokong dalam pelayar ini. Gunakan Chrome atau Edge terkini.');
+                    return;
+                }
+                if (active) {
+                    const same = active.btn === btn;
+                    stopActive();
+                    if (same) return; // clicking the live mic toggles it off
+                }
+                let rec;
+                try { rec = new SpeechRecognition(); }
+                catch (e) { notice('Carian suara tidak dapat dimulakan.'); return; }
+                rec.lang = LANG;
+                rec.interimResults = true;
+                rec.continuous = false;
+                rec.maxAlternatives = 1;
+                const a = { rec: rec, btn: btn, field: field, input: input, gotResult: false, watch: 0 };
+                active = a;
+                btn.classList.add('is-listening');
+                btn.setAttribute('aria-pressed', 'true');
+                btn.setAttribute('aria-label', 'Berhenti mendengar');
+                btn.title = 'Mendengar… klik untuk berhenti';
+                if (field) field.classList.add('is-listening');
+                a.watch = window.requestAnimationFrame(watchActive);
+
+                rec.onresult = function (event) {
+                    let text = '';
+                    let finalSeen = false;
+                    for (let i = 0; i < event.results.length; i++) {
+                        text += event.results[i][0].transcript;
+                        if (event.results[i].isFinal) finalSeen = true;
+                    }
+                    input.value = text.trim();
+                    a.gotResult = true;
+                    emit(input);
+                    if (finalSeen) { try { rec.stop(); } catch (e) {} }
+                };
+                rec.onerror = function (event) {
+                    const code = event && event.error;
+                    if (code === 'aborted') return;
+                    if (code === 'no-speech') {
+                        if (!a.gotResult) notice('Tiada suara dikesan. Klik mikrofon dan cuba lagi.');
+                        return;
+                    }
+                    let msg = 'Carian suara gagal. Cuba lagi.';
+                    if (code === 'not-allowed' || code === 'service-not-allowed') msg = 'Akses mikrofon ditolak. Benarkan mikrofon dalam tetapan pelayar untuk carian suara.';
+                    else if (code === 'audio-capture') msg = 'Mikrofon tidak ditemui. Sambungkan mikrofon dan cuba lagi.';
+                    else if (code === 'network') msg = 'Carian suara memerlukan sambungan internet. Semak rangkaian dan cuba lagi.';
+                    notice(msg);
+                };
+                rec.onend = function () {
+                    if (active === a) active = null;
+                    resetUI(a);
+                };
+                try { rec.start(); }
+                catch (e) { active = null; resetUI(a); notice('Carian suara tidak dapat dimulakan.'); }
+            }
+
+            function makeButton(input, getField) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'usm-voice-btn';
+                btn.innerHTML = MIC_SVG + BARS;
+                btn.setAttribute('aria-label', 'Carian suara');
+                btn.setAttribute('aria-pressed', 'false');
+                btn.title = IDLE_TITLE;
+                if (!supported) btn.classList.add('is-unsupported');
+                btn.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    start(input, btn, getField());
+                });
+                return btn;
+            }
+
+            function attach(input) {
+                if (!input || input.dataset.voiceBound === '1') return;
+                input.dataset.voiceBound = '1';
+                let field = null;
+                const btn = makeButton(input, function () { return field; });
+                if (INLINE_IDS.has(input.id)) {
+                    btn.classList.add('usm-voice-inline');
+                    input.insertAdjacentElement('afterend', btn);
+                    return;
+                }
+                field = document.createElement('span');
+                field.className = 'usm-voice-field';
+                const moved = [];
+                Array.prototype.forEach.call(input.classList, function (cls) {
+                    if (SIZING_RE.test(cls)) moved.push(cls);
+                });
+                moved.forEach(function (cls) { field.classList.add(cls); input.classList.remove(cls); });
+                input.classList.add('w-full');
+                input.style.paddingRight = '2.5rem';
+                const parent = input.parentNode;
+                if (!parent) return;
+                parent.insertBefore(field, input);
+                field.appendChild(input);
+                field.appendChild(btn);
+            }
+
+            function attachAll() {
+                for (let i = 0; i < TARGET_IDS.length; i++) {
+                    const el = document.getElementById(TARGET_IDS[i]);
+                    if (el) attach(el);
+                }
+                // Stop a dictation whose field has been hidden (palette closed,
+                // section switched) so the live mic never dangles out of sight.
+                if (active && !isVisible(active.input)) stopActive();
+            }
+
+            function boot() {
+                attachAll();
+                let scheduled = false;
+                const observer = new MutationObserver(function () {
+                    if (scheduled) return;
+                    scheduled = true;
+                    window.requestAnimationFrame(function () { scheduled = false; attachAll(); });
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+                document.addEventListener('visibilitychange', function () { if (document.hidden) stopActive(); });
+                window.addEventListener('pagehide', stopActive);
+            }
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+            else boot();
+        })();
+
+        /* --- Saved views & recent searches --------------------------------
+           Lets staff name, pin, recall and delete a directory filter combination, and keeps a
+           short automatic history of recent queries for one-click recall. Everything lives in
+           localStorage (a browser preference, like the theme and welcome opt-out) so no schema,
+           route or database write is involved. The toolbar is injected at runtime next to the
+           existing filter grid and reuses filterMasterTable() so applied views behave exactly
+           like manual filtering. Custom usm-views-* classes only: no new Tailwind utilities. */
+        (function initSavedViews() {
+            const KEY = 'usmsmart_saved_views_v1';
+            const CONTROLS = { q: 'master-search', school: 'master-school-filter', education: 'master-education-filter', category: 'master-category-filter', status: 'master-status-filter', sort: 'master-sort' };
+            const DEFAULT_SORT = 'name_asc';
+            const MAX_RECENT = 8;
+            const T = (ms, en) => (window.__usmLang === 'en' && en != null) ? en : ms;
+            const STATUS_LABEL = { active: 'Kad aktif', '7': 'Luput ≤7 hari', '14': 'Luput ≤14 hari', '30': 'Luput ≤30 hari', expired: 'Tamat tempoh' };
+            const STATUS_LABEL_EN = { active: 'Active card', '7': 'Expires ≤7 days', '14': 'Expires ≤14 days', '30': 'Expires ≤30 days', expired: 'Expired' };
+            const CATEGORY_LABEL = { Local: 'Tempatan', International: 'Antarabangsa', Unknown: 'Belum disahkan' };
+            const CATEGORY_LABEL_EN = { Local: 'Local', International: 'International', Unknown: 'Unverified' };
+            const SORT_LABEL = { name_asc: 'Nama A–Z', name_desc: 'Nama Z–A', school_asc: 'Sekolah A–Z', school_desc: 'Sekolah Z–A', date_joined_desc: 'Daftar terbaharu', date_joined_asc: 'Daftar terlama', expiry_date_asc: 'Luput terdekat', expiry_date_desc: 'Luput terjauh' };
+            const SORT_LABEL_EN = { name_asc: 'Name A–Z', name_desc: 'Name Z–A', school_asc: 'School A–Z', school_desc: 'School Z–A', date_joined_desc: 'Joined newest', date_joined_asc: 'Joined oldest', expiry_date_asc: 'Expiry nearest', expiry_date_desc: 'Expiry furthest' };
+            const statusLabel = v => (window.__usmLang === 'en' ? STATUS_LABEL_EN[v] : STATUS_LABEL[v]) || v;
+            const categoryLabel = v => (window.__usmLang === 'en' ? CATEGORY_LABEL_EN[v] : CATEGORY_LABEL[v]) || v;
+            const sortLabel = v => (window.__usmLang === 'en' ? SORT_LABEL_EN[v] : SORT_LABEL[v]) || v;
+            const ICO = {
+                bookmark: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 2h12a1 1 0 0 1 1 1v19l-7-4-7 4V3a1 1 0 0 1 1-1z"/></svg>',
+                bookmarkPlus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-4-7 4V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1z"/><path d="M12 7v6M9 10h6"/></svg>',
+                caret: '<svg class="usm-views-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+                trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>',
+                clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+                user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>'
+            };
+            const star = pinned => '<svg viewBox="0 0 24 24" fill="' + (pinned ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l2.9 6.4 7 .7-5.3 4.6 1.5 6.9-6.1-3.6-6.1 3.6 1.5-6.9L2.1 9.6l7-.7z"/></svg>';
+
+            let store = loadStore();
+            let suppress = false;
+            let recentTimer = 0;
+            let appliedDefault = false;
+            let openPanel = null;
+            let bar, listAnchor, listBtn, listPanel, listScroll, clearBtn, countBadge, saveAnchor, saveBtn, savePanel, nameInput, previewEl;
+            let recentPanel, recentScroll, recentClear, recentTitle, recentSearch, recentAnchor, recentOpen = false, recentActive = -1, recentMatches = [], recentRecalling = false;
+
+            function loadStore() {
+                try {
+                    const raw = window.localStorage.getItem(KEY);
+                    if (!raw) return { views: [], recent: [] };
+                    const parsed = JSON.parse(raw);
+                    return { views: Array.isArray(parsed.views) ? parsed.views : [], recent: Array.isArray(parsed.recent) ? parsed.recent : [] };
+                } catch (error) { return { views: [], recent: [] }; }
+            }
+            function persist() { try { window.localStorage.setItem(KEY, JSON.stringify(store)); } catch (error) { /* private mode: stay in-memory */ } }
+
+            function readState() {
+                const s = {};
+                Object.keys(CONTROLS).forEach(k => { const el = document.getElementById(CONTROLS[k]); s[k] = el ? String(el.value || '') : ''; });
+                if (!s.sort) s.sort = DEFAULT_SORT;
+                return s;
+            }
+            const signature = s => JSON.stringify([s.q, s.school, s.education, s.category, s.status, s.sort]);
+            const isDefault = s => !s.q && !s.school && !s.education && !s.category && !s.status && s.sort === DEFAULT_SORT;
+            function summarize(s) {
+                const parts = [];
+                if (s.q) parts.push('“' + s.q + '”');
+                if (s.school) parts.push(s.school);
+                if (s.education) parts.push(s.education);
+                if (s.category) parts.push(categoryLabel(s.category));
+                if (s.status) parts.push(statusLabel(s.status));
+                if (s.sort && s.sort !== DEFAULT_SORT) parts.push(sortLabel(s.sort));
+                return parts.length ? parts.join(' · ') : T('Semua pelajar', 'All students');
+            }
+            function timeAgo(ts) {
+                const secs = Math.max(0, Math.round((Date.now() - Number(ts || 0)) / 1000));
+                if (secs < 60) return T('baru sahaja', 'just now');
+                if (secs < 3600) return Math.floor(secs / 60) + T(' minit lalu', ' min ago');
+                if (secs < 86400) return Math.floor(secs / 3600) + T(' jam lalu', ' hr ago');
+                return Math.floor(secs / 86400) + T(' hari lalu', ' days ago');
+            }
+            function ensureOption(select, value) {
+                if (!select || !value) return;
+                if (Array.from(select.options).some(o => o.value === value)) return;
+                const opt = document.createElement('option');
+                opt.value = value; opt.textContent = value;
+                select.appendChild(opt);
+            }
+            function applyState(s) {
+                suppress = true;
+                clearTimeout(recentTimer);
+                try {
+                    Object.keys(CONTROLS).forEach(k => {
+                        const el = document.getElementById(CONTROLS[k]);
+                        if (!el) return;
+                        if (k === 'school' || k === 'education') ensureOption(el, s[k]);
+                        el.value = s[k] || (k === 'sort' ? DEFAULT_SORT : '');
+                    });
+                    if (typeof duplicateOnlyFilter !== 'undefined' && duplicateOnlyFilter) {
+                        duplicateOnlyFilter = false;
+                        const db = document.getElementById('duplicate-filter-button');
+                        if (db) db.textContent = 'Lihat rekod pendua';
+                    }
+                    if (typeof filterMasterTable === 'function') filterMasterTable();
+                } finally { suppress = false; }
+            }
+
+            /* Recent history: hook the single filter choke point so manual edits, quick pills,
+               column sorts and clears are all captured without touching their handlers. */
+            function hookFilter() {
+                const orig = window.filterMasterTable;
+                if (typeof orig !== 'function' || orig.__usmViewsHooked) return;
+                const wrapped = function () {
+                    const result = orig.apply(this, arguments);
+                    if (!appliedDefault) {
+                        appliedDefault = true;
+                        const pinned = store.views.find(v => v && v.pinned);
+                        if (pinned && pinned.state) applyState(pinned.state);
+                    }
+                    if (!suppress) { clearTimeout(recentTimer); recentTimer = setTimeout(captureRecent, 600); }
+                    return result;
+                };
+                wrapped.__usmViewsHooked = true;
+                window.filterMasterTable = wrapped;
+            }
+            function captureRecent() {
+                const s = readState();
+                if (isDefault(s)) return;
+                const sig = signature(s);
+                const now = Date.now();
+                const at = store.recent.findIndex(r => r && r.sig === sig);
+                if (at === 0) { store.recent[0].ts = now; }
+                else {
+                    if (at > 0) store.recent.splice(at, 1);
+                    store.recent.unshift({ sig: sig, state: s, ts: now });
+                    store.recent = store.recent.slice(0, MAX_RECENT);
+                }
+                persist();
+                if (openPanel === 'list') renderList();
+                if (recentOpen) renderRecent();
+            }
+
+            function saveView(name) {
+                store.views.unshift({ id: 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: name, state: readState(), pinned: false, created: Date.now() });
+                persist(); updateCount(); renderList();
+                if (typeof showToast === 'function') showToast(T('Paparan disimpan: ', 'View saved: ') + name);
+            }
+            function deleteView(id) { store.views = store.views.filter(v => v.id !== id); persist(); updateCount(); renderList(); }
+            function togglePin(id) {
+                const view = store.views.find(v => v.id === id);
+                if (!view) return;
+                const willPin = !view.pinned;
+                store.views.forEach(v => { v.pinned = false; });
+                view.pinned = willPin;
+                persist(); renderList();
+                if (typeof showToast === 'function') showToast(willPin ? T('Paparan ini akan digunakan automatik apabila direktori dibuka.', 'This view will apply automatically when the directory opens.') : T('Paparan tidak lagi digunakan automatik.', 'This view no longer applies automatically.'));
+            }
+            function applyView(view) { applyState(view.state); closePanels(); renderList(); if (typeof showToast === 'function') showToast(T('Paparan digunakan: ', 'View applied: ') + view.name); }
+            function applyRecent(entry) { applyState(entry.state); closePanels(); }
+
+            /* Recent history at the search box: the same store.recent that the saved-views panel
+               shows, surfaced where people actually search. Focus opens it, typing narrows the
+               matches, arrow keys + Enter recall a query, and captures keep it live. */
+            /* One assist list: matching records (while typing) followed by recent searches.
+               Records come from the loaded allMasterStudents; recent from the shared store. */
+            function searchAssistItems() {
+                const term = (recentSearch && recentSearch.value || '').trim();
+                const lower = term.toLowerCase();
+                const items = [];
+                if (lower && typeof allMasterStudents !== 'undefined' && Array.isArray(allMasterStudents)) {
+                    const seen = new Set(); const recs = [];
+                    for (const r of allMasterStudents) {
+                        const name = String(r.name || ''); const nl = name.toLowerCase();
+                        const matric = String(r.matric || ''); const uid = String(r.usmUid || '');
+                        const serial = String(r.serialNo || ''); const school = String(r.school || '');
+                        let score = -1;
+                        if (nl.startsWith(lower)) score = 0;
+                        else if (nl.includes(lower)) score = 1;
+                        else if (matric.toLowerCase().includes(lower) || uid.toLowerCase().includes(lower) || serial.toLowerCase().includes(lower)) score = 2;
+                        else if (school.toLowerCase().includes(lower)) score = 3;
+                        if (score < 0) continue;
+                        const key = String(r.id);
+                        if (seen.has(key)) continue;
+                        seen.add(key);
+                        recs.push({ r: r, score: score });
+                    }
+                    recs.sort((a, b) => a.score - b.score || String(a.r.name || '').localeCompare(String(b.r.name || ''), undefined, { sensitivity: 'base' }));
+                    recs.slice(0, 6).forEach(rec => items.push({
+                        kind: 'record', record: rec.r,
+                        label: String(rec.r.name || T('(tanpa nama)', '(no name)')),
+                        sub: [rec.r.matric, rec.r.school].filter(Boolean).join(' · ')
+                    }));
+                }
+                const recentPart = !lower ? store.recent.slice() : store.recent.filter(x => x && summarize(x.state || {}).toLowerCase().indexOf(lower) !== -1);
+                recentPart.forEach(entry => items.push({ kind: 'recent', entry: entry, label: summarize(entry.state || {}), sub: timeAgo(entry.ts) }));
+                return { items: items, term: term, hasRecords: items.some(i => i.kind === 'record') };
+            }
+            function renderRecent() {
+                if (!recentScroll) return;
+                recentScroll.textContent = '';
+                const assist = searchAssistItems();
+                recentMatches = assist.items;
+                if (recentActive >= recentMatches.length) recentActive = recentMatches.length - 1;
+                if (recentTitle) recentTitle.textContent = assist.term && assist.hasRecords ? T('Cadangan carian', 'Search suggestions') : T('Carian terkini', 'Recent searches');
+                if (!recentMatches.length) {
+                    const empty = document.createElement('div'); empty.className = 'usm-recent-empty';
+                    empty.textContent = assist.term
+                        ? T('Tiada padanan untuk “' + assist.term + '”. Cuba kata kunci lain.', 'No matches for “' + assist.term + '”. Try another keyword.')
+                        : T('Tiada carian terkini. Carian anda akan muncul di sini secara automatik.', 'No recent searches yet. Your searches will appear here automatically.');
+                    recentScroll.appendChild(empty);
+                } else {
+                    let lastKind = null;
+                    recentMatches.forEach((item, i) => {
+                        if (item.kind !== lastKind) {
+                            const sec = document.createElement('div'); sec.className = 'usm-recent-section';
+                            sec.textContent = item.kind === 'record' ? T('Padanan rekod', 'Record matches') : T('Carian terkini', 'Recent searches');
+                            recentScroll.appendChild(sec); lastKind = item.kind;
+                        }
+                        const row = document.createElement('button');
+                        row.type = 'button'; row.className = 'usm-recent-item' + (i === recentActive ? ' is-active' : '');
+                        row.id = 'usm-recent-opt-' + i; row.dataset.idx = String(i); row.setAttribute('role', 'option');
+                        row.setAttribute('aria-selected', String(i === recentActive));
+                        const ico = document.createElement('span'); ico.className = 'usm-recent-ico'; ico.innerHTML = item.kind === 'record' ? ICO.user : ICO.clock;
+                        const text = document.createElement('span'); text.className = 'usm-recent-text';
+                        const nm = document.createElement('span'); nm.className = 'usm-recent-name'; nm.textContent = item.label;
+                        const tm = document.createElement('span'); tm.className = 'usm-recent-time'; tm.textContent = item.sub;
+                        text.appendChild(nm); text.appendChild(tm);
+                        row.appendChild(ico); row.appendChild(text);
+                        row.addEventListener('click', () => applySearchItem(item));
+                        row.addEventListener('mouseenter', () => { recentActive = i; paintRecentActive(); });
+                        recentScroll.appendChild(row);
+                    });
+                }
+                if (recentClear) recentClear.disabled = store.recent.length === 0;
+                paintRecentActive();
+            }
+            function paintRecentActive() {
+                if (!recentScroll) return;
+                recentScroll.querySelectorAll('.usm-recent-item').forEach(row => {
+                    const on = Number(row.dataset.idx) === recentActive;
+                    row.classList.toggle('is-active', on);
+                    row.setAttribute('aria-selected', String(on));
+                });
+                if (recentSearch) {
+                    if (recentActive >= 0 && recentMatches[recentActive]) recentSearch.setAttribute('aria-activedescendant', 'usm-recent-opt-' + recentActive);
+                    else recentSearch.removeAttribute('aria-activedescendant');
+                }
+            }
+            function openRecent() {
+                if (!recentPanel || recentOpen || recentRecalling) return;
+                recentOpen = true; recentPanel.hidden = false; recentActive = -1;
+                if (recentSearch) { recentSearch.setAttribute('aria-expanded', 'true'); recentSearch.setAttribute('aria-controls', 'usm-recent-panel'); }
+                renderRecent();
+            }
+            function closeRecent() {
+                if (!recentPanel || !recentOpen) return;
+                recentOpen = false; recentPanel.hidden = true; recentActive = -1;
+                if (recentSearch) { recentSearch.setAttribute('aria-expanded', 'false'); recentSearch.removeAttribute('aria-activedescendant'); }
+            }
+            function applySearchItem(item) {
+                if (!item) return;
+                if (item.kind === 'recent') applyRecent(item.entry);
+                else if (item.kind === 'record') {
+                    const r = item.record;
+                    if (recentSearch) recentSearch.value = String(r.matric || r.usmUid || r.name || '');
+                    if (typeof filterMasterTable === 'function') filterMasterTable();
+                }
+                closeRecent();
+                recentRecalling = true;
+                if (recentSearch) recentSearch.focus();
+                recentRecalling = false;
+            }
+            function clearRecent() { store.recent = []; persist(); renderRecent(); if (openPanel === 'list') renderList(); }
+            function moveRecentActive(delta) {
+                if (!recentMatches.length) return;
+                recentActive = (recentActive + delta + recentMatches.length) % recentMatches.length;
+                paintRecentActive();
+                const el = document.getElementById('usm-recent-opt-' + recentActive);
+                if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+            }
+            function buildRecent(search) {
+                recentSearch = search;
+                recentAnchor = search.parentElement;
+                if (!recentAnchor) return;
+                recentPanel = document.createElement('div'); recentPanel.className = 'usm-recent-panel'; recentPanel.id = 'usm-recent-panel';
+                recentPanel.hidden = true; recentPanel.setAttribute('role', 'listbox'); recentPanel.setAttribute('aria-label', T('Cadangan carian dan carian terkini', 'Search suggestions and recent searches'));
+                const head = document.createElement('div'); head.className = 'usm-recent-head';
+                recentTitle = document.createElement('span'); recentTitle.className = 'usm-recent-title'; recentTitle.textContent = T('Carian terkini', 'Recent searches');
+                recentClear = document.createElement('button'); recentClear.type = 'button'; recentClear.className = 'usm-recent-clear'; recentClear.textContent = T('Kosongkan', 'Clear');
+                recentClear.addEventListener('click', clearRecent);
+                head.appendChild(recentTitle); head.appendChild(recentClear);
+                recentScroll = document.createElement('div'); recentScroll.className = 'usm-recent-scroll';
+                const hint = document.createElement('div'); hint.className = 'usm-recent-hint'; hint.textContent = T('↑↓ pilih · Enter guna · Esc tutup', '↑↓ select · Enter use · Esc close');
+                recentPanel.appendChild(head); recentPanel.appendChild(recentScroll); recentPanel.appendChild(hint);
+                recentAnchor.appendChild(recentPanel);
+                search.setAttribute('aria-expanded', 'false'); search.setAttribute('aria-haspopup', 'listbox'); search.setAttribute('autocomplete', 'off');
+                search.addEventListener('focus', openRecent);
+                search.addEventListener('input', () => { if (recentOpen) { recentActive = -1; renderRecent(); } });
+                search.addEventListener('keydown', e => {
+                    if (e.key === 'ArrowDown') { e.preventDefault(); if (!recentOpen) openRecent(); else moveRecentActive(1); }
+                    else if (e.key === 'ArrowUp') { if (recentOpen) { e.preventDefault(); moveRecentActive(-1); } }
+                    else if (e.key === 'Enter') { if (recentOpen && recentActive >= 0 && recentMatches[recentActive]) { e.preventDefault(); applySearchItem(recentMatches[recentActive]); } else closeRecent(); }
+                    else if (e.key === 'Escape') { if (recentOpen) { e.preventDefault(); e.stopPropagation(); closeRecent(); } }
+                    else if (e.key === 'Tab') { closeRecent(); }
+                });
+            }
+
+            function suggestName() {
+                const s = readState();
+                if (s.status && STATUS_LABEL[s.status]) return statusLabel(s.status);
+                if (s.q) return '“' + s.q + '”';
+                if (s.school) return s.school;
+                return T('Paparan ', 'View ') + (store.views.length + 1);
+            }
+            function updateCount() { if (countBadge) { countBadge.textContent = String(store.views.length); countBadge.hidden = store.views.length === 0; } }
+
+            function setOpen(which) {
+                openPanel = which;
+                if (listPanel) listPanel.hidden = which !== 'list';
+                if (savePanel) savePanel.hidden = which !== 'save';
+                if (listAnchor) listAnchor.classList.toggle('is-open', which === 'list');
+                if (saveAnchor) saveAnchor.classList.toggle('is-open', which === 'save');
+                if (listBtn) listBtn.setAttribute('aria-expanded', String(which === 'list'));
+                if (saveBtn) saveBtn.setAttribute('aria-expanded', String(which === 'save'));
+                if (which === 'list') renderList();
+                if (which === 'save' && nameInput && previewEl) {
+                    previewEl.textContent = summarize(readState());
+                    nameInput.value = suggestName();
+                    setTimeout(() => { nameInput.focus(); nameInput.select(); }, 0);
+                }
+            }
+            function closePanels() { setOpen(null); }
+
+            function iconButton(cls, label, svg, onClick) {
+                const b = document.createElement('button');
+                b.type = 'button'; b.className = 'usm-views-iconbtn' + (cls ? ' ' + cls : '');
+                b.setAttribute('aria-label', label); b.title = label; b.innerHTML = svg;
+                b.addEventListener('click', onClick);
+                return b;
+            }
+            function renderList() {
+                if (!listScroll) return;
+                listScroll.textContent = '';
+                const current = signature(readState());
+                const head = document.createElement('div'); head.className = 'usm-views-section'; head.textContent = T('Paparan tersimpan', 'Saved views');
+                listScroll.appendChild(head);
+                if (!store.views.length) {
+                    const empty = document.createElement('div'); empty.className = 'usm-views-empty';
+                    empty.textContent = T('Tiada paparan disimpan. Tekan “Simpan paparan” untuk menyimpan kombinasi tapisan semasa.', 'No saved views yet. Press “Save view” to store the current filter combination.');
+                    listScroll.appendChild(empty);
+                } else {
+                    store.views.forEach(view => {
+                        const row = document.createElement('div'); row.className = 'usm-views-item' + (signature(view.state || {}) === current ? ' is-active' : '');
+                        row.appendChild(iconButton(view.pinned ? 'is-pinned' : '', view.pinned ? T('Nyahtamat paparan automatik', 'Stop auto-applying view') : T('Jadikan paparan automatik', 'Make this the auto view'), star(view.pinned), () => togglePin(view.id)));
+                        const main = document.createElement('button'); main.type = 'button'; main.className = 'usm-views-item-main';
+                        const nm = document.createElement('span'); nm.className = 'usm-views-item-name'; nm.textContent = view.name;
+                        const sm = document.createElement('span'); sm.className = 'usm-views-item-sum'; sm.textContent = summarize(view.state || {});
+                        main.appendChild(nm); main.appendChild(sm);
+                        main.addEventListener('click', () => applyView(view));
+                        row.appendChild(main);
+                        row.appendChild(iconButton('is-danger', T('Padam paparan ', 'Delete view ') + view.name, ICO.trash, () => deleteView(view.id)));
+                        listScroll.appendChild(row);
+                    });
+                }
+                const divider = document.createElement('div'); divider.className = 'usm-views-divider'; listScroll.appendChild(divider);
+                const rhead = document.createElement('div'); rhead.className = 'usm-views-section'; rhead.textContent = T('Carian terkini', 'Recent searches');
+                listScroll.appendChild(rhead);
+                if (!store.recent.length) {
+                    const empty = document.createElement('div'); empty.className = 'usm-views-empty'; empty.textContent = T('Tiada carian terkini.', 'No recent searches.');
+                    listScroll.appendChild(empty);
+                } else {
+                    store.recent.forEach(entry => {
+                        const row = document.createElement('div'); row.className = 'usm-views-item';
+                        const main = document.createElement('button'); main.type = 'button'; main.className = 'usm-views-item-main';
+                        const nm = document.createElement('span'); nm.className = 'usm-views-item-name'; nm.textContent = summarize(entry.state || {});
+                        const sm = document.createElement('span'); sm.className = 'usm-views-item-sum'; sm.textContent = timeAgo(entry.ts);
+                        main.appendChild(nm); main.appendChild(sm);
+                        main.addEventListener('click', () => applyRecent(entry));
+                        row.appendChild(iconButton('', T('Carian terkini', 'Recent searches'), ICO.clock, () => applyRecent(entry)));
+                        row.appendChild(main);
+                        listScroll.appendChild(row);
+                    });
+                }
+                if (clearBtn) clearBtn.disabled = store.recent.length === 0;
+            }
+
+            function build() {
+                const search = document.getElementById('master-search');
+                if (!search || !search.parentElement || !search.parentElement.parentElement) return false;
+                const grid = search.parentElement.parentElement;
+                bar = document.createElement('div'); bar.className = 'usm-views-bar';
+                const label = document.createElement('span'); label.className = 'usm-views-label'; label.textContent = 'Paparan'; label.setAttribute('data-usm-i18n', 'views.label');
+                bar.appendChild(label);
+
+                listAnchor = document.createElement('div'); listAnchor.className = 'usm-views-anchor';
+                listBtn = document.createElement('button'); listBtn.type = 'button'; listBtn.className = 'usm-views-trigger';
+                listBtn.setAttribute('aria-haspopup', 'true'); listBtn.setAttribute('aria-expanded', 'false');
+                listBtn.innerHTML = ICO.bookmark + '<span data-usm-i18n="views.saved">Paparan Tersimpan</span>';
+                countBadge = document.createElement('span'); countBadge.className = 'usm-views-count'; countBadge.hidden = true;
+                listBtn.appendChild(countBadge);
+                listBtn.insertAdjacentHTML('beforeend', ICO.caret);
+                listBtn.addEventListener('click', () => setOpen(openPanel === 'list' ? null : 'list'));
+                listPanel = document.createElement('div'); listPanel.className = 'usm-views-panel'; listPanel.hidden = true;
+                listPanel.setAttribute('role', 'dialog'); listPanel.setAttribute('aria-label', 'Paparan tersimpan dan carian terkini'); listPanel.setAttribute('data-usm-i18n-aria', 'views.panelAria');
+                listScroll = document.createElement('div'); listScroll.className = 'usm-views-scroll';
+                const foot = document.createElement('div'); foot.className = 'usm-views-foot';
+                clearBtn = document.createElement('button'); clearBtn.type = 'button'; clearBtn.className = 'usm-views-link'; clearBtn.textContent = 'Kosongkan terkini'; clearBtn.setAttribute('data-usm-i18n', 'views.clearRecent');
+                clearBtn.addEventListener('click', clearRecent);
+                foot.appendChild(clearBtn);
+                listPanel.appendChild(listScroll); listPanel.appendChild(foot);
+                listAnchor.appendChild(listBtn); listAnchor.appendChild(listPanel);
+                bar.appendChild(listAnchor);
+
+                saveAnchor = document.createElement('div'); saveAnchor.className = 'usm-views-anchor';
+                saveBtn = document.createElement('button'); saveBtn.type = 'button'; saveBtn.className = 'usm-views-trigger';
+                saveBtn.setAttribute('aria-haspopup', 'true'); saveBtn.setAttribute('aria-expanded', 'false');
+                saveBtn.innerHTML = ICO.bookmarkPlus + '<span data-usm-i18n="views.save">Simpan paparan</span>';
+                saveBtn.addEventListener('click', () => setOpen(openPanel === 'save' ? null : 'save'));
+                savePanel = document.createElement('div'); savePanel.className = 'usm-views-panel usm-views-savepanel'; savePanel.hidden = true;
+                savePanel.setAttribute('role', 'dialog'); savePanel.setAttribute('aria-label', 'Simpan paparan'); savePanel.setAttribute('data-usm-i18n-aria', 'views.saveAria');
+                const fl = document.createElement('label'); fl.className = 'usm-views-fieldlabel'; fl.textContent = 'Nama paparan'; fl.setAttribute('data-usm-i18n', 'views.nameLabel');
+                nameInput = document.createElement('input'); nameInput.type = 'text'; nameInput.className = 'usm-views-input'; nameInput.maxLength = 40;
+                nameInput.placeholder = 'cth. Hampir luput ≤30 hari'; nameInput.id = 'usm-views-name-input'; nameInput.setAttribute('data-usm-i18n-placeholder', 'views.namePlaceholder');
+                fl.htmlFor = nameInput.id;
+                previewEl = document.createElement('div'); previewEl.className = 'usm-views-preview';
+                const actions = document.createElement('div'); actions.className = 'usm-views-actions';
+                const cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'usm-views-btn'; cancel.textContent = 'Batal'; cancel.setAttribute('data-usm-i18n', 'views.cancel');
+                cancel.addEventListener('click', closePanels);
+                const confirm = document.createElement('button'); confirm.type = 'button'; confirm.className = 'usm-views-btn usm-views-btn-primary'; confirm.textContent = 'Simpan'; confirm.setAttribute('data-usm-i18n', 'views.confirm');
+                const doSave = () => {
+                    const name = nameInput.value.trim();
+                    if (!name) { nameInput.focus(); if (typeof showToast === 'function') showToast(T('Sila berikan nama paparan.', 'Please give the view a name.')); return; }
+                    saveView(name); closePanels();
+                };
+                confirm.addEventListener('click', doSave);
+                nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doSave(); } });
+                actions.appendChild(cancel); actions.appendChild(confirm);
+                savePanel.appendChild(fl); savePanel.appendChild(nameInput); savePanel.appendChild(previewEl); savePanel.appendChild(actions);
+                saveAnchor.appendChild(saveBtn); saveAnchor.appendChild(savePanel);
+                bar.appendChild(saveAnchor);
+
+                grid.parentElement.insertBefore(bar, grid);
+                buildRecent(search);
+                return true;
+            }
+
+            function boot() {
+                if (!build()) return;
+                hookFilter();
+                updateCount();
+                document.addEventListener('click', e => {
+                    if (openPanel && bar && !bar.contains(e.target)) closePanels();
+                    if (recentOpen && recentAnchor && !recentAnchor.contains(e.target)) closeRecent();
+                });
+                document.addEventListener('keydown', e => { if (e.key === 'Escape' && openPanel) closePanels(); });
+                window.addEventListener('usm:langchange', () => {
+                    if (listScroll) renderList();
+                    if (recentClear) recentClear.textContent = T('Kosongkan', 'Clear');
+                    if (recentPanel) {
+                        recentPanel.setAttribute('aria-label', T('Cadangan carian dan carian terkini', 'Search suggestions and recent searches'));
+                        const h = recentPanel.querySelector('.usm-recent-hint');
+                        if (h) h.textContent = T('↑↓ pilih · Enter guna · Esc tutup', '↑↓ select · Enter use · Esc close');
+                    }
+                    if (recentOpen) renderRecent();
+                });
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+            else boot();
+        })();
+
+        /* --- Greeting weather ------------------------------------------------
+           Adds a third hero pill (beside date/clock) with current conditions for the visitor's
+           location. The browser makes one same-origin request to weather.php, which resolves
+           location (GPS coords when available, else IP city, else campus) and fetches the forecast
+           server-side (Open-Meteo, then met.no), mapping the WMO code to a Malay label + inline SVG
+           icon. This avoids browser CORS/network blocks on third-party hosts. Results cache in
+           localStorage for 30 minutes; clicking the pill forces a refresh. If the proxy reports no
+           data we reuse a stale cache or hide the pill rather than error in the greeting. No
+           schema/route/DB change; custom usm-weather-* classes only (no Tailwind delta). */
+        (function initGreetingWeather() {
+            const KEY = 'usmsmart_weather_v1';
+            const TTL = 30 * 60 * 1000;
+            const T = (ms, en) => (window.__usmLang === 'en' && en != null) ? en : ms;
+            const S = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+            const CLOUD = '<path d="M6.5 15h11a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.2 5.6 4.7 4.7 0 0 0 6.5 15z"/>';
+            const ICO = {
+                sun: S + '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+                suncloud: S + '<circle cx="7" cy="7" r="2.5"/><path d="M7 2v1.5M2 7h1.5M3.6 3.6l1 1M12 7h-1.5M10.4 3.6l-1 1"/><path d="M10 20h8a3.5 3.5 0 0 0 .4-7A5 5 0 0 0 9 12.6 3.7 3.7 0 0 0 10 20z"/></svg>',
+                cloud: S + '<path d="M6.5 18h11a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.2 8.6 4.7 4.7 0 0 0 6.5 18z"/></svg>',
+                fog: S + CLOUD + '<path d="M5 19h14M7 22h10"/></svg>',
+                drizzle: S + CLOUD + '<path d="M8 18v1M12 19v1M16 18v1"/></svg>',
+                rain: S + CLOUD + '<path d="M8 18l-1 3M12 18l-1 3M16 18l-1 3"/></svg>',
+                showers: S + CLOUD + '<path d="M9 18l-1 2.5M14 18l-1 2.5"/></svg>',
+                snow: S + CLOUD + '<path d="M8 19h.01M12 20h.01M16 19h.01M10 22h.01M14 22h.01"/></svg>',
+                storm: S + CLOUD + '<path d="M12 16l-2 3.5h3L11 23"/></svg>',
+                spinner: S + '<path d="M12 3a9 9 0 1 0 9 9"/></svg>'
+            };
+            function describe(code) {
+                const c = Number(code);
+                if (c === 0 || c === 1) return { label: T('Cerah', 'Clear'), icon: ICO.sun };
+                if (c === 2) return { label: T('Berawan sedikit', 'Partly cloudy'), icon: ICO.suncloud };
+                if (c === 3) return { label: T('Mendung', 'Overcast'), icon: ICO.cloud };
+                if (c === 45 || c === 48) return { label: T('Kabus', 'Fog'), icon: ICO.fog };
+                if (c >= 51 && c <= 57) return { label: T('Renyik', 'Drizzle'), icon: ICO.drizzle };
+                if (c === 61) return { label: T('Hujan ringan', 'Light rain'), icon: ICO.rain };
+                if (c === 63) return { label: T('Hujan', 'Rain'), icon: ICO.rain };
+                if (c === 65 || c === 66 || c === 67) return { label: T('Hujan lebat', 'Heavy rain'), icon: ICO.rain };
+                if ((c >= 71 && c <= 77) || c === 85 || c === 86) return { label: T('Salji', 'Snow'), icon: ICO.snow };
+                if (c >= 80 && c <= 82) return { label: T('Hujan sekejap', 'Showers'), icon: ICO.showers };
+                if (c >= 95) return { label: T('Ribut petir', 'Thunderstorm'), icon: ICO.storm };
+                return { label: T('Berawan', 'Cloudy'), icon: ICO.cloud };
+            }
+            let pill = null;
+            let busy = false;
+
+            function readCache() { try { const raw = window.localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; } }
+            function writeCache(entry) { try { window.localStorage.setItem(KEY, JSON.stringify(entry)); } catch (e) { /* private mode */ } }
+            function hide() { if (pill) pill.hidden = true; }
+            function setLoading() {
+                if (!pill) return;
+                pill.hidden = false; pill.classList.add('is-loading');
+                pill.innerHTML = ICO.spinner + '<span>' + T('Memuatkan cuaca…', 'Loading weather…') + '</span>';
+                pill.title = T('Memuatkan cuaca semasa…', 'Loading current weather…');
+            }
+            function render(entry, stale) {
+                if (!pill || !entry || !entry.data) return;
+                const d = describe(entry.data.code);
+                pill.classList.remove('is-loading'); pill.hidden = false;
+                pill.innerHTML = d.icon + '<span class="usm-weather-temp"></span><span class="usm-weather-sep">·</span><span class="usm-weather-cond"></span><span class="usm-weather-sep usm-weather-sep-place">·</span>';
+                pill.querySelector('.usm-weather-temp').textContent = entry.data.temp + '°C';
+                pill.querySelector('.usm-weather-cond').textContent = d.label;
+                const place = document.createElement('span'); place.className = 'usm-weather-place';
+                place.textContent = entry.place || T('Lokasi anda', 'Your location');   // external geocode: text only, never markup
+                pill.appendChild(place);
+                pill.title = (stale ? T('(data cache) ', '(cached data) ') : '') + d.label + ' · ' + T('rasa ', 'feels ') + entry.data.feels + '°C · ' + T('lembapan ', 'humidity ') + entry.data.humidity + '% · ' + T('angin ', 'wind ') + entry.data.wind + ' km/j · ' + (entry.place || T('Lokasi anda', 'Your location')) + '. ' + T('Klik untuk muat semula.', 'Click to refresh.');
+                pill.setAttribute('aria-label', T('Cuaca semasa: ', 'Current weather: ') + d.label + ', ' + entry.data.temp + T(' darjah Celsius di ', ' degrees Celsius at ') + (entry.place || T('lokasi anda', 'your location')) + '. ' + T('Klik untuk muat semula.', 'Click to refresh.'));
+            }
+            /* The browser cannot reliably reach third-party forecast/geocode hosts
+               (CORS, network policy, and GPS disabled by the app's Permissions-Policy),
+               so the pill makes one same-origin request to weather.php; the server
+               resolves location + conditions upstream and falls back across providers.
+               When the browser does have GPS coords we pass them through for a precise
+               local reading. A timeout keeps a slow upstream from leaving the pill stuck. */
+            function endpoint() {
+                const s = document.querySelector('script[src*="usmsmart-dashboard.js"]');
+                if (s) {
+                    const u = new URL(s.getAttribute('src'), document.baseURI);
+                    u.pathname = u.pathname.replace(/assets\/usmsmart-dashboard\.js$/, 'weather.php');
+                    u.search = ''; u.hash = '';
+                    return u.toString();
+                }
+                return new URL('weather.php', document.baseURI).toString();
+            }
+            function gpsCoords() {
+                if (!window.isSecureContext || !navigator.geolocation) return Promise.resolve(null);
+                return new Promise(resolve => {
+                    navigator.geolocation.getCurrentPosition(
+                        pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                        () => resolve(null),
+                        { timeout: 6000, maximumAge: 600000 }
+                    );
+                });
+            }
+            async function fetchWeather() {
+                const gps = await gpsCoords();
+                let url = endpoint();
+                if (gps) url += '?lat=' + gps.lat + '&lon=' + gps.lon;
+                const ctrl = new AbortController();
+                const timer = setTimeout(() => ctrl.abort(), 20000);
+                try {
+                    const res = await fetch(url, { signal: ctrl.signal, headers: { 'Accept': 'application/json' } });
+                    if (!res.ok) throw new Error('weather http ' + res.status);
+                    const j = await res.json();
+                    if (!j || j.error || !j.data) throw new Error(j && j.error ? j.error : 'no data');
+                    return { lat: j.lat, lon: j.lon, place: j.place, data: j.data };
+                } finally { clearTimeout(timer); }
+            }
+            async function load(force) {
+                if (busy || !pill) return;
+                busy = true;
+                try {
+                    const cache = readCache();
+                    if (!force && cache && cache.data && (Date.now() - Number(cache.ts || 0)) < TTL) { render(cache, false); return; }
+                    setLoading();
+                    let entry;
+                    try { entry = await fetchWeather(); }
+                    catch (e) { if (cache && cache.data) render(cache, true); else hide(); return; }
+                    entry.ts = Date.now();
+                    writeCache(entry);
+                    render(entry, false);
+                } finally { busy = false; }
+            }
+            function boot() {
+                const meta = document.querySelector('.usm-hero-meta');
+                if (!meta) return;
+                pill = document.createElement('button');
+                pill.type = 'button'; pill.className = 'usm-hero-pill usm-weather-pill'; pill.hidden = true;
+                pill.addEventListener('click', () => load(true));
+                meta.appendChild(pill);
+                load(false);
+                window.addEventListener('usm:langchange', () => {
+                    const cache = readCache();
+                    if (cache && cache.data && !pill.hidden) render(cache, (Date.now() - Number(cache.ts || 0)) >= TTL);
+                });
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+            else boot();
+        })();
+
+        /* --- Undo after delete ------------------------------------------------
+           Wraps the directory's single and bulk delete entry points with a short undo window.
+           The rows are removed optimistically and the server call is held for six seconds; Undo
+           restores the exact records and selection, while committing (timeout or dismiss) runs the
+           real endpoint and refetches authoritative data. No schema change; the original confirm()
+           is replaced by the reversible toast. Custom usm-undo-* classes only (no Tailwind delta). */
+        (function initUndoDelete() {
+            const WINDOW_MS = 6000;
+            const T = (ms, en) => (window.__usmLang === 'en' && en != null) ? en : ms;
+            const ICO_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>';
+            const ICO_UNDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>';
+            let pending = null;
+            let toast, labelEl, barEl, undoBtn, dismissBtn, timer = 0;
+
+            function ensureToast() {
+                if (toast) return;
+                toast = document.createElement('div'); toast.className = 'usm-undo-toast'; toast.hidden = true;
+                toast.setAttribute('role', 'status'); toast.setAttribute('aria-live', 'polite');
+                const ico = document.createElement('span'); ico.className = 'usm-undo-ico'; ico.innerHTML = ICO_TRASH;
+                const body = document.createElement('div'); body.className = 'usm-undo-body';
+                labelEl = document.createElement('div'); labelEl.className = 'usm-undo-label';
+                const sub = document.createElement('div'); sub.className = 'usm-undo-sub'; sub.textContent = 'Belum dihantar ke pelayan — buat asal sekarang.'; sub.setAttribute('data-usm-i18n', 'undo.sub');
+                body.appendChild(labelEl); body.appendChild(sub);
+                undoBtn = document.createElement('button'); undoBtn.type = 'button'; undoBtn.className = 'usm-undo-btn';
+                undoBtn.innerHTML = ICO_UNDO + '<span data-usm-i18n="undo.btn">Buat asal</span>';
+                undoBtn.addEventListener('click', undoPending);
+                dismissBtn = document.createElement('button'); dismissBtn.type = 'button'; dismissBtn.className = 'usm-undo-dismiss';
+                dismissBtn.setAttribute('aria-label', 'Hantar sekarang'); dismissBtn.title = 'Hantar sekarang'; dismissBtn.textContent = '×'; dismissBtn.setAttribute('data-usm-i18n-aria', 'undo.dismiss');
+                dismissBtn.addEventListener('click', () => commitPending());
+                barEl = document.createElement('span'); barEl.className = 'usm-undo-bar';
+                toast.appendChild(ico); toast.appendChild(body); toast.appendChild(undoBtn); toast.appendChild(dismissBtn); toast.appendChild(barEl);
+                document.body.appendChild(toast);
+            }
+            function showToastUndo(label) {
+                ensureToast();
+                labelEl.textContent = label;
+                toast.hidden = false;
+                barEl.style.transition = 'none'; barEl.style.transform = 'scaleX(1)';
+                void barEl.offsetWidth;
+                barEl.style.transition = 'transform ' + WINDOW_MS + 'ms linear'; barEl.style.transform = 'scaleX(0)';
+            }
+            function hideToast() { if (toast) toast.hidden = true; }
+
+            function snapshotRecords(ids) {
+                const set = new Set(ids.map(String));
+                return (allMasterStudents || []).filter(r => set.has(String(r.id))).map(r => Object.assign({}, r));
+            }
+            function removeOptimistic(ids) {
+                const set = new Set(ids.map(String));
+                const selectedBefore = ids.filter(id => masterSelectedIds.has(String(id)));
+                allMasterStudents = (allMasterStudents || []).filter(r => !set.has(String(r.id)));
+                ids.forEach(id => masterSelectedIds.delete(String(id)));
+                if (typeof filterMasterTable === 'function') filterMasterTable();
+                if (typeof updateMasterBulkToolbar === 'function') updateMasterBulkToolbar();
+                return selectedBefore;
+            }
+            function restoreRecords(snapshot, selectedBefore) {
+                const present = new Set((allMasterStudents || []).map(r => String(r.id)));
+                snapshot.forEach(r => { if (!present.has(String(r.id))) allMasterStudents.push(r); });
+                (selectedBefore || []).forEach(id => masterSelectedIds.add(String(id)));
+                if (typeof filterMasterTable === 'function') filterMasterTable();
+                if (typeof updateMasterBulkToolbar === 'function') updateMasterBulkToolbar();
+            }
+            function undoPending() {
+                if (!pending) return;
+                clearTimeout(timer);
+                restoreRecords(pending.snapshot, pending.selectedBefore);
+                hideToast();
+                if (typeof showToast === 'function') showToast(T('Pemadaman dibatalkan.', 'Deletion cancelled.'));
+                pending = null;
+            }
+            async function commitJob(job) {
+                if (!job) return;
+                hideToast();
+                try {
+                    const action = job.kind === 'bulk' ? 'bulk_delete_students' : 'delete_student';
+                    const body = job.kind === 'bulk' ? { ids: job.ids.map(Number) } : { id: Number(job.ids[0]) };
+                    const res = await fetch('index.php?action=' + action, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(body) });
+                    const j = await res.json();
+                    if (!res.ok || j.success === false) throw new Error(j.message || 'delete failed');
+                    if (typeof showToast === 'function') showToast(j.message || T('Rekod dipadam.', 'Record deleted.'));
+                } catch (e) {
+                    if (typeof showToast === 'function') showToast(T('Ralat memadam rekod.', 'Error deleting record.'));
+                } finally {
+                    if (typeof loadMasterStudents === 'function') loadMasterStudents();
+                }
+            }
+            function commitPending() {
+                if (!pending) return;
+                clearTimeout(timer);
+                const job = pending; pending = null;
+                commitJob(job);
+            }
+            function queueDelete(kind, ids, label) {
+                if (!ids.length) return;
+                if (pending) { const prev = pending; pending = null; clearTimeout(timer); hideToast(); prev.commit(); }
+                const snapshot = snapshotRecords(ids);
+                const selectedBefore = removeOptimistic(ids);
+                const job = { kind: kind, ids: ids.map(String), snapshot: snapshot, selectedBefore: selectedBefore };
+                job.commit = () => commitJob(job);
+                pending = job;
+                showToastUndo(label);
+                timer = setTimeout(() => commitPending(), WINDOW_MS);
+            }
+
+            function patch() {
+                if (typeof window.deleteStudentRecord === 'function' && !window.deleteStudentRecord.__usmUndo) {
+                    const wrappedSingle = function (id) {
+                        const rec = (allMasterStudents || []).find(r => String(r.id) === String(id));
+                        queueDelete('single', [String(id)], rec ? T('Memadam “' + (rec.name || 'rekod') + '”', 'Deleting “' + (rec.name || 'record') + '”') : T('Memadam 1 rekod', 'Deleting 1 record'));
+                    };
+                    wrappedSingle.__usmUndo = true;
+                    window.deleteStudentRecord = wrappedSingle;
+                }
+                if (typeof window.confirmBulkDelete === 'function' && !window.confirmBulkDelete.__usmUndo) {
+                    const wrappedBulk = function () {
+                        if (typeof USMSMART_IS_ADMIN !== 'undefined' && !USMSMART_IS_ADMIN) { if (typeof showToast === 'function') showToast(T('Akses pentadbir diperlukan.', 'Admin access required.')); return; }
+                        const ids = (typeof selectedMasterIdsArray === 'function') ? selectedMasterIdsArray() : Array.from(masterSelectedIds).map(Number);
+                        if (!ids.length) { if (typeof showToast === 'function') showToast(T('Pilih pelajar yang hendak dipadam.', 'Select the students to delete.')); return; }
+                        if (ids.length > 500) { if (typeof showToast === 'function') showToast(T('Had maksimum ialah 500 rekod bagi setiap tindakan.', 'The maximum is 500 records per action.')); return; }
+                        queueDelete('bulk', ids.map(String), T('Memadam ' + ids.length + ' rekod', 'Deleting ' + ids.length + ' records'));
+                    };
+                    wrappedBulk.__usmUndo = true;
+                    window.confirmBulkDelete = wrappedBulk;
+                }
+            }
+            function boot() { patch(); }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+            else boot();
+            window.addEventListener('load', patch);
+        })();
+
+        /* --- Expiry digest ----------------------------------------------------
+           A dismissible strip at the top of the student directory summarising cards expiring
+           within 7 / 30 days and already expired, computed from the loaded dataset via the app's
+           getCardStatus(). Each chip is a one-click filter into the matching set. Counts refresh
+           whenever loadMasterStudents() runs; dismissal persists as a browser preference. Custom
+           usm-expiry-* classes only (no Tailwind delta). */
+        (function initExpiryDigest() {
+            const KEY = 'usmsmart_expiry_digest_dismissed_v1';
+            const ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/><path d="M12 13v3l2 1"/></svg>';
+            let strip, countEls = {}, dismissed = false;
+            try { dismissed = window.localStorage.getItem(KEY) === '1'; } catch (e) { /* private mode */ }
+
+            function todayText() {
+                const n = new Date();
+                return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+            }
+            function counts() {
+                const today = todayText();
+                const out = { d7: 0, d30: 0, expired: 0 };
+                const rows = (typeof allMasterStudents !== 'undefined' && Array.isArray(allMasterStudents)) ? allMasterStudents : [];
+                const status = (typeof getCardStatus === 'function') ? getCardStatus : null;
+                rows.forEach(r => {
+                    let s;
+                    if (status) s = status(r, today);
+                    else {
+                        const exp = String(r.expiryDate || '').slice(0, 10);
+                        if (!/^\d{4}-\d{2}-\d{2}$/.test(exp)) s = 'unknown';
+                        else if (exp < today) s = 'expired';
+                        else {
+                            const days = Math.round((new Date(exp + 'T00:00:00') - new Date(today + 'T00:00:00')) / 86400000);
+                            s = days <= 30 ? 'expiring:' + days : 'active';
+                        }
+                    }
+                    if (s === 'expired') out.expired++;
+                    else if (typeof s === 'string' && s.indexOf('expiring:') === 0) {
+                        const days = parseInt(s.slice(9), 10);
+                        out.d30++;
+                        if (days <= 7) out.d7++;
+                    }
+                });
+                return out;
+            }
+            function applyFilter(status) {
+                if (typeof viewStudentsByExpiryStatus === 'function') { viewStudentsByExpiryStatus(status); return; }
+                const sel = document.getElementById('master-status-filter');
+                if (sel) sel.value = status;
+                if (typeof filterMasterTable === 'function') filterMasterTable();
+            }
+            function refresh() {
+                if (!strip) return;
+                const c = counts();
+                countEls.d7.textContent = String(c.d7);
+                countEls.d30.textContent = String(c.d30);
+                countEls.expired.textContent = String(c.expired);
+                const total = c.d7 + c.d30 + c.expired;
+                strip.hidden = dismissed || total === 0;
+            }
+            function dismiss() {
+                dismissed = true;
+                try { window.localStorage.setItem(KEY, '1'); } catch (e) { /* private mode */ }
+                refresh();
+            }
+            function chip(status, cls, labelKey, label) {
+                const b = document.createElement('button');
+                b.type = 'button'; b.className = 'usm-expiry-chip ' + cls;
+                const txt = document.createElement('span'); txt.textContent = label; txt.setAttribute('data-usm-i18n', labelKey);
+                const num = document.createElement('b'); num.textContent = '0';
+                b.appendChild(txt); b.appendChild(num);
+                b.addEventListener('click', () => applyFilter(status));
+                countEls[status === '7' ? 'd7' : status === '30' ? 'd30' : 'expired'] = num;
+                return b;
+            }
+            function build() {
+                const anchor = document.querySelector('.usm-views-bar') || document.getElementById('master-search');
+                if (!anchor) return false;
+                const host = anchor.classList && anchor.classList.contains('usm-views-bar') ? anchor.parentElement : (anchor.parentElement ? anchor.parentElement.parentElement : null);
+                const before = anchor.classList && anchor.classList.contains('usm-views-bar') ? anchor : null;
+                strip = document.createElement('div'); strip.className = 'usm-expiry-digest'; strip.hidden = true;
+                strip.setAttribute('data-usm-i18n-scope', 'expiry');
+                const ico = document.createElement('span'); ico.className = 'usm-expiry-ico'; ico.innerHTML = ICO;
+                const text = document.createElement('div'); text.className = 'usm-expiry-text';
+                const title = document.createElement('div'); title.className = 'usm-expiry-title'; title.textContent = 'Ringkasan luput kad'; title.setAttribute('data-usm-i18n', 'expiry.title');
+                const sub = document.createElement('div'); sub.className = 'usm-expiry-sub'; sub.textContent = 'Kad yang perlu dilanjutkan atau diganti.'; sub.setAttribute('data-usm-i18n', 'expiry.sub');
+                text.appendChild(title); text.appendChild(sub);
+                const chips = document.createElement('div'); chips.className = 'usm-expiry-chips';
+                chips.appendChild(chip('7', 'is-danger', 'expiry.d7', '≤7 hari'));
+                chips.appendChild(chip('30', 'is-warn', 'expiry.d30', '≤30 hari'));
+                chips.appendChild(chip('expired', 'is-danger', 'expiry.expired', 'Tamat'));
+                const close = document.createElement('button'); close.type = 'button'; close.className = 'usm-expiry-dismiss';
+                close.setAttribute('aria-label', 'Sembunyikan ringkasan'); close.title = 'Sembunyikan'; close.textContent = '×';
+                close.setAttribute('data-usm-i18n-aria', 'expiry.dismiss');
+                close.addEventListener('click', dismiss);
+                strip.appendChild(ico); strip.appendChild(text); strip.appendChild(chips); strip.appendChild(close);
+                if (before && before.parentElement) before.parentElement.insertBefore(strip, before);
+                else if (host) host.insertBefore(strip, host.firstChild);
+                else return false;
+                return true;
+            }
+            function hookLoader() {
+                const orig = window.loadMasterStudents;
+                if (typeof orig !== 'function' || orig.__usmDigest) return;
+                const wrapped = async function () { const result = await orig.apply(this, arguments); refresh(); return result; };
+                wrapped.__usmDigest = true;
+                window.loadMasterStudents = wrapped;
+            }
+            function boot() {
+                if (!build()) return;
+                hookLoader();
+                refresh();
+                setTimeout(refresh, 1200);
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+            else boot();
+            window.addEventListener('load', () => { hookLoader(); refresh(); });
         })();

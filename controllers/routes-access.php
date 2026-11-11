@@ -200,8 +200,8 @@ if (!defined('USM_ROOT')) {
                 if (count($rows) >= $recordLimit) break;
             }
             $candidates = usmsmartUidEligibilityCandidates($rows);
-            $uidCounts = usmsmartUidUsageCounts($sqlServer, array_column($candidates, 'uid'));
-            $eligibility = usmsmartUidEligibilityPayload($rows, $uidCounts, date('Y-m-d'));
+            $uidDetails = usmsmartUidUsageDetails($sqlServer, array_column($candidates, 'uid'));
+            $eligibility = usmsmartUidEligibilityPayload($rows, $uidDetails, date('Y-m-d'));
             echo json_encode(array('records' => $rows, 'eligibility' => $eligibility), JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
         } catch (Throwable $e) {
             error_log('USMSmart SQL Server get_records failed: ' . $e->getMessage());

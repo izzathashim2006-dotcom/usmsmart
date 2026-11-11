@@ -51,8 +51,8 @@ if (!defined('USM_ROOT')) {
             http_response_code(429); header('Retry-After: 900');
             echo json_encode(array('success'=>false,'message'=>'Terlalu banyak percubaan log masuk. Cuba semula selepas 15 minit.')); exit;
         }
-        $stmt = $pdo->prepare('SELECT id, username, password_hash, role, is_active, auth_version FROM usmsmart_users WHERE username = ? LIMIT 1');
-        $stmt->execute(array($user)); $account = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt = $pdo->prepare('SELECT id, username, password_hash, role, is_active, auth_version FROM usmsmart_users WHERE username = ? OR LOWER(gmail) = LOWER(?) LIMIT 1');
+        $stmt->execute(array($user, $user)); $account = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$account || !(int)$account['is_active'] || !password_verify($pass, $account['password_hash'])) {
             $fail = $pdo->prepare('INSERT INTO usmsmart_login_attempts (username_key, ip_hash) VALUES (?, ?)');
             $fail->execute(array($usernameKey, $ipHash));
@@ -77,6 +77,75 @@ if (!defined('USM_ROOT')) {
         $upd = $pdo->prepare('UPDATE usmsmart_users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?'); $upd->execute(array($account['id']));
         auditLog($pdo, 'login', 'user', $account['id'], null, 'Successful login');
         echo json_encode(array('success'=>true,'role'=>$account['role'])); exit;
+    }
+        /* ===== Sign in with Google Account (verified Google ID token only) ===== */
+    if ($action === 'google_login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $credential = trim((string)($_POST['credential'] ?? ''));
+        if ($usmGoogleClientId === '') {
+            http_response_code(503);
+            echo json_encode(array('success' => false, 'message' => 'Log masuk Google belum diaktifkan oleh pentadbir. Sila log masuk dengan nama pengguna dan kata laluan.')); exit;
+        }
+        if ($credential === '') {
+            http_response_code(422);
+            echo json_encode(array('success' => false, 'message' => 'Kredensial Google diperlukan. Sila pilih akaun Google anda melalui butang Google.')); exit;
+        }
+        $payload = usmGoogleVerifyIdToken($credential, $usmGoogleClientId);
+        if (!$payload) {
+            usleep(250000); http_response_code(401);
+            echo json_encode(array('success' => false, 'message' => 'Token Google tidak sah atau telah tamat tempoh. Sila pilih akaun Google anda semula.')); exit;
+        }
+        $googleEmail = strtolower(trim((string)$payload['email']));
+        $googleId = trim((string)$payload['sub']);
+
+        // Match the verified Google identity: linked google_id first, then the linked Gmail/email.
+        $stmt = $pdo->prepare('SELECT id, username, role, is_active, auth_version, google_id FROM usmsmart_users WHERE google_id = ? LIMIT 1');
+        $stmt->execute(array($googleId)); $account = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$account) {
+            $stmt = $pdo->prepare('SELECT id, username, role, is_active, auth_version, google_id FROM usmsmart_users WHERE LOWER(gmail) = LOWER(?) OR LOWER(email) = LOWER(?) LIMIT 1');
+            $stmt->execute(array($googleEmail, $googleEmail)); $account = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if (!$account || !(int)$account['is_active']) {
+            usleep(250000);
+            http_response_code(404);
+            echo json_encode(array(
+                'success' => false,
+                'message' => 'Akaun Google (' . htmlspecialchars($googleEmail, ENT_QUOTES, 'UTF-8') . ') belum dipautkan ke mana-mana pengguna USMSmart. Sila log masuk dengan nama pengguna dahulu dan pautkan Google anda di Profil Saya.'
+            )); exit;
+        }
+
+        // Admin via Google is reserved for verified USM email domains. This runs
+        // after token verification and account lookup but BEFORE the session is
+        // created, so a non-USM Google account can never obtain an admin session —
+        // including when matched by the email fallback or after a role promotion.
+        if (($account['role'] ?? '') === 'admin' && !usmGoogleEmailIsUsmDomain($googleEmail, $usmGoogleAdminDomains)) {
+            usleep(250000);
+            http_response_code(403);
+            auditLog($pdo, 'google_login_denied', 'user', (int)$account['id'], null, 'Admin Google sign-in denied for non-USM email ' . $googleEmail);
+            echo json_encode(array(
+                'success' => false,
+                'message' => 'Akses Admin melalui Google hanya untuk e-mel USM (@' . implode(', @', $usmGoogleAdminDomains) . '). Akaun Google ini bukan e-mel USM — sila log masuk dengan nama pengguna dan kata laluan.'
+            )); exit;
+        }
+
+        session_regenerate_id(true);
+        $_SESSION['usmsmart_csrf_token'] = bin2hex(random_bytes(32));
+        $_SESSION['username'] = $account['username'];
+        $_SESSION['role'] = $account['role'];
+        $_SESSION['user_id'] = (int)$account['id'];
+        $_SESSION['auth_version'] = (int)$account['auth_version'];
+        $_SESSION['last_activity'] = time();
+
+        // First Google sign-in for an account linked by email only: pin the Google id now.
+        if (empty($account['google_id'])) {
+            $pin = $pdo->prepare('UPDATE usmsmart_users SET google_id = ? WHERE id = ?');
+            $pin->execute(array($googleId, $account['id']));
+        }
+        $upd = $pdo->prepare('UPDATE usmsmart_users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?');
+        $upd->execute(array($account['id']));
+        auditLog($pdo, 'google_login', 'user', $account['id'], null, 'Successful login via linked Google account ' . $googleEmail);
+
+        echo json_encode(array('success' => true, 'role' => $account['role'])); exit;
     }
     if ($action === 'logout' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($_SESSION['username'])) auditLog($pdo, 'logout', 'user', null, null, 'User logged out');

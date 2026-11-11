@@ -1,0 +1,21 @@
+/* USMSmart interface language toggle (MS / EN) — loaded on every portal page.
+   Custom usm-lang-* classes only; this file is outside Tailwind's content scan. */
+.usm-lang-btn{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 9px;border:1px solid var(--usm-line-strong,#cbd2e2);border-radius:9px;background:var(--usm-surface,#fff);color:var(--usm-muted,#68758b);font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.04em;line-height:1;cursor:pointer;transition:background-color .14s ease,border-color .14s ease,color .14s ease}
+.usm-lang-btn svg{width:14px;height:14px;flex:none}
+.usm-lang-btn .usm-lang-code{min-width:18px;text-align:center}
+.usm-lang-btn:hover{background:var(--usm-accent-soft,#f2efff);border-color:var(--usm-accent,#6d28d9);color:var(--usm-accent,#6d28d9)}
+.usm-lang-btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring,rgba(109,40,217,.2))}
+.usm-lang-btn[aria-pressed="true"]{border-color:var(--usm-accent,#6d28d9);color:var(--usm-accent,#6d28d9)}
+/* Home navigation: glass button matching .hm-icon-btn, frosted variant once scrolled. */
+.usm-lang-btn.usm-lang-glass{height:38px;padding:0 11px;border-radius:11px;border:1px solid rgba(226,232,240,.32);background:rgba(15,23,42,.4);color:#e2e8f0;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.usm-lang-btn.usm-lang-glass:hover{transform:translateY(-1px);background:rgba(15,23,42,.6);border-color:rgba(226,232,240,.5);color:#fff}
+.usm-lang-btn.usm-lang-glass[aria-pressed="true"]{border-color:#a78bfa;color:#c4b5fd}
+.hm-nav.is-scrolled .usm-lang-btn.usm-lang-glass{background:var(--hm-violet-soft,#f2efff);border-color:var(--hm-line,#e2e8f0);color:var(--hm-violet,#6d28d9)}
+.hm-nav.is-scrolled .usm-lang-btn.usm-lang-glass:hover{background:var(--hm-violet-soft,#f2efff);border-color:var(--hm-violet,#6d28d9)}
+/* Login / password reset: fixed glass pill immediately left of the fixed theme button. */
+.usm-lang-btn.usm-lang-fixed{position:fixed;top:1rem;right:calc(1rem + 48px);z-index:2;height:38px;padding:0 11px;border-radius:12px;border:1px solid rgba(226,232,240,.32);background:rgba(15,23,42,.45);color:#e2e8f0}
+.usm-lang-btn.usm-lang-fixed:hover{background:rgba(15,23,42,.65);border-color:rgba(226,232,240,.5);color:#fff}
+.usm-lang-btn.usm-lang-fixed[aria-pressed="true"]{border-color:#a78bfa;color:#c4b5fd}
+@media(max-width:640px){.usm-lang-btn{height:28px;padding:0 7px;font-size:10.5px}.usm-lang-btn svg{width:13px;height:13px}.usm-lang-btn.usm-lang-glass,.usm-lang-btn.usm-lang-fixed{height:34px;padding:0 9px}}
+@media(prefers-reduced-motion:reduce){.usm-lang-btn{transition:none}}
+@media(forced-colors:active){.usm-lang-btn{border:1px solid ButtonText}.usm-lang-btn[aria-pressed="true"]{background:Highlight;color:HighlightText}}

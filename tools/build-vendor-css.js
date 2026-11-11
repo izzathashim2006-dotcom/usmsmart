@@ -3,7 +3,8 @@
  * Rebuilds the self-hosted vendor stylesheets in assets/vendor/:
  *
  *   font-awesome.css  Font Awesome Free 6.4.0, trimmed to the icon classes this
- *                     app actually references, woff2 only (solid + regular).
+ *                     app actually references, woff2 only (solid + regular,
+ *                     plus brands when a view references fa-brands/fab).
  *   fonts.css         Plus Jakarta Sans (300-700) and JetBrains Mono (400,500),
  *                     latin and latin-ext subsets only.
  *   fonts/*.woff2     The font files both sheets point at.
@@ -37,21 +38,29 @@ fa-1x fa-2x fa-3x fa-4x fa-5x fa-6x fa-7x fa-8x fa-9x fa-10x fa-stack fa-stack-1
 fa-inverse fa-layers fa-beat fa-bounce fa-fade fa-shake fa-beat-fade fa-pull-left fa-pull-right
 fa-border sr-only`.split(/\s+/));
 
-function usedIconClasses() {
-  const roots = [
+function rootFiles() {
+  return [
     path.join(ROOT, 'index.php'),
     ...fs.readdirSync(path.join(ROOT, 'views')).map((f) => path.join(ROOT, 'views', f)),
     ...fs.readdirSync(path.join(ROOT, 'assets')).filter((f) => /\.(js|css)$/.test(f)).map((f) => path.join(ROOT, 'assets', f)),
-  ];
+  ].filter((file) => /\.(php|js|css)$/.test(file));
+}
+
+function usedIconClasses() {
   const found = new Set();
-  for (const file of roots) {
-    if (!/\.(php|js|css)$/.test(file)) continue;
+  for (const file of rootFiles()) {
     const text = fs.readFileSync(file, 'utf8');
     for (const match of text.matchAll(/\bfa-[a-z0-9-]+\b/g)) {
       if (!BASE.has(match[0])) found.add(match[0]);
     }
   }
   return found;
+}
+
+// Brand glyphs (Google etc.) live in a separate font family; vendor it only
+// when some view actually references fa-brands/fab.
+function usesBrandFamily() {
+  return rootFiles().some((file) => /\b(?:fa-brands|fab)\b/.test(fs.readFileSync(file, 'utf8')));
 }
 
 // Split a stylesheet into top-level rules (@font-face, @keyframes and @media
@@ -78,6 +87,7 @@ function classesIn(selector) {
 
 async function buildFontAwesome() {
   const icons = usedIconClasses();
+  const brands = usesBrandFamily();
   const css = await (await fetch(FA_CSS_URL)).text();
   const kept = [];
 
@@ -85,6 +95,13 @@ async function buildFontAwesome() {
     if (rule.startsWith('@font-face')) {
       const weight = (rule.match(/font-weight:\s*(\d+)/) || [])[1];
       const family = (rule.match(/font-family:\s*"([^"]+)"/) || [])[1];
+      if (family === 'Font Awesome 6 Brands') {
+        if (!brands || weight !== '400') continue;
+        kept.push(rule
+          .replace(/src:[^}]+/, 'src:url(./fonts/fa-brands-400.woff2) format("woff2")')
+          .replace(/font-display:\s*block/, 'font-display:swap'));
+        continue;
+      }
       if (family !== 'Font Awesome 6 Free' || (weight !== '900' && weight !== '400')) continue;
       const file = weight === '900' ? 'fa-solid-900.woff2' : 'fa-regular-400.woff2';
       kept.push(rule
@@ -124,7 +141,9 @@ async function buildFontAwesome() {
    Icons CC BY 4.0, fonts SIL OFL 1.1, code MIT — https://fontawesome.com/license/free */\n`;
   fs.writeFileSync(path.join(OUT, 'font-awesome.css'), header + kept.join('\n') + '\n');
 
-  for (const file of ['fa-solid-900.woff2', 'fa-regular-400.woff2']) {
+  const fontFiles = ['fa-solid-900.woff2', 'fa-regular-400.woff2'];
+  if (brands) fontFiles.push('fa-brands-400.woff2');
+  for (const file of fontFiles) {
     const response = await fetch(FA_FONT_BASE + file);
     if (!response.ok) throw new Error(`${file}: HTTP ${response.status}`);
     fs.writeFileSync(path.join(FONT_DIR, file), Buffer.from(await response.arrayBuffer()));

@@ -6,6 +6,7 @@
     "build:css": "tailwindcss -c tailwind.config.js -i tailwind.input.css -o assets/tailwind.css --minify"
   },
   "devDependencies": {
+    "ffmpeg-static": "^5.3.0",
     "tailwindcss": "3.4.17"
   }
 }

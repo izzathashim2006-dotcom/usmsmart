@@ -2493,3 +2493,250 @@ html.dark #view-analytics .analytics-kpi .analytics-kpi-icon{
 @media(prefers-reduced-motion:reduce){
   .usm-cmd-item{transition:none}
 }
+
+/* ===== usmsmart-manual-video-2026-v1 ===== */
+/* The video slot at the top of the Panduan dialog. Recordings are plain files under
+   media/manual/, so the player is a native <video>: transport controls, captions, picture-in-
+   picture and keyboard operation come from the browser instead of being reimplemented. This
+   block only frames it. Until a recording exists the same card shows a quiet placeholder, so
+   the manual never presents a dead player. */
+.usm-manual-video{margin:0;border:1px solid var(--usm-line);border-radius:var(--usm-r-lg);background:var(--usm-surface);overflow:hidden}
+.usm-manual-video-head{display:flex;align-items:flex-start;gap:11px;padding:13px 14px;border-bottom:1px solid var(--usm-line)}
+.usm-manual-video-icon{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:10px;
+  background:var(--usm-accent-soft);color:var(--usm-accent);font-size:14px}
+.usm-manual-video-icon svg,.usm-manual-video-slot-icon svg{display:block}
+.usm-manual-video-copy{flex:1;min-width:0}
+.usm-manual-video-title{margin:0;font-size:14px;font-weight:700;line-height:1.3;color:var(--usm-ink)}
+.usm-manual-video-intro{margin:2px 0 0;font-size:11.5px;line-height:1.5;color:var(--usm-muted)}
+.usm-manual-video-slot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  padding:22px 18px;text-align:center;background:var(--usm-surface-soft)}
+.usm-manual-video-slot-icon{display:grid;place-items:center;width:40px;height:40px;border:1px dashed var(--usm-line-strong);
+  border-radius:50%;color:var(--usm-muted);font-size:14px}
+.usm-manual-video-slot-title{margin:0;font-size:12.5px;font-weight:700;color:var(--usm-ink)}
+.usm-manual-video-slot-note{max-width:48ch;margin:0;font-size:11px;line-height:1.55;color:var(--usm-muted)}
+.usm-manual-video-body{padding:12px}
+.usm-manual-video-item{margin:0}
+.usm-manual-video-item+.usm-manual-video-item{margin-top:14px;padding-top:14px;border-top:1px solid var(--usm-line)}
+.usm-manual-video-player{display:block;width:100%;aspect-ratio:16 / 9;border-radius:10px;background:#000;outline-offset:3px}
+.usm-manual-video-caption{margin:9px 2px 0;font-size:11.5px;line-height:1.55;color:var(--usm-muted)}
+.usm-manual-video-caption strong{color:var(--usm-ink);font-weight:700}
+.usm-manual-video-caption a{color:var(--usm-accent);font-weight:600;text-decoration:underline}
+.usm-manual-video-transcript{margin-top:10px;padding:9px 11px;border:1px solid var(--usm-line);border-radius:var(--usm-r-sm);
+  background:var(--usm-surface-soft);font-size:11.5px;color:var(--usm-muted)}
+.usm-manual-video-transcript summary{cursor:pointer;font-weight:700;color:var(--usm-ink)}
+.usm-manual-video-transcript>div{margin-top:7px;line-height:1.6}
+.usm-manual-video a:focus-visible,.usm-manual-video summary:focus-visible{
+  outline:2px solid var(--usm-accent);outline-offset:2px;border-radius:4px}
+@media(forced-colors:active){
+  .usm-manual-video-player{border:1px solid CanvasText}
+}
+
+/* ===== Google link card (Profil Saya) =====
+   Neutral connected-account surface: the status badge carries the only semantic
+   colour (emerald once linked); rose is reserved for the destructive unlink hover. */
+.usm-glink-badge{flex:0 0 auto;padding:3px 9px;border-radius:999px;background:var(--usm-line);color:var(--usm-muted);font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+.usm-glink-badge.is-on{background:#d1fae5;color:#047857}
+html.dark .usm-glink-badge{background:#27272a;color:#a1a1aa}
+html.dark .usm-glink-badge.is-on{background:rgba(6,78,59,.55);color:#34d399}
+.usm-glink-linked{display:none}
+.usm-glink-linked.is-linked{display:flex}
+.usm-glink-connect.is-hidden,.usm-glink-manual.is-hidden{display:none}
+#google-signin-btn-container:empty{display:none}
+
+/* ===== Voice search =====
+   A microphone dictates into any search field. The wrapper inherits the
+   input's sizing utilities so layout is unchanged; the button rides inside
+   the right edge. Rose is the "live mic" state (pulse + equalizer), kept
+   distinct from the indigo accent so recording is unmistakable. */
+.usm-voice-field{position:relative;display:block;min-width:0}
+.usm-voice-field>input{width:100%}
+.usm-voice-btn{position:absolute;top:50%;right:6px;transform:translateY(-50%);display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border:0;border-radius:9px;background:transparent;color:var(--usm-muted,#68758b);cursor:pointer;z-index:2;-webkit-tap-highlight-color:transparent;transition:background-color .15s ease,color .15s ease,box-shadow .2s ease}
+.usm-voice-btn:hover{background:rgba(91,75,232,.10);color:var(--usm-accent,#5b4be8)}
+.usm-voice-btn:active{transform:translateY(-50%) scale(.93)}
+.usm-voice-btn:focus-visible{outline:3px solid var(--usm-ring,rgba(91,75,232,.18));outline-offset:2px}
+.usm-voice-btn svg{width:15px;height:15px;display:block;pointer-events:none}
+.dark .usm-voice-btn{color:#8b93a7}
+.dark .usm-voice-btn:hover{background:rgba(129,140,248,.16);color:#a5b4fc}
+/* Inline variant lives in the command palette's flex row (no absolute box). */
+.usm-voice-btn.usm-voice-inline{position:static;transform:none;flex:0 0 auto}
+.usm-voice-btn.usm-voice-inline:active{transform:scale(.93)}
+/* Listening: vivid rose live-mic with an outward pulse. */
+.usm-voice-btn.is-listening{background:#e11d48;color:#fff;animation:usmVoicePulse 1.4s ease-out infinite}
+.usm-voice-btn.is-listening:hover{background:#be123c;color:#fff}
+.dark .usm-voice-btn.is-listening{background:#f43f5e;color:#0b0d13}
+@keyframes usmVoicePulse{0%{box-shadow:0 0 0 0 rgba(225,29,72,.45)}70%{box-shadow:0 0 0 9px rgba(225,29,72,0)}100%{box-shadow:0 0 0 0 rgba(225,29,72,0)}}
+.usm-voice-field.is-listening>input{border-color:#fb7185!important;box-shadow:0 0 0 4px rgba(244,63,94,.12)!important}
+.dark .usm-voice-field.is-listening>input{border-color:#fb7185!important;box-shadow:0 0 0 4px rgba(244,63,94,.2)!important}
+/* Icon swap: a microphone when idle, animated bars while hearing speech. */
+.usm-voice-btn .usm-voice-bars{display:none;align-items:flex-end;gap:2px;height:14px}
+.usm-voice-btn.is-listening .usm-voice-mic{display:none}
+.usm-voice-btn.is-listening .usm-voice-bars{display:inline-flex}
+.usm-voice-bars span{width:2.5px;height:100%;background:currentColor;border-radius:2px;transform-origin:bottom;animation:usmVoiceBar .9s ease-in-out infinite}
+.usm-voice-bars span:nth-child(2){animation-delay:.15s}
+.usm-voice-bars span:nth-child(3){animation-delay:.3s}
+.usm-voice-bars span:nth-child(4){animation-delay:.45s}
+@keyframes usmVoiceBar{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+/* No SpeechRecognition: muted but still clickable so it can explain itself. */
+.usm-voice-btn.is-unsupported{opacity:.5}
+.usm-voice-btn.is-unsupported:hover{background:rgba(100,116,139,.12);color:var(--usm-muted,#68758b)}
+@media (prefers-reduced-motion:reduce){.usm-voice-btn.is-listening{animation:none}.usm-voice-bars span{animation:none;transform:scaleY(.7)}}
+@media(forced-colors:active){.usm-voice-btn{border:1px solid ButtonText}.usm-voice-btn.is-listening{background:Highlight;color:HighlightText}}
+
+/* ===== Saved views & recent searches =====
+   Browser-local (localStorage) recall of directory filter combinations. All colours ride the
+   existing --usm-* tokens so light/dark stay in sync without duplicate rules; layout uses custom
+   classes only so the compiled Tailwind sheet gains nothing from this block. */
+.usm-views-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.usm-views-label{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--usm-muted,#68758b)}
+.usm-views-anchor{position:relative}
+.usm-views-trigger{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border:1px solid var(--usm-line,#e6e8f2);border-radius:12px;background:var(--usm-surface,#fff);color:var(--usm-ink,#182033);font:inherit;font-size:11.5px;font-weight:600;line-height:1;cursor:pointer;box-shadow:var(--usm-shadow-sm,0 1px 2px rgba(0,0,0,.05));transition:border-color .15s ease,color .15s ease,background-color .15s ease}
+.usm-views-trigger:hover{border-color:var(--usm-accent,#6d28d9);color:var(--usm-accent,#6d28d9)}
+.usm-views-trigger:focus-visible{outline:3px solid var(--usm-accent-ring,rgba(109,40,217,.2));outline-offset:2px}
+.usm-views-trigger svg{width:13px;height:13px;flex:none}
+.usm-views-count{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 5px;border-radius:999px;background:var(--usm-accent,#6d28d9);color:#fff;font-size:9.5px;font-weight:700}
+.usm-views-count[hidden]{display:none}
+.usm-views-caret{transition:transform .15s ease}
+.usm-views-anchor.is-open .usm-views-caret{transform:rotate(180deg)}
+.usm-views-panel{position:absolute;top:calc(100% + 8px);left:0;z-index:70;width:340px;max-width:calc(100vw - 32px);max-height:400px;display:flex;flex-direction:column;background:var(--usm-surface,#fff);border:1px solid var(--usm-line,#e6e8f2);border-radius:16px;box-shadow:var(--usm-shadow,0 2px 10px rgba(0,0,0,.08));overflow:hidden;animation:usmViewsIn .16s ease}
+.usm-views-panel[hidden]{display:none}
+.usm-views-savepanel{left:auto;right:0;width:320px;padding:12px}
+.usm-views-scroll{overflow-y:auto;padding:6px;scrollbar-width:thin;scrollbar-color:var(--usm-line-strong,#cbd2e2) transparent}
+.usm-views-scroll::-webkit-scrollbar{width:8px}
+.usm-views-scroll::-webkit-scrollbar-track{background:transparent}
+.usm-views-scroll::-webkit-scrollbar-thumb{background:var(--usm-line-strong,#cbd2e2);border-radius:8px}
+.usm-views-scroll::-webkit-scrollbar-thumb:hover{background:var(--usm-muted,#68758b)}
+.usm-views-section{padding:8px 10px 4px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--usm-muted,#68758b)}
+.usm-views-item{display:flex;align-items:center;gap:4px;width:100%;padding:2px;border-radius:10px}
+.usm-views-item.is-active{background:var(--usm-accent-soft,#f2efff)}
+.usm-views-item-main{flex:1;min-width:0;display:block;padding:7px 8px;border:0;border-radius:8px;background:transparent;text-align:left;cursor:pointer;color:var(--usm-ink,#182033);font:inherit}
+.usm-views-item-main:hover{background:var(--usm-surface-soft,#f8f9fe)}
+.usm-views-item.is-active .usm-views-item-main{color:var(--usm-accent,#6d28d9)}
+.usm-views-item-name{display:block;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usm-views-item-sum{display:block;margin-top:1px;font-size:10.5px;color:var(--usm-muted,#68758b);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usm-views-iconbtn{flex:none;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--usm-muted,#68758b);cursor:pointer;transition:background-color .15s ease,color .15s ease}
+.usm-views-iconbtn svg{width:13px;height:13px}
+.usm-views-iconbtn:hover{background:var(--usm-surface-soft,#f8f9fe);color:var(--usm-accent,#6d28d9)}
+.usm-views-iconbtn.is-pinned{color:var(--usm-accent,#6d28d9)}
+.usm-views-iconbtn.is-danger:hover{background:rgba(225,29,72,.10);color:#e11d48}
+.usm-views-empty{padding:14px 12px;font-size:11px;line-height:1.5;color:var(--usm-muted,#68758b);text-align:center}
+.usm-views-divider{height:1px;margin:4px 6px;background:var(--usm-line,#e6e8f2)}
+.usm-views-foot{display:flex;justify-content:flex-end;padding:6px 8px;border-top:1px solid var(--usm-line,#e6e8f2)}
+.usm-views-link{padding:4px 6px;border:0;border-radius:6px;background:transparent;color:var(--usm-muted,#68758b);font:inherit;font-size:10.5px;font-weight:600;cursor:pointer}
+.usm-views-link:hover{color:#e11d48}
+.usm-views-link:disabled{opacity:.45;cursor:default}
+.usm-views-fieldlabel{display:block;margin-bottom:5px;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--usm-muted,#68758b)}
+.usm-views-input{width:100%;padding:8px 10px;border:1px solid var(--usm-line,#e6e8f2);border-radius:10px;background:var(--usm-surface-soft,#f8f9fe);color:var(--usm-ink,#182033);font:inherit;font-size:12px;outline:none;transition:border-color .15s ease,box-shadow .15s ease}
+.usm-views-input:focus{border-color:var(--usm-accent,#6d28d9);box-shadow:0 0 0 3px var(--usm-accent-ring,rgba(109,40,217,.2))}
+.usm-views-preview{margin:8px 0 0;padding:8px 10px;border:1px dashed var(--usm-line-strong,#cbd2e2);border-radius:10px;background:var(--usm-surface-soft,#f8f9fe);font-size:10.5px;line-height:1.5;color:var(--usm-muted,#68758b)}
+.usm-views-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.usm-views-btn{padding:7px 14px;border:1px solid var(--usm-line,#e6e8f2);border-radius:10px;background:var(--usm-surface,#fff);color:var(--usm-ink,#182033);font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:background-color .15s ease}
+.usm-views-btn:hover{background:var(--usm-surface-soft,#f8f9fe)}
+.usm-views-btn-primary{background:var(--usm-accent,#6d28d9);border-color:var(--usm-accent,#6d28d9);color:#fff}
+.usm-views-btn-primary:hover{background:var(--usm-accent-hover,#5b21b6)}
+/* Narrow screens: anchor panels to the toolbar (not the offset trigger) so they never spill past the viewport. */
+@media (max-width:640px){.usm-views-bar{position:relative}.usm-views-anchor{position:static}.usm-views-panel,.usm-views-savepanel{left:0;right:auto;width:100%;max-width:100%}}
+
+/* ===== Recent search history (at the search box) =====
+   The same localStorage history the saved-views panel shows, surfaced directly under the directory
+   search input. Colours ride the --usm-* tokens; custom classes only so Tailwind gains nothing. */
+.usm-recent-panel{position:absolute;top:calc(100% + 6px);left:0;right:auto;z-index:65;width:340px;max-width:calc(100vw - 32px);max-height:330px;display:flex;flex-direction:column;background:var(--usm-surface,#fff);border:1px solid var(--usm-line,#e6e8f2);border-radius:14px;box-shadow:var(--usm-shadow,0 2px 10px rgba(0,0,0,.08));overflow:hidden;animation:usmViewsIn .16s ease}
+.usm-recent-panel[hidden]{display:none}
+.usm-recent-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px 6px;border-bottom:1px solid var(--usm-line,#e6e8f2)}
+.usm-recent-title{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--usm-muted,#68758b)}
+.usm-recent-clear{padding:3px 6px;border:0;border-radius:6px;background:transparent;color:var(--usm-muted,#68758b);font:inherit;font-size:10px;font-weight:600;cursor:pointer;transition:color .15s ease}
+.usm-recent-clear:hover{color:#e11d48}
+.usm-recent-clear:disabled{opacity:.45;cursor:default}
+.usm-recent-scroll{overflow-y:auto;padding:6px;scrollbar-width:thin;scrollbar-color:var(--usm-line-strong,#cbd2e2) transparent}
+.usm-recent-scroll::-webkit-scrollbar{width:8px}
+.usm-recent-scroll::-webkit-scrollbar-track{background:transparent}
+.usm-recent-scroll::-webkit-scrollbar-thumb{background:var(--usm-line-strong,#cbd2e2);border-radius:8px}
+.usm-recent-scroll::-webkit-scrollbar-thumb:hover{background:var(--usm-muted,#68758b)}
+.usm-recent-section{padding:7px 10px 3px;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--usm-muted,#68758b)}
+.usm-recent-item{display:flex;align-items:center;gap:9px;width:100%;padding:7px 9px;border:0;border-radius:9px;background:transparent;text-align:left;cursor:pointer;color:var(--usm-ink,#182033);font:inherit;transition:background-color .12s ease}
+.usm-recent-item:hover{background:var(--usm-surface-soft,#f8f9fe)}
+.usm-recent-item.is-active{background:var(--usm-accent-soft,#f2efff);box-shadow:inset 0 0 0 1px var(--usm-accent-ring,rgba(109,40,217,.2))}
+.usm-recent-item.is-active .usm-recent-name{color:var(--usm-accent,#6d28d9)}
+.usm-recent-item:focus-visible{outline:3px solid var(--usm-accent-ring,rgba(109,40,217,.2));outline-offset:-2px}
+.usm-recent-ico{flex:none;display:inline-flex;color:var(--usm-muted,#68758b)}
+.usm-recent-ico svg{width:13px;height:13px}
+.usm-recent-text{flex:1;min-width:0}
+.usm-recent-name{display:block;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usm-recent-time{display:block;margin-top:1px;font-size:10px;color:var(--usm-muted,#68758b)}
+.usm-recent-empty{padding:16px 12px;font-size:11px;line-height:1.5;color:var(--usm-muted,#68758b);text-align:center}
+.usm-recent-hint{padding:6px 10px;border-top:1px solid var(--usm-line,#e6e8f2);font-size:9.5px;letter-spacing:.02em;color:var(--usm-muted,#68758b);text-align:center}
+@media(max-width:640px){.usm-recent-panel{width:100%;max-width:100%}}
+@media(prefers-reduced-motion:reduce){.usm-recent-panel{animation:none}.usm-recent-item,.usm-recent-clear{transition:none}}
+@media(forced-colors:active){.usm-recent-panel{border:1px solid ButtonText}.usm-recent-item.is-active{outline:2px solid Highlight}}
+
+/* ===== Undo after delete =====
+   A reversible bottom toast holding the server call for six seconds. Rides the --usm-* tokens;
+   the countdown bar scales down via transform. Custom classes only: no Tailwind delta. */
+.usm-undo-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2200;display:flex;align-items:center;gap:12px;width:min(440px,calc(100vw - 32px));padding:12px 14px;border-radius:14px;border:1px solid var(--usm-line,#e6e8f2);background:var(--usm-surface,#fff);color:var(--usm-ink,#182033);box-shadow:var(--usm-shadow,0 2px 10px rgba(0,0,0,.08));overflow:hidden;animation:usmViewsIn .18s ease}
+.usm-undo-toast[hidden]{display:none}
+.usm-undo-ico{flex:none;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:rgba(225,29,72,.10);color:#e11d48}
+.usm-undo-ico svg{width:16px;height:16px}
+.usm-undo-body{flex:1;min-width:0}
+.usm-undo-label{font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usm-undo-sub{margin-top:1px;font-size:10.5px;color:var(--usm-muted,#68758b)}
+.usm-undo-btn{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:0;border-radius:9px;background:var(--usm-accent,#6d28d9);color:#fff;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;transition:background-color .15s ease}
+.usm-undo-btn:hover{background:var(--usm-accent-hover,#5b21b6)}
+.usm-undo-btn svg{width:13px;height:13px}
+.usm-undo-btn:focus-visible{outline:3px solid var(--usm-accent-ring,rgba(109,40,217,.2));outline-offset:2px}
+.usm-undo-dismiss{flex:none;width:26px;height:26px;border:0;border-radius:7px;background:transparent;color:var(--usm-muted,#68758b);font-size:16px;line-height:1;cursor:pointer}
+.usm-undo-dismiss:hover{background:var(--usm-surface-soft,#f8f9fe);color:var(--usm-ink,#182033)}
+.usm-undo-bar{position:absolute;left:0;bottom:0;height:3px;width:100%;transform-origin:left center;background:var(--usm-accent,#6d28d9)}
+@media(max-width:640px){.usm-undo-toast{bottom:16px;gap:9px;padding:10px 12px}.usm-undo-sub{display:none}}
+@media(prefers-reduced-motion:reduce){.usm-undo-toast{animation:none}.usm-undo-btn{transition:none}}
+@media(forced-colors:active){.usm-undo-toast{border:1px solid ButtonText}.usm-undo-btn{background:Highlight;color:HighlightText}}
+
+/* ===== Expiry digest =====
+   A dismissible directory strip summarising cards expiring soon, with one-click filter chips.
+   Amber/rose semantic tones ride the palette; dark overrides keep contrast. No Tailwind delta. */
+.usm-expiry-digest{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px;padding:11px 14px;border-radius:14px;border:1px solid rgba(217,119,6,.28);background:linear-gradient(120deg,rgba(251,191,36,.12),rgba(249,115,22,.07));color:var(--usm-ink,#182033)}
+.usm-expiry-digest[hidden]{display:none}
+.usm-expiry-ico{flex:none;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:rgba(217,119,6,.14);color:#b45309}
+.usm-expiry-ico svg{width:17px;height:17px}
+.usm-expiry-text{flex:1;min-width:140px}
+.usm-expiry-title{font-size:12px;font-weight:700}
+.usm-expiry-sub{margin-top:1px;font-size:10.5px;color:var(--usm-muted,#68758b)}
+.usm-expiry-chips{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.usm-expiry-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--usm-line,#e6e8f2);background:var(--usm-surface,#fff);color:var(--usm-ink,#182033);font:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:border-color .15s ease,transform .12s ease}
+.usm-expiry-chip:hover{transform:translateY(-1px)}
+.usm-expiry-chip b{font-weight:800}
+.usm-expiry-chip.is-warn{border-color:rgba(217,119,6,.4);color:#b45309}
+.usm-expiry-chip.is-warn b{color:#b45309}
+.usm-expiry-chip.is-danger{border-color:rgba(225,29,72,.35);color:#e11d48}
+.usm-expiry-chip.is-danger b{color:#e11d48}
+.usm-expiry-chip:focus-visible{outline:3px solid var(--usm-accent-ring,rgba(109,40,217,.2));outline-offset:2px}
+.usm-expiry-dismiss{flex:none;width:26px;height:26px;border:0;border-radius:7px;background:transparent;color:var(--usm-muted,#68758b);font-size:16px;line-height:1;cursor:pointer}
+.usm-expiry-dismiss:hover{background:rgba(0,0,0,.05);color:var(--usm-ink,#182033)}
+html.dark .usm-expiry-digest{border-color:rgba(251,191,36,.22);background:linear-gradient(120deg,rgba(251,191,36,.10),rgba(249,115,22,.05))}
+html.dark .usm-expiry-ico{background:rgba(251,191,36,.16);color:#fbbf24}
+html.dark .usm-expiry-chip{background:rgba(255,255,255,.04)}
+html.dark .usm-expiry-chip.is-warn{color:#fbbf24;border-color:rgba(251,191,36,.35)}
+html.dark .usm-expiry-chip.is-warn b{color:#fbbf24}
+html.dark .usm-expiry-chip.is-danger{color:#fb7185;border-color:rgba(251,113,133,.35)}
+html.dark .usm-expiry-chip.is-danger b{color:#fb7185}
+@media(max-width:640px){.usm-expiry-digest{gap:9px;padding:10px 12px}.usm-expiry-text{min-width:0;flex-basis:100%}.usm-expiry-chips{width:100%}}
+@media(prefers-reduced-motion:reduce){.usm-expiry-chip{transition:none}.usm-expiry-chip:hover{transform:none}}
+@media(forced-colors:active){.usm-expiry-digest,.usm-expiry-chip{border:1px solid ButtonText}}
+
+/* ===== Greeting weather pill =====
+   A third hero pill beside the date/clock: current conditions for the visitor's location.
+   It reuses .usm-hero-pill so every daypart/dark palette applies automatically; only the button
+   reset, icon sizing and mobile truncation are added here. Custom classes: no Tailwind delta. */
+.usm-weather-pill{font-family:inherit;cursor:pointer;transition:opacity .15s ease,transform .15s ease}
+.usm-weather-pill svg{width:12px;height:12px;flex:none;color:currentColor}
+.usm-weather-pill .usm-weather-temp{font-weight:800}
+.usm-weather-pill .usm-weather-sep{opacity:.55}
+.usm-weather-pill:active{transform:scale(.97)}
+.usm-weather-pill:focus-visible{outline:3px solid var(--usm-accent-ring,rgba(109,40,217,.2));outline-offset:2px}
+.usm-weather-pill.is-loading{opacity:.65;cursor:progress}
+.usm-weather-pill.is-loading svg{animation:usmWeatherSpin 1s linear infinite}
+.usm-weather-pill[hidden]{display:none}
+@keyframes usmWeatherSpin{to{transform:rotate(360deg)}}
+@media(max-width:640px){.usm-weather-place,.usm-weather-sep-place{display:none}}
+@media(prefers-reduced-motion:reduce){.usm-weather-pill{transition:none}.usm-weather-pill.is-loading svg{animation:none}}
+@keyframes usmViewsIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.usm-views-panel{animation:none}.usm-views-caret{transition:none}}
+@media(forced-colors:active){.usm-views-trigger,.usm-views-panel,.usm-views-input,.usm-views-btn{border:1px solid ButtonText}.usm-views-btn-primary{background:Highlight;color:HighlightText}}
