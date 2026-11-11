@@ -192,6 +192,34 @@ CREATE TABLE IF NOT EXISTS `usmsmart_notifications` (
   KEY `idx_notification_user_read` (`user_id`,`is_read`,`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE IF NOT EXISTS `usmsmart_password_otps` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `otp_code` varchar(10) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `expires_at` datetime NOT NULL,
+  `used_at` datetime DEFAULT NULL,
+  `ip_hash` char(64) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_otp` (`user_id`,`used_at`),
+  KEY `idx_expires` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `usmsmart_password_resets` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `token_hash` char(64) NOT NULL,
+  `delivery` varchar(10) NOT NULL DEFAULT 'admin',
+  `ip_hash` char(64) NOT NULL DEFAULT '',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `expires_at` datetime NOT NULL,
+  `used_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_reset_token` (`token_hash`),
+  KEY `idx_reset_user` (`user_id`,`used_at`),
+  KEY `idx_reset_expiry` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `usmsmart_staff_directory` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `staff_id` varchar(50) NOT NULL,
@@ -249,6 +277,8 @@ CREATE TABLE IF NOT EXISTS `usmsmart_users` (
   `auth_version` int(10) unsigned NOT NULL DEFAULT 1,
   `display_name` varchar(100) DEFAULT NULL,
   `email` varchar(190) DEFAULT NULL,
+  `gmail` varchar(190) DEFAULT NULL,
+  `google_id` varchar(100) DEFAULT NULL,
   `avatar_updated_at` timestamp NULL DEFAULT NULL,
   `last_seen_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),

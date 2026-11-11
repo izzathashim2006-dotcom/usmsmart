@@ -148,6 +148,113 @@ function usmsmartClassifyUidEligibility(array $records, array $uidUses, $today) 
     return array('eligible' => $eligible, 'blocked' => $blocked, 'duplicates' => $duplicates);
 }
 
+// Only the rows the user pulled take part in the export check, and only those whose StatusKad is
+// 02; everything else stays filtered out in the pull and is not scanned here. The mapping also
+// hides the pull's field names (matric/usmUid/expiryDate) from the classifier.
+function usmsmartUidEligibilityCandidates(array $rows) {
+    $records = array();
+    foreach ($rows as $row) {
+        if (trim((string)($row['cardStatus'] ?? '')) !== '02') continue;
+        $records[] = array(
+            'sourceId' => (string)($row['sourceId'] ?? ''),
+            'cardholderType' => (string)($row['cardholderType'] ?? ''),
+            'name' => (string)($row['name'] ?? ''),
+            'identifier' => (string)($row['matric'] ?? ''),
+            'school' => (string)($row['school'] ?? ''),
+            'uid' => (string)($row['usmUid'] ?? ''),
+            'expiryDate' => (string)($row['expiryDate'] ?? ''),
+        );
+    }
+    return $records;
+}
+
+/* Count how many cards on either source table carry each candidate UID. Only the candidate UIDs
+   are looked up, so the database work matches the batch the user pulled rather than the campus.
+   The count is derived from the holder lookup below so the two can never disagree. */
+function usmsmartUidUsageCounts(PDO $sqlServer, array $candidateUids) {
+    $counts = array();
+    foreach (usmsmartUidUsageDetails($sqlServer, $candidateUids) as $uid => $holders) {
+        if (!empty($holders)) $counts[$uid] = count($holders);
+    }
+    return $counts;
+}
+
+/* One row per card that carries a candidate UID. A bare count cannot tell the operator which
+   record holds the other card, and that holder usually sits outside the pulled batch, so the
+   details have to come back with the check. StatusKad and expiry are included because they
+   decide which of the two cards is the stale one. */
+function usmsmartUidUsageDetails(PDO $sqlServer, array $candidateUids) {
+    $wanted = array();
+    foreach ($candidateUids as $uid) {
+        $uid = strtoupper(preg_replace('/\s+/', '', trim((string)$uid)));
+        if ($uid !== '') $wanted[$uid] = true;
+    }
+    $details = array();
+    if (empty($wanted)) return $details;
+    /* Same normalisation on both sides of the comparison. Chunked because a pull can name
+       thousands of UIDs. */
+    $normalised = "UPPER(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(NoSiriKad,''),' ',''),CHAR(9),''),CHAR(10),''),CHAR(13),''))";
+    $sources = array(
+        'student' => array('table' => 'dbo.Pelajar', 'identifier' => 'NoMatrik'),
+        'staff'   => array('table' => 'dbo.Staf', 'identifier' => 'NoStaf'),
+    );
+    foreach (array_chunk(array_keys($wanted), 400) as $chunk) {
+        $placeholders = implode(',', array_fill(0, count($chunk), '?'));
+        foreach ($sources as $type => $meta) {
+            $stmt = $sqlServer->prepare("SELECT LTRIM(RTRIM(COALESCE(NoSiriKad,''))) AS card_uid,"
+                . " LTRIM(RTRIM(COALESCE(Nama,''))) AS name,"
+                . " LTRIM(RTRIM(COALESCE(" . $meta['identifier'] . ",''))) AS identifier,"
+                . " LTRIM(RTRIM(COALESCE(StatusKad,''))) AS card_status,"
+                . " TkhTamat AS expiry_date"
+                . " FROM " . $meta['table']
+                . " WHERE COALESCE(NULLIF(LTRIM(RTRIM(NoSiriKad)),''),'') <> '' AND " . $normalised . " IN (" . $placeholders . ")");
+            $stmt->execute($chunk);
+            while ($holder = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $uid = strtoupper(preg_replace('/\s+/', '', (string)$holder['card_uid']));
+                if ($uid === '' || !isset($wanted[$uid])) continue;
+                $details[$uid][] = array(
+                    'cardholderType' => $type,
+                    'name' => trim((string)$holder['name']),
+                    'identifier' => trim((string)$holder['identifier']),
+                    'cardStatus' => trim((string)$holder['card_status']),
+                    'expiryDate' => !empty($holder['expiry_date']) ? substr(trim((string)$holder['expiry_date']), 0, 10) : '',
+                );
+            }
+        }
+    }
+    return $details;
+}
+
+// The shape the dashboard renders. "scope" says how many pulled rows were considered so the panel
+// can state that the check never looks past the batch. Blocked rows carry the holders of their
+// duplicated UID so the operator can see what they are up against.
+function usmsmartUidEligibilityPayload(array $rows, array $uidDetails, $today) {
+    $records = usmsmartUidEligibilityCandidates($rows);
+    $uidCounts = array();
+    foreach ($uidDetails as $uid => $holders) {
+        if (!empty($holders)) $uidCounts[$uid] = count($holders);
+    }
+    $classified = usmsmartClassifyUidEligibility($records, $uidCounts, $today);
+    foreach ($classified['blocked'] as $index => $blockedRow) {
+        $uid = (string)($blockedRow['uid'] ?? '');
+        $classified['blocked'][$index]['holders'] = isset($uidDetails[$uid]) ? $uidDetails[$uid] : array();
+    }
+    return array(
+        'success' => true,
+        'generatedAt' => date('c'),
+        'today' => $today,
+        'scope' => array('requested' => count($rows), 'status02' => count($records)),
+        'totals' => array(
+            'scanned' => count($records),
+            'eligible' => count($classified['eligible']),
+            'blocked' => count($classified['blocked']),
+            'duplicates' => (int)$classified['duplicates'],
+        ),
+        'eligible' => $classified['eligible'],
+        'blocked' => $classified['blocked'],
+    );
+}
+
 // Descriptive fields carried alongside a Sysweb record so the portal can be filtered on the
 // same details as the source directory. Students contribute school/policy/nationality, staff
 // contribute department/card status/notes; both spellings are accepted because the transport
@@ -893,6 +1000,97 @@ function usmsmartSyswebPushCards(array $cards) {
     return $result;
 }
 
+// Public, credential-free view of the write path for the dashboard setup panel.
+// Only schema metadata (table, mapped column names) and filled/empty flags leave
+// the private file; a login name or password is never returned.
+function usmsmartSyswebWritePublicState() {
+    $config = usmsmartSyswebLiveConfig();
+    $cc = is_array($config['card_columns'] ?? null) ? $config['card_columns'] : array();
+    $columnsFilled = array();
+    $columnNames = array();
+    foreach (array('identifier', 'uid', 'serial', 'policy', 'expiry') as $k) {
+        $safe = usmsmartSafeLiveColumnName($cc[$k] ?? '');
+        $columnsFilled[$k] = $safe !== '';
+        $columnNames[$k] = $safe;
+    }
+    $file = usmsmartSyswebLiveConfigFile();
+    return array(
+        'enabled' => !empty($config['write_enabled']),
+        'table' => usmsmartSyswebWriteTable($config),
+        'uidMode' => strtolower(trim((string)($config['write_uid'] ?? 'source'))) === 'converted' ? 'converted' : 'source',
+        'missing' => usmsmartSyswebWriteMissing($config),
+        'ready' => usmsmartSyswebWriteReady($config),
+        'readLoginReady' => usmsmartSyswebLiveFilled($config['server'] ?? '') && usmsmartSyswebLiveFilled($config['database'] ?? '') && usmsmartSyswebLiveFilled($config['username'] ?? '') && usmsmartSyswebLiveFilled($config['password'] ?? ''),
+        'writeLoginFilled' => usmsmartSyswebLiveFilled($config['write_username'] ?? '') && usmsmartSyswebLiveFilled($config['write_password'] ?? ''),
+        'columnsFilled' => $columnsFilled,
+        'columnNames' => $columnNames,
+        'driverAvailable' => in_array('sqlsrv', PDO::getAvailableDrivers(), true),
+        'configWritable' => is_file($file) ? is_writable($file) : is_writable(dirname($file)),
+    );
+}
+
+// Merge the write half of the private config from the dashboard setup panel.
+// Deliberately cannot edit server/database or the read login: the write target
+// host is fixed to the already-configured read server, so a compromised admin
+// session cannot redirect card writes to an attacker-controlled host. Credentials
+// are write-only — an empty username/password leaves the stored value untouched,
+// and nothing secret is ever returned. Column names are validated as identifiers.
+function usmsmartSyswebWriteSave(array $input) {
+    $file = usmsmartSyswebLiveConfigFile();
+    $config = usmsmartSyswebLiveConfig();
+    if (array_key_exists('write_enabled', $input)) $config['write_enabled'] = !empty($input['write_enabled']);
+    if (isset($input['write_username']) && trim((string)$input['write_username']) !== '') $config['write_username'] = trim((string)$input['write_username']);
+    if (isset($input['write_password']) && (string)$input['write_password'] !== '') $config['write_password'] = (string)$input['write_password'];
+    if (isset($input['write_table'])) {
+        $t = trim((string)$input['write_table']);
+        if ($t !== '' && usmsmartSyswebLiveTableName($t) === '') return array('success' => false, 'message' => 'Nama jadual tulis tidak sah.');
+        $config['write_table'] = $t;
+    }
+    if (isset($input['write_uid'])) $config['write_uid'] = strtolower(trim((string)$input['write_uid'])) === 'converted' ? 'converted' : 'source';
+    if (isset($input['card_columns']) && is_array($input['card_columns'])) {
+        $cc = is_array($config['card_columns'] ?? null) ? $config['card_columns'] : array();
+        foreach (array('identifier', 'uid', 'serial', 'policy', 'expiry') as $k) {
+            if (!array_key_exists($k, $input['card_columns'])) continue;
+            $raw = trim((string)$input['card_columns'][$k]);
+            if ($raw !== '' && usmsmartSafeLiveColumnName($raw) === '') return array('success' => false, 'message' => 'Nama lajur tidak sah: ' . $k);
+            $cc[$k] = $raw;
+        }
+        $config['card_columns'] = $cc;
+    }
+    if (!is_dir(dirname($file))) return array('success' => false, 'message' => 'Direktori konfigurasi tiada: ' . dirname($file));
+    $php = "<?php\n// USMSmart private Sysweb / ccadmin config. Credentials stay outside the web root.\nreturn " . var_export($config, true) . ";\n";
+    if (@file_put_contents($file, $php, LOCK_EX) === false) return array('success' => false, 'message' => 'Gagal menulis fail konfigurasi. Semak kebenaran tulis pada ' . $file);
+    return array('success' => true, 'message' => 'Konfigurasi penulisan ccadmin disimpan.', 'state' => usmsmartSyswebWritePublicState());
+}
+
+// Read-only preflight from the setup panel: connect with the write login (or the
+// read login when no write login is stored yet), list the table's real columns so
+// the operator maps from the live schema instead of guessing, and ask SQL Server
+// for the login's effective rights. No row is read, inserted or updated.
+function usmsmartSyswebWriteTest() {
+    $config = usmsmartSyswebLiveConfig();
+    $table = usmsmartSyswebWriteTable($config);
+    if (!usmsmartSyswebLiveFilled($config['server'] ?? '') || !usmsmartSyswebLiveFilled($config['database'] ?? '')) return array('success' => false, 'message' => 'Server / database belum ditetapkan dalam konfigurasi.');
+    $useWrite = usmsmartSyswebLiveFilled($config['write_username'] ?? '') && usmsmartSyswebLiveFilled($config['write_password'] ?? '');
+    $login = $useWrite ? 'write' : 'read';
+    if (!$useWrite && !(usmsmartSyswebLiveFilled($config['username'] ?? '') && usmsmartSyswebLiveFilled($config['password'] ?? ''))) return array('success' => false, 'message' => 'Tiada login untuk diuji. Isi login tulis dahulu.');
+    if (!in_array('sqlsrv', PDO::getAvailableDrivers(), true)) return array('success' => false, 'message' => 'Pemacu PDO sqlsrv tidak tersedia pada PHP ini.');
+    if (usmsmartSyswebLiveTableName($table) === '') return array('success' => false, 'message' => 'Nama jadual tidak sah; tetapkan write_table / card_table.');
+    $config['login_timeout'] = max(1, min(15, (int)($config['login_timeout'] ?? 5)));
+    try {
+        $live = $useWrite ? usmsmartGetSyswebWritePdo($config) : usmsmartGetSyswebLivePdo($config);
+        $columns = usmsmartSyswebLiveColumns($live, $table);
+        $permissions = array();
+        try { $permissions = usmsmartSyswebWritePermissions($live, $table); } catch (Throwable $probeError) { error_log('USMSmart ccadmin test permission probe failed: ' . $probeError->getMessage()); }
+        $planMissing = array();
+        $plan = usmsmartSyswebWritePlan($columns, is_array($config['card_columns'] ?? null) ? $config['card_columns'] : array(), $planMissing);
+        return array('success' => true, 'login' => $login, 'table' => $table, 'columns' => array_values($columns), 'permissions' => $permissions, 'mapped' => $plan, 'planMissing' => $planMissing, 'message' => 'Sambungan berjaya menggunakan login ' . $login . '.');
+    } catch (Throwable $e) {
+        error_log('USMSmart ccadmin write test failed: ' . $e->getMessage());
+        return array('success' => false, 'message' => 'Sambungan gagal (' . $login . ' login). Semak server, login dan kebenaran tulis.');
+    }
+}
+
 // Snapshot rows plus live rows, with the provenance the callers have to report.
 function usmsmartSyswebCardIndex($pdo, array $records, &$source) {
     $index = usmsmartGetCardRecordIndex($pdo);
@@ -1326,6 +1524,60 @@ function auditLog($pdo, $actionName, $entityType, $entityId = null, $matric = nu
         $actor = isset($_SESSION['username']) ? (string)$_SESSION['username'] : 'system';
         $stmt->execute(array($actionName, $entityType, $entityId, $matric, $details, $actor));
     } catch (Exception $e) { error_log('USMSmart audit log failed: ' . $e->getMessage()); }
+}
+
+
+// Presence is stored on the account so the sign-in page can answer "who is here right now" without
+// a sessions table. Older installations predate the column; it is added once, and a database user
+// without ALTER simply reports zero online instead of breaking the page.
+function usmsmartPresenceReady($pdo) {
+    static $ready = null;
+    if ($ready !== null) { return $ready; }
+    $ready = false;
+    if (!($pdo instanceof PDO)) { return false; }
+    try {
+        $column = $pdo->query("SHOW COLUMNS FROM usmsmart_users LIKE 'last_seen_at'")->fetch(PDO::FETCH_ASSOC);
+        if (!$column) {
+            $pdo->exec('ALTER TABLE usmsmart_users ADD COLUMN last_seen_at TIMESTAMP NULL DEFAULT NULL AFTER last_login_at');
+        }
+        $ready = true;
+    } catch (Throwable $e) {
+        error_log('USMSmart presence column unavailable: ' . $e->getMessage());
+    }
+    return $ready;
+}
+
+// One UPDATE per session per minute, so presence costs almost nothing while a user reads pages.
+function usmsmartTouchPresence($pdo) {
+    if (empty($_SESSION['user_id'])) { return; }
+    $now = time();
+    if (!empty($_SESSION['usm_presence_at']) && ($now - (int)$_SESSION['usm_presence_at']) < 60) { return; }
+    try {
+        if (!usmsmartPresenceReady($pdo)) { return; }
+        $stmt = $pdo->prepare('UPDATE usmsmart_users SET last_seen_at = CURRENT_TIMESTAMP WHERE id = ?');
+        $stmt->execute(array((int)$_SESSION['user_id']));
+        $_SESSION['usm_presence_at'] = $now;
+    } catch (Throwable $e) {
+        error_log('USMSmart presence heartbeat failed: ' . $e->getMessage());
+    }
+}
+
+// Three numbers for the sign-in page: how many accounts exist, how many were seen in the last five
+// minutes, and how many successful sign-ins the audit log holds for today.
+function usmsmartLoginStats($pdo) {
+    $stats = array('ok' => false, 'total' => 0, 'online' => 0, 'today' => 0);
+    if (!($pdo instanceof PDO)) { return $stats; }
+    try {
+        $stats['total'] = (int)$pdo->query('SELECT COUNT(*) FROM usmsmart_users')->fetchColumn();
+        if (usmsmartPresenceReady($pdo)) {
+            $stats['online'] = (int)$pdo->query('SELECT COUNT(*) FROM usmsmart_users WHERE last_seen_at >= (CURRENT_TIMESTAMP - INTERVAL 5 MINUTE)')->fetchColumn();
+        }
+        $stats['today'] = (int)$pdo->query("SELECT COUNT(*) FROM usmsmart_audit_log WHERE action = 'login' AND created_at >= CURRENT_DATE()")->fetchColumn();
+        $stats['ok'] = true;
+    } catch (Throwable $e) {
+        error_log('USMSmart login stats failed: ' . $e->getMessage());
+    }
+    return $stats;
 }
 
 // The audit list and the audit statistics must agree on what a filter means, so the WHERE clause for

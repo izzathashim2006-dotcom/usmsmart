@@ -10,12 +10,12 @@ if (!defined('USM_ROOT')) {
 
     $userCount = (int)$pdo->query('SELECT COUNT(*) FROM usmsmart_users')->fetchColumn();
     $isAuthenticated = !empty($_SESSION['user_id']) && !empty($_SESSION['username']) && in_array(($_SESSION['role'] ?? ''), array('admin','viewer'), true);
-    $publicActions = array('manifest', 'login', 'setup_admin', 'logout');
+    $publicActions = array('manifest', 'login', 'login_page', 'setup_admin', 'logout');
     if ($action !== '' && !in_array($action, $publicActions, true) && !$isAuthenticated) {
         http_response_code(401); header('Content-Type: application/json; charset=utf-8'); echo json_encode(array('success'=>false,'error'=>'Sesi log masuk diperlukan.','message'=>'Sesi log masuk telah tamat. Sila log masuk semula.')); exit;
     }
     if ($action !== '' && $isAuthenticated) {
-        $adminOnlyActions = array('export_csv','export_audit_csv','backup_database','restore_database','import_csv','create_user','list_users','manage_user','get_audit_log_page','get_audit_log','get_audit_stats','get_sessions','backup_status','create_server_backup','download_server_backup','delete_server_backup','verify_server_backup','validate_restore_backup','bulk_delete_students','bulk_update_students','get_card_policies','assign_card_policy','manage_access_policies','manage_access_locations','get_access_policy_details','save_local_staff','delete_local_staff','create_sysweb_record','update_sysweb_record','delete_sysweb_record','reset_sysweb_password','sysweb_generate_missing_passwords','get_sysweb_password','sysweb_authorize_password_export');
+        $adminOnlyActions = array('export_csv','export_audit_csv','backup_database','restore_database','import_csv','create_user','list_users','manage_user','get_audit_log_page','get_audit_log','get_audit_stats','get_sessions','backup_status','create_server_backup','download_server_backup','delete_server_backup','verify_server_backup','validate_restore_backup','bulk_delete_students','bulk_update_students','get_card_policies','assign_card_policy','manage_access_policies','manage_access_locations','get_access_policy_details','save_local_staff','delete_local_staff','create_sysweb_record','update_sysweb_record','delete_sysweb_record','reset_sysweb_password','sysweb_generate_missing_passwords','get_sysweb_password','sysweb_authorize_password_export','merge_students','bulk_restore_fields','send_ops_digest','sysweb_write_state','sysweb_write_save','sysweb_write_test','push_cards_ccadmin');
         if (in_array($action, $adminOnlyActions, true) && ($_SESSION['role'] ?? '') !== 'admin') {
             http_response_code(403); header('Content-Type: application/json; charset=utf-8'); echo json_encode(array('success'=>false,'error'=>'Akses pentadbir diperlukan.','message'=>'Akses ditolak — tindakan ini memerlukan kebenaran Admin.')); exit;
         }
@@ -280,7 +280,7 @@ if (!defined('USM_ROOT')) {
     }
 
     /* ===== NEW: My Profile endpoints (authenticated users) ===== */
-    if ($isAuthenticated && in_array($action, array('get_my_profile', 'update_my_profile', 'change_my_password', 'my_avatar', 'update_my_avatar', 'remove_my_avatar'), true)) {
+    if ($isAuthenticated && in_array($action, array('get_my_profile', 'update_my_profile', 'change_my_password', 'my_avatar', 'update_my_avatar', 'remove_my_avatar', 'link_google_account', 'unlink_google_account'), true)) {
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store, private');
 
@@ -305,7 +305,7 @@ if (!defined('USM_ROOT')) {
             }
             try {
                 $stmt = $pdo->prepare(
-                    'SELECT username, role, is_active, display_name, email, created_at, last_login_at, avatar_updated_at
+                    'SELECT username, role, is_active, display_name, email, gmail, google_id, created_at, last_login_at, avatar_updated_at
                      FROM usmsmart_users WHERE id = ? LIMIT 1'
                 );
                 $stmt->execute(array($profileUserId));
@@ -373,10 +373,11 @@ if (!defined('USM_ROOT')) {
             $input = $_POST;
         }
 
-        // ---- Update display_name / email ----
+        // ---- Update display_name / email / gmail ----
         if ($action === 'update_my_profile') {
             $displayName = trim((string)($input['display_name'] ?? ''));
             $email       = trim((string)($input['email'] ?? ''));
+            $gmail       = strtolower(trim((string)($input['gmail'] ?? '')));
 
             if (mb_strlen($displayName) > 100) {
                 http_response_code(422);
@@ -388,22 +389,105 @@ if (!defined('USM_ROOT')) {
                 echo json_encode(array('success'=>false,'message'=>'Sila masukkan alamat e-mel yang sah.'));
                 exit;
             }
+            if ($gmail !== '') {
+                if (!filter_var($gmail, FILTER_VALIDATE_EMAIL) || strlen($gmail) > 190) {
+                    http_response_code(422);
+                    echo json_encode(array('success'=>false,'message'=>'Sila masukkan alamat Gmail yang sah.'));
+                    exit;
+                }
+                if (!preg_match('/@gmail\.com$/i', $gmail) && !preg_match('/@(student\.)?usm\.my$/i', $gmail)) {
+                    http_response_code(422);
+                    echo json_encode(array('success'=>false,'message'=>'Akaun mestilah alamat Gmail (@gmail.com atau @usm.my).'));
+                    exit;
+                }
+            }
 
             try {
                 $stmt = $pdo->prepare(
-                    'UPDATE usmsmart_users SET display_name = ?, email = ? WHERE id = ?'
+                    'UPDATE usmsmart_users SET display_name = ?, email = ?, gmail = ? WHERE id = ?'
                 );
                 $stmt->execute(array(
                     $displayName !== '' ? $displayName : null,
                     $email !== '' ? $email : null,
+                    $gmail !== '' ? $gmail : null,
                     $profileUserId
                 ));
-                auditLog($pdo, 'update_profile', 'user', $profileUserId, null, 'Updated display name / email');
-                echo json_encode(array('success'=>true,'message'=>'Profil berjaya dikemas kini.'));
+                auditLog($pdo, 'update_profile', 'user', $profileUserId, null, 'Updated display name / email / gmail');
+                echo json_encode(array('success'=>true,'message'=>'Profil dan akaun Gmail berjaya dikemas kini.'));
             } catch (Throwable $e) {
                 error_log('USMSmart update_my_profile failed: ' . $e->getMessage());
                 http_response_code(500);
                 echo json_encode(array('success'=>false,'message'=>'Profil tidak dapat dikemas kini.'));
+            }
+            exit;
+        }
+
+                // ---- Link Google Account via verified Google ID token (One Tap / chooser) ----
+        if ($action === 'link_google_account') {
+            $credential = trim((string)($input['credential'] ?? ''));
+            if ($usmGoogleClientId === '') {
+                http_response_code(503);
+                echo json_encode(array('success' => false, 'message' => 'Pautan Google belum diaktifkan oleh pentadbir. Gunakan ruangan Gmail manual di bawah sebagai alternatif.'));
+                exit;
+            }
+            if ($credential === '') {
+                http_response_code(422);
+                echo json_encode(array('success' => false, 'message' => 'Kredensial Google diperlukan. Sila pilih akaun Google anda melalui butang Google.'));
+                exit;
+            }
+            $payload = usmGoogleVerifyIdToken($credential, $usmGoogleClientId);
+            if (!$payload) {
+                http_response_code(401);
+                echo json_encode(array('success' => false, 'message' => 'Token Google tidak sah atau telah tamat tempoh. Sila pilih akaun Google anda semula.'));
+                exit;
+            }
+            // Email and Google id come only from the verified token, never from the request body.
+            $email = strtolower(trim((string)$payload['email']));
+            $googleId = trim((string)$payload['sub']);
+
+            // Admin accounts may only be linked to verified USM email domains,
+            // matching the Google sign-in gate in controllers/auth.php.
+            if (($_SESSION['role'] ?? '') === 'admin' && !usmGoogleEmailIsUsmDomain($email, $usmGoogleAdminDomains)) {
+                http_response_code(403);
+                echo json_encode(array('success' => false, 'message' => 'Akaun Admin hanya boleh dipautkan dengan e-mel USM (@' . implode(', @', $usmGoogleAdminDomains) . '). Akaun Google ini bukan e-mel USM.'));
+                exit;
+            }
+
+            try {
+                // Check if this Google account is already linked to another user
+                $chk = $pdo->prepare('SELECT id, username FROM usmsmart_users WHERE (LOWER(gmail) = LOWER(?) OR (google_id = ? AND google_id IS NOT NULL AND google_id != "")) AND id != ? LIMIT 1');
+                $chk->execute(array($email, $googleId, $profileUserId));
+                $existing = $chk->fetch(PDO::FETCH_ASSOC);
+                if ($existing) {
+                    http_response_code(409);
+                    echo json_encode(array('success' => false, 'message' => 'Akaun Google ini (' . $email . ') telah dipautkan ke akaun lain (' . $existing['username'] . ').'));
+                    exit;
+                }
+
+                $stmt = $pdo->prepare('UPDATE usmsmart_users SET gmail = ?, google_id = ? WHERE id = ?');
+                $stmt->execute(array($email, $googleId, $profileUserId));
+                auditLog($pdo, 'link_google_account', 'user', $profileUserId, null, 'Linked Google account ' . $email);
+
+                echo json_encode(array('success' => true, 'gmail' => $email, 'message' => 'Akaun Google (' . $email . ') berjaya dipautkan!'));
+            } catch (Throwable $e) {
+                error_log('USMSmart link_google_account failed: ' . $e->getMessage());
+                http_response_code(500);
+                echo json_encode(array('success' => false, 'message' => 'Gagal memautkan akaun Google. Sila cuba lagi.'));
+            }
+            exit;
+        }
+
+        // ---- Unlink Google Account ----
+        if ($action === 'unlink_google_account') {
+            try {
+                $stmt = $pdo->prepare('UPDATE usmsmart_users SET gmail = NULL, google_id = NULL WHERE id = ?');
+                $stmt->execute(array($profileUserId));
+                auditLog($pdo, 'unlink_google_account', 'user', $profileUserId, null, 'Unlinked Google account');
+                echo json_encode(array('success' => true, 'message' => 'Pautan akaun Google berjaya diputuskan.'));
+            } catch (Throwable $e) {
+                error_log('USMSmart unlink_google_account failed: ' . $e->getMessage());
+                http_response_code(500);
+                echo json_encode(array('success' => false, 'message' => 'Gagal memutuskan pautan akaun Google.'));
             }
             exit;
         }
@@ -528,13 +612,29 @@ if (!defined('USM_ROOT')) {
     }
     /* ===== END My Profile ===== */
 
-    if ($action === '' && !$isAuthenticated) {
+    /* Public entry pages. "" is the marketing homepage; "login_page" is the sign-in form.
+       Signed-in users never see either: they go straight to the dashboard, tab token intact. */
+    if ($action === 'login_page' && $isAuthenticated) {
+        header('Location: index.php' . ($usmTabTokenValid ? '?usm_tab=' . rawurlencode($usmTabToken) : ''));
+        exit;
+    }
+    if (($action === '' || $action === 'login_page') && !$isAuthenticated) {
         $setupMode = ($userCount === 0);
-        $csrfForAuth = htmlspecialchars((string)$_SESSION['usmsmart_csrf_token'], ENT_QUOTES, 'UTF-8');
-        // Passkeys need a relying-party domain and a secure context (HTTPS, or localhost for dev).
-        // Anything else gets the password form alone instead of a button that can only fail.
-        $usmPasskeyAvailable = usmsmartWebAuthnIsSecure();
+        if ($action === 'login_page') {
+            $csrfForAuth = htmlspecialchars((string)$_SESSION['usmsmart_csrf_token'], ENT_QUOTES, 'UTF-8');
+            // Passkeys need a relying-party domain and a secure context (HTTPS, or localhost for dev).
+            // Anything else gets the password form alone instead of a button that can only fail.
+            $usmPasskeyAvailable = usmsmartWebAuthnIsSecure();
+            // Accounts, presence and today's sign-ins, rendered under the form and refreshed by a
+            // small poll on the login page.
+            $usmLoginStats = usmsmartLoginStats($pdo);
 
-        require USM_ROOT . '/views/login.php';
+            require USM_ROOT . '/views/login.php';
+            exit;
+        }
+        // The homepage shows the same live counters as the sign-in page, plus the guide clip
+        // when one is installed. Counts only, never a list; the clip uses sample data.
+        $usmHomeStats = usmsmartLoginStats($pdo);
+        require USM_ROOT . '/views/home.php';
         exit;
     }

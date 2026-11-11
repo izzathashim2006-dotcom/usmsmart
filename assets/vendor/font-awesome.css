@@ -1,4 +1,4 @@
-/* Font Awesome Free 6.4.0 — generated subset, 104 icon classes.
+/* Font Awesome Free 6.4.0 — generated subset, 114 icon classes.
    Only glyphs referenced by this app are present; woff2 only.
    Regenerate with: node tools/build-vendor-css.js
    Icons CC BY 4.0, fonts SIL OFL 1.1, code MIT — https://fontawesome.com/license/free */
@@ -76,14 +76,18 @@
 .fa-sort-down:before{content:"\f0dd"}
 .fa-circle-minus:before{content:"\f056"}
 .fa-right-from-bracket:before{content:"\f2f5"}
+.fa-fingerprint:before{content:"\f577"}
 .fa-forward-step:before{content:"\f051"}
 .fa-file-csv:before{content:"\f6dd"}
 .fa-comments:before{content:"\f086"}
 .fa-user-check:before{content:"\f4fc"}
+.fa-bars:before{content:"\f0c9"}
+.fa-hourglass-end:before{content:"\f253"}
 .fa-circle-exclamation:before{content:"\f06a"}
 .fa-list:before{content:"\f03a"}
 .fa-lock:before{content:"\f023"}
 .fa-pen-to-square:before{content:"\f044"}
+.fa-hourglass-half:before{content:"\f252"}
 .fa-users:before{content:"\f0c0"}
 .fa-eye-slash:before{content:"\f070"}
 .fa-chart-simple:before{content:"\e473"}
@@ -113,6 +117,8 @@
 .fa-file-excel:before{content:"\f1c3"}
 .fa-chart-line:before{content:"\f201"}
 .fa-arrow-right:before{content:"\f061"}
+.fa-lock-open:before{content:"\f3c1"}
+.fa-circle:before{content:"\f111"}
 .fa-satellite-dish:before{content:"\f7c0"}
 .fa-eye:before{content:"\f06e"}
 .fa-file-shield:before{content:"\e4f0"}
@@ -134,14 +140,18 @@
 .fa-sliders:before{content:"\f1de"}
 .fa-network-wired:before{content:"\f6ff"}
 .fa-flask:before{content:"\f0c3"}
+.fa-closed-captioning:before{content:"\f20a"}
 .fa-download:before{content:"\f019"}
 .fa-id-card:before{content:"\f2c2"}
+.fa-house:before{content:"\f015"}
 .fa-rotate-right:before{content:"\f2f9"}
 .fa-code-merge:before{content:"\f387"}
 .fa-file-arrow-down:before{content:"\f56d"}
 .fa-sun:before{content:"\f185"}
 .fa-bell:before{content:"\f0f3"}
 .fa-inbox:before{content:"\f01c"}
+.fa-link:before{content:"\f0c1"}
+.fa-play:before{content:"\f04b"}
 .fa-magnifying-glass:before,.fa-search:before{content:"\f002"}
 .fa-chevron-down:before{content:"\f078"}
 .fa-list-ul:before{content:"\f0ca"}
@@ -156,9 +166,11 @@
 .fa-rotate:before{content:"\f2f1"}
 .fa-spinner:before{content:"\f110"}
 .fa-clock-rotate-left:before{content:"\f1da"}
+.fa-file-export:before{content:"\f56e"}
 .fa-moon:before{content:"\f186"}
 .fa-shield-heart:before{content:"\e574"}
 .fa-chart-column:before{content:"\e0e3"}
+.fa-link-slash:before{content:"\f127"}
 .fa-table-list:before{content:"\f00b"}
 .fa-user-plus:before{content:"\f234"}
 .fa-check:before{content:"\f00c"}
@@ -173,7 +185,6 @@
 .fa-users-gear:before{content:"\f509"}
 .fa-building-columns:before{content:"\f19c"}
 .fa-graduation-cap:before{content:"\f19d"}
-.fa-fingerprint:before{content:"\f577"}
 .sr-only,.sr-only-focusable:not(:focus){position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
 :host,:root{--fa-style-family-brands:"Font Awesome 6 Brands";--fa-font-brands:normal 400 1em/1 "Font Awesome 6 Brands"}
 .fa-brands,.fab{font-weight:400}

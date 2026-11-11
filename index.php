@@ -2,6 +2,7 @@
 // Application root, resolved once so controllers and helpers can build paths
 // without depending on their own directory.
 define('USM_ROOT', __DIR__);
+date_default_timezone_set('Asia/Kuala_Lumpur');
 // Per-tab authentication: each tab gets its own session cookie name, selected by a
 // random tab token held in sessionStorage and sent on every request.
 $usmTabToken = (string)($_GET['usm_tab'] ?? $_SERVER['HTTP_X_USM_TAB'] ?? '');
@@ -36,6 +37,16 @@ header('X-Permitted-Cross-Domain-Policies: none');
 header('Permissions-Policy: camera=(self), microphone=(), geolocation=()');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
+// Google Client ID for One Tap & Account Chooser (gitignored local file)
+$usmGoogleConfigFile = __DIR__ . '/config/google.local.php';
+$usmGoogleConfig = is_file($usmGoogleConfigFile) ? (array)require $usmGoogleConfigFile : array();
+$usmGoogleClientId = trim((string)($usmGoogleConfig['client_id'] ?? (getenv('GOOGLE_CLIENT_ID') ?: '')));
+// Google sign-in may unlock the Admin role only for verified USM email domains.
+// Subdomains of a listed domain (e.g. student.usm.my) are accepted; lookalikes
+// (usm.my.example.com) are not. Configurable per installation in google.local.php.
+$usmGoogleAdminDomains = array_values(array_filter(array_map('strtolower', array_map('trim', (array)($usmGoogleConfig['admin_email_domains'] ?? array('usm.my', 'student.usm.my')))), 'strlen'));
+if (!$usmGoogleAdminDomains) { $usmGoogleAdminDomains = array('usm.my', 'student.usm.my'); }
+
 // Credentials are not kept in this file. config/database.local.php is the
 // per-installation, gitignored file; environment variables are the fallback.
 $usmDbConfigFile = __DIR__ . '/config/database.local.php';
@@ -122,6 +133,25 @@ try {
         if (!$profileEmailColumns) {
             $pdo->exec("ALTER TABLE usmsmart_users ADD COLUMN email VARCHAR(190) NULL AFTER display_name");
         }
+        $profileGmailColumns = $pdo->query("SHOW COLUMNS FROM usmsmart_users LIKE 'gmail'")->fetchAll(PDO::FETCH_ASSOC);
+        if (!$profileGmailColumns) {
+            $pdo->exec("ALTER TABLE usmsmart_users ADD COLUMN gmail VARCHAR(190) NULL AFTER email");
+        }
+        $profileGoogleIdColumns = $pdo->query("SHOW COLUMNS FROM usmsmart_users LIKE 'google_id'")->fetchAll(PDO::FETCH_ASSOC);
+        if (!$profileGoogleIdColumns) {
+            $pdo->exec("ALTER TABLE usmsmart_users ADD COLUMN google_id VARCHAR(100) NULL AFTER gmail");
+        }
+        $pdo->exec("CREATE TABLE IF NOT EXISTS usmsmart_password_otps (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            user_id BIGINT UNSIGNED NOT NULL,
+            otp_code VARCHAR(10) NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            expires_at DATETIME NOT NULL,
+            used_at DATETIME NULL DEFAULT NULL,
+            ip_hash CHAR(64) NOT NULL DEFAULT '',
+            INDEX idx_user_otp (user_id, used_at),
+            INDEX idx_expires (expires_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         // ===== NEW: profile picture. The timestamp doubles as the cache-busting version in the URL,
         // so one nullable column is the whole schema: no path, no mime, no size to keep in sync.
         $avatarColumns = $pdo->query("SHOW COLUMNS FROM usmsmart_users LIKE 'avatar_updated_at'")->fetchAll(PDO::FETCH_ASSOC);
@@ -182,19 +212,42 @@ if ($authReady && !empty($_SESSION['user_id'])) {
 
 // Helpers are required before any route: the auth routes call auditLog().
 require USM_ROOT . '/app/functions.php';
+// Google ID token verification shared by google_login and link_google_account.
+require USM_ROOT . '/app/google-token.php';
+
+// The sign-in page shows three counters: accounts, accounts seen in the last five minutes and
+// today's successful sign-ins. Public by design, because the page that renders them is
+// unauthenticated; counts only, never a list.
+if ($action === 'login_stats') {
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store, private');
+    echo json_encode(usmsmartLoginStats(isset($pdo) ? $pdo : null));
+    exit;
+}
+
+// Presence heartbeat: one UPDATE per session per minute keeps "online now" honest without a
+// sessions table. Lives after the helpers so the column guard stays in one place.
+if (!empty($_SESSION['user_id']) && isset($pdo)) {
+    usmsmartTouchPresence($pdo);
+}
 
 // Passkey helpers and routes run before the login/setup routes: the sign-in endpoints must work
 // unauthenticated, and each handler exits so the global CSRF gate below never double-handles them.
 require USM_ROOT . '/app/webauthn.php';
 require USM_ROOT . '/controllers/webauthn.php';
 
-if ($authReady && in_array($action, array('setup_admin', 'login', 'logout', 'create_user', 'list_users', 'manage_user'), true)) {
+// Self-service password reset: the public request/reset screens and the administrator
+// delivery queue. Each handler exits, so these run before the authenticated CSRF gate
+// below and verify their own tokens (public endpoints work without a session login).
+require USM_ROOT . '/controllers/password-reset.php';
+
+if ($authReady && in_array($action, array('setup_admin', 'login', 'google_login', 'logout', 'create_user', 'list_users', 'manage_user'), true)) {
     require USM_ROOT . '/controllers/auth.php';
 }
 
 if (in_array($action, array('login', 'setup_admin', 'logout'), true) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     // These routes are only for POST actions; GET should render the proper login/setup screen.
-    $action = '';
+    $action = 'login_page';
 }
 
 // Defense in depth: every authenticated POST request outside the dedicated auth routes
@@ -259,6 +312,16 @@ if (isset($pdo) && !empty($_SESSION['user_id']) && $action !== 'restore_database
             } elseif ($lock) fclose($lock);
         }
     } catch (Exception $backupError) { usmsmartBackupLog('automatic_backup_failed', $backupError->getMessage()); error_log('USMSmart automatic backup failed: ' . $backupError->getMessage()); }
+}
+
+// Best-effort weekly ops digest: the first admin request each ISO week emails the
+// expiry + data-quality summary to admins. Same marker + flock pattern as the backup
+// above; a no-op until SMTP is configured, and never fatal to the request.
+if (isset($pdo) && !empty($_SESSION['user_id']) && ($_SESSION['role'] ?? '') === 'admin' && $action !== 'restore_database') {
+    try {
+        require_once USM_ROOT . '/app/ops-digest.php';
+        usmsmartMaybeSendWeeklyDigest($pdo);
+    } catch (Exception $digestError) { error_log('USMSmart weekly digest failed: ' . $digestError->getMessage()); }
 }
 
 require USM_ROOT . '/controllers/system.php';

@@ -3,7 +3,7 @@
         *{box-sizing:border-box}
         body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;display:flex;flex-direction:column}
         .topbar{height:5px;background:linear-gradient(90deg,#4F46E5,#818CF8,#C7D2FE)}
-        .shell{width:min(100% - 32px,1050px);margin:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,430px);gap:64px;align-items:center;padding:52px 0}
+        .shell{width:min(100% - 32px,1050px);margin:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,430px);gap:64px;align-items:center;padding:76px 0 52px}
         .brand{display:flex;align-items:center;gap:12px;margin-bottom:34px}
         .brand-mark{width:44px;height:44px;border-radius:14px;background:#4F46E5;color:#fff;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.04em;box-shadow:0 6px 18px #4F46E52b}
         .brand-name{font-size:17px;font-weight:800;letter-spacing:-.04em}.brand-sub{margin-top:3px;color:var(--muted);font:10px 'JetBrains Mono',monospace;letter-spacing:.09em;text-transform:uppercase}
@@ -34,10 +34,20 @@
         .dark .passkey-btn{background:#1E1B4B;border-color:#3730A3;color:#C7D2FE}
         .dark .passkey-btn:hover{background:#312E81}
         .dark .passkey-hint{color:#A1A1AA}
+        .google-admin-hint{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px}
+        .google-admin-hint i{font-size:10px;color:#4F46E5}
+        .dark .google-admin-hint i{color:#A5B4FC}
+        .caps-hint{display:flex;align-items:center;gap:7px;margin:8px 0 0;padding:7px 10px;border:1px solid #FDE68A;border-radius:9px;background:#FFFBEB;color:#92400E;font-size:11px;font-weight:600;line-height:1.45}
+        .caps-hint i{font-size:11px;color:#D97706}
+        .caps-hint[hidden]{display:none}
+        .dark .caps-hint{border-color:#78350F;background:#292018;color:#FCD34D}
+        .dark .caps-hint i{color:#FBBF24}
+        .login-skip{position:fixed;top:-60px;left:16px;z-index:200;padding:10px 16px;border-radius:10px;background:#4F46E5;color:#fff;font-weight:700;font-size:13px;text-decoration:none;transition:top .18s ease}
+        .login-skip:focus-visible{top:12px}
         /* The footer stands on the photograph, which no contrast checker can measure. An explicit
    scrim behind it makes the ratio a property of the stylesheet instead of the picture. */
 footer{align-self:center;margin:0 16px 22px;padding:6px 14px 7px;border-radius:999px;background:rgba(15,23,42,.72);color:#e8eef7;text-align:center;font:10px 'JetBrains Mono',monospace;letter-spacing:.03em}
-        @media(max-width:760px){.shell{grid-template-columns:1fr;gap:28px;width:min(100% - 28px,430px);padding:32px 0}.intro{display:none}.brand{margin-bottom:0}.card{padding:25px 22px;border-radius:19px}.shell{align-content:center}.card-icon{margin-bottom:15px}}
+        @media(max-width:760px){.shell{grid-template-columns:1fr;gap:28px;width:min(100% - 28px,430px);padding:64px 0 32px}.intro{display:none}.brand{margin-bottom:0}.card{padding:25px 22px;border-radius:19px}.shell{align-content:center}.card-icon{margin-bottom:15px}}
         @media(prefers-reduced-motion:reduce){*{transition:none!important}
     }
 
@@ -163,13 +173,13 @@ th,td{overflow-wrap:anywhere}
 /* Avoid layout overflow on tablet and phone widths. */
 img,canvas,svg{max-width:100%}
 @media(max-width:900px){
-  .shell{grid-template-columns:minmax(0,1fr);width:min(100% - 28px,620px);gap:24px;padding:28px 0}
+  .shell{grid-template-columns:minmax(0,1fr);width:min(100% - 28px,620px);gap:24px;padding:64px 0 28px}
   .intro{max-width:none}
   main.flex-grow{padding-left:14px;padding-right:14px}
   #nav-tabs{flex-wrap:wrap;max-width:100%;overflow:visible}
 }
 @media(max-width:640px){
-  .shell{width:calc(100% - 24px);padding:20px 0}
+  .shell{width:calc(100% - 24px);padding:60px 0 20px}
   .brand{margin-bottom:22px}
   main.flex-grow{padding:16px 12px 28px}
   table{font-size:12px}
@@ -564,3 +574,353 @@ html.dark .submit{background:#7c3aed;border-color:#7c3aed;color:#fff;
   box-shadow:0 6px 16px rgba(0,0,0,.35)}
 html.dark .submit:hover{background:#6d28d9;border-color:#6d28d9}
 html.dark .eyebrow{background:#251d3f!important;color:#c4b5fd!important;border-color:#3b2f5c!important}
+
+
+/* ===== usmsmart-login-preview-pro-v1 ===== */
+/* A product-style window rather than a decorative toy: crisp white surface, hairline rules,
+   restrained violet accents and a single soft shadow, so it reads like a screenshot of the
+   real dashboard beside the sign-in card. One page every six seconds; the track glides, the
+   page's blocks settle with a short stagger, and nothing blinks or breathes. Every page opens
+   with one line saying what that module does. Presentation only; no auth, passkey or theme
+   logic touched. */
+.preview{
+  --pv-surface:#fff;--pv-bar:#f8fafc;--pv-line:#e8ecf3;--pv-line-soft:#f1f5f9;
+  --pv-ink:#0f172a;--pv-ink-2:#334155;--pv-muted:#64748b;--pv-faint:#94a3b8;
+  --pv-tint:#f8fafc;--pv-accent:#6d28d9;--pv-accent-ink:#5b21b6;--pv-accent-line:#ddd6fe;
+  --pv-action:#6d28d9;--pv-bar-a:#a78bfa;--pv-bar-b:#6d28d9;
+  --pv-ok:#047857;--pv-ok-bg:#ecfdf5;--pv-ok-line:#a7f3d0;
+  --pv-warn:#b45309;--pv-warn-bg:#fffbeb;--pv-warn-line:#fde68a;
+  --pv-bad:#be123c;--pv-bad-bg:#fff1f2;--pv-bad-line:#fecdd3;
+  width:100%;margin-top:26px;border:1px solid var(--pv-line);border-radius:16px;
+  background:var(--pv-surface);color:var(--pv-ink);font-size:12px;line-height:1.5;text-shadow:none;
+  box-shadow:0 26px 52px rgba(15,23,42,.16),0 2px 6px rgba(15,23,42,.05);overflow:hidden
+}
+html.dark .preview{
+  --pv-surface:#0f1522;--pv-bar:#141b28;--pv-line:#252d3c;--pv-line-soft:#1f2735;
+  --pv-ink:#e8edf6;--pv-ink-2:#d3dced;--pv-muted:#94a0b6;--pv-faint:#7c879b;
+  --pv-tint:#151c2b;--pv-accent:#a78bfa;--pv-accent-ink:#c4b5fd;--pv-accent-line:#3b2f5c;
+  --pv-action:#7c3aed;--pv-bar-a:#a78bfa;--pv-bar-b:#7c3aed;
+  --pv-ok:#6ee7b7;--pv-ok-bg:#0b241c;--pv-ok-line:#1f5b48;
+  --pv-warn:#fcd34d;--pv-warn-bg:#241c0c;--pv-warn-line:#5a4814;
+  --pv-bad:#fda4af;--pv-bad-bg:#2a1015;--pv-bad-line:#6b2434;
+  box-shadow:0 28px 56px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.35)
+}
+.preview-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--pv-line);background:var(--pv-bar)}
+.preview-dots{display:inline-flex;gap:5px;flex:0 0 auto}
+.preview-dots i{width:7px;height:7px;border-radius:50%;background:#d8dee9}
+.preview-dots i:first-child{background:#fca5a5}.preview-dots i:nth-child(2){background:#fcd34d}.preview-dots i:nth-child(3){background:#86efac}
+html.dark .preview-dots i{background:#39424f}html.dark .preview-dots i:first-child{background:#8f4b4b}html.dark .preview-dots i:nth-child(2){background:#8f7538}html.dark .preview-dots i:nth-child(3){background:#3f7a57}
+.preview-bar-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;font-weight:700;letter-spacing:-.01em;color:var(--pv-ink-2)}
+.preview-tag{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;padding:3px 9px;border:1px solid var(--pv-line);border-radius:999px;background:var(--pv-surface);color:var(--pv-muted);font:9.5px 'JetBrains Mono',monospace;letter-spacing:.08em}
+.preview-tag::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--pv-accent)}
+.preview-stage{position:relative;height:240px;overflow:hidden}
+.preview-track{display:flex;width:900%;height:100%;animation:previewTrackPro 48s cubic-bezier(.42,.03,.2,1) infinite;will-change:transform}
+.preview-scene{display:flex;flex:0 0 11.1111%;width:11.1111%;height:100%;min-width:0;box-sizing:border-box;padding:14px 16px 12px;flex-direction:column}
+.preview-scene-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:9px;color:var(--pv-ink);font-size:11px;font-weight:700;line-height:1.3;letter-spacing:-.01em}
+.preview-scene-head>span{display:inline-flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preview-scene-head i{flex:0 0 auto;font-size:10px;color:var(--pv-accent)}
+.preview-scene-head em{flex:0 0 auto;padding-top:1px;font:500 9px 'JetBrains Mono',monospace;font-style:normal;letter-spacing:.04em;color:var(--pv-faint);white-space:nowrap}
+.preview-scene-head em.preview-live{color:var(--pv-ok)}
+.preview-desc{flex:0 0 auto;margin:0 0 10px;min-height:24px;color:var(--pv-muted);font-size:10px;line-height:1.5}
+/* The page settles instead of snapping: each block rises a few pixels in a short stagger as it
+   lands. The opening page gets a one-off entrance on load; its clone stays static so the loop
+   seam never shows a blank frame. */
+.preview-scene>*{animation:previewRisePro 48s cubic-bezier(.22,.65,.3,1) infinite both;animation-delay:calc(var(--enter,0s) + var(--stagger,0s))}
+.preview-scene:nth-child(2){--enter:4.8s}
+.preview-scene:nth-child(3){--enter:10.8s}
+.preview-scene:nth-child(4){--enter:16.8s}
+.preview-scene:nth-child(5){--enter:22.8s}
+.preview-scene:nth-child(6){--enter:28.8s}
+.preview-scene:nth-child(7){--enter:34.8s}
+.preview-scene:nth-child(8){--enter:40.8s}
+.preview-scene>:nth-child(1){--stagger:0s}
+.preview-scene>:nth-child(2){--stagger:.04s}
+.preview-scene>:nth-child(3){--stagger:.09s}
+.preview-scene>:nth-child(4){--stagger:.14s}
+.preview-scene>:nth-child(5){--stagger:.19s}
+.preview-scene>:nth-child(6){--stagger:.24s}
+.preview-scene>:nth-child(7){--stagger:.29s}
+.preview-scene:first-child>*{animation-name:previewIntroPro;animation-duration:.6s;animation-iteration-count:1}
+.preview-scene:last-child>*{animation:none;opacity:1;transform:none}
+.preview-toolbar{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.preview-chip{display:inline-flex;align-items:center;gap:5px;min-width:0;padding:4px 9px;border:1px solid var(--pv-line);border-radius:7px;background:var(--pv-tint);color:var(--pv-ink-2);font-size:9.5px;white-space:nowrap}
+.preview-chip i{font-size:9px;color:var(--pv-accent)}
+.preview-chip.is-ok{border-color:var(--pv-ok-line);background:var(--pv-ok-bg);color:var(--pv-ok)}
+.preview-chip.is-violet{border-color:var(--pv-accent-line);background:var(--pv-tint-2,#f5f3ff);color:var(--pv-accent-ink)}
+.preview-action{display:inline-flex;align-items:center;gap:5px;margin-left:auto;padding:5px 10px;border:1px solid var(--pv-action);border-radius:7px;background:var(--pv-action);box-shadow:0 2px 6px rgba(109,40,217,.22);color:#fff;font-size:9.5px;font-weight:700;white-space:nowrap}
+.preview-panel{padding:10px 12px;border:1px solid var(--pv-line);border-radius:10px;background:var(--pv-tint)}
+.preview-panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:7px;font-size:9.5px;color:var(--pv-muted)}
+.preview-panel-head b{font-size:17px;font-weight:750;letter-spacing:-.02em;color:var(--pv-ink);font-variant-numeric:tabular-nums}
+.preview-progress{height:5px;border-radius:999px;background:var(--pv-line-soft);overflow:hidden}
+.preview-progress>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--pv-accent-line),var(--pv-accent));transform:scaleX(1);transform-origin:left}
+.preview-progress.is-ok>span{background:linear-gradient(90deg,var(--pv-ok-line),var(--pv-ok));animation:previewFillPro 48s cubic-bezier(.3,.7,.2,1) infinite}
+.preview-note{display:flex;align-items:center;gap:5px;margin-top:8px;font-size:9.5px;color:var(--pv-ok);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preview-note i{flex:0 0 auto;font-size:8.5px;color:var(--pv-ok)}
+.preview-note.is-muted{color:var(--pv-muted)}.preview-note.is-muted i{color:var(--pv-warn)}
+.preview-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.preview-kpis span{display:flex;flex-direction:column;gap:2px;min-width:0;padding:7px 9px;border:1px solid var(--pv-line);border-radius:8px;background:var(--pv-surface)}
+.preview-kpis b{font-size:15px;font-weight:750;letter-spacing:-.02em;color:var(--pv-ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preview-kpis small{font-size:8.5px;color:var(--pv-muted)}
+.preview-chart{display:flex;align-items:flex-end;gap:8px;height:84px;padding:0 2px;border-bottom:1px solid var(--pv-line);background:repeating-linear-gradient(to top,transparent 0 21px,var(--pv-line-soft) 21px 22px)}
+.preview-chart span{flex:1;height:var(--h,50%);border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--pv-bar-a),var(--pv-bar-b));transform-origin:bottom;animation:previewBarsPro 48s cubic-bezier(.24,.7,.3,1) infinite}
+.preview-chart span:nth-child(2n){background:linear-gradient(180deg,var(--pv-bar-a),var(--pv-bar-b));opacity:.72}
+.preview-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.preview-stats>div{min-width:0;padding:8px 9px;border:1px solid var(--pv-ok-line);border-radius:8px;background:var(--pv-ok-bg)}
+.preview-stats small{display:block;margin-bottom:2px;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--pv-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preview-stats b{font-size:16px;font-weight:750;letter-spacing:-.02em;color:var(--pv-ok);font-variant-numeric:tabular-nums}
+.preview-stats .is-amber{border-color:var(--pv-warn-line);background:var(--pv-warn-bg)}
+.preview-stats .is-amber b{color:var(--pv-warn)}
+.preview-stats .is-rose{border-color:var(--pv-bad-line);background:var(--pv-bad-bg)}
+.preview-stats .is-rose b{color:var(--pv-bad)}
+.preview-transfer{margin-top:auto}
+.preview-transfer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;font-size:9.5px;color:var(--pv-muted);white-space:nowrap}
+.preview-transfer-head span:last-child{font:8.5px 'JetBrains Mono',monospace;color:var(--pv-ok)}
+.preview-head,.preview-row{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(66px,.9fr) auto;gap:9px;align-items:center}
+.preview-head{padding:0 0 6px;border-bottom:1px solid var(--pv-line);color:var(--pv-faint);font:8.5px 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
+.preview-head span:last-child{text-align:right}
+.preview-row{padding:8px 0;border-bottom:1px solid var(--pv-line-soft)}
+.preview-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;font-weight:600;color:var(--pv-ink-2)}
+.preview-uid{font:9.5px 'JetBrains Mono',monospace;letter-spacing:.03em;color:var(--pv-accent-ink);white-space:nowrap}
+.preview-badge{display:inline-grid;justify-self:end}
+.preview-badge>span{grid-area:1/1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:3px 8px;border:1px solid transparent;border-radius:999px;font-size:8.5px;font-weight:700;white-space:nowrap}
+.preview-badge>span i{font-size:7.5px}
+.preview-badge-ok{border-color:var(--pv-ok-line);background:var(--pv-ok-bg);color:var(--pv-ok)}
+.preview-badge-bad{border-color:var(--pv-bad-line);background:var(--pv-bad-bg);color:var(--pv-bad)}
+.preview-uid-summary{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:8px;font-size:9px;color:var(--pv-muted)}
+.preview-uid-summary span:last-child{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border:1px solid var(--pv-accent-line);border-radius:6px;background:var(--pv-surface);color:var(--pv-accent-ink);font-weight:600;white-space:nowrap}
+.preview-person,.preview-log{display:flex;align-items:center;gap:8px;min-width:0;padding:8px 0;border-bottom:1px solid var(--pv-line-soft)}
+.preview-person:last-child,.preview-log:last-child{border-bottom:0}
+.preview-avatar{display:grid;place-items:center;flex:0 0 24px;width:24px;height:24px;border:1px solid var(--pv-accent-line);border-radius:50%;background:var(--pv-tint);color:var(--pv-accent-ink);font-size:8.5px;font-weight:700;letter-spacing:.02em}
+.preview-person-name{display:flex;flex:1;flex-direction:column;gap:1px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;font-weight:600;color:var(--pv-ink-2)}
+.preview-person-name small{font:8px 'JetBrains Mono',monospace;color:var(--pv-faint);letter-spacing:.03em}
+.preview-log-icon{display:grid;place-items:center;flex:0 0 24px;width:24px;height:24px;border-radius:7px;background:var(--pv-tint);border:1px solid var(--pv-line);color:var(--pv-accent);font-size:9px}
+.preview-log-main{display:flex;flex:1;flex-direction:column;gap:1px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:600;color:var(--pv-ink-2)}
+.preview-log-main small{font-size:8.5px;font-weight:500;color:var(--pv-faint)}
+.preview-log time{flex:0 0 auto;font:8.5px 'JetBrains Mono',monospace;color:var(--pv-faint);white-space:nowrap}
+.preview-issues{display:grid;gap:6px;margin-top:10px}
+.preview-issue{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 9px;border:1px solid var(--pv-line);border-radius:7px;background:var(--pv-surface);font-size:9.5px;color:var(--pv-ink-2);white-space:nowrap;overflow:hidden}
+.preview-issue span{display:inline-flex;align-items:center;gap:6px;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.preview-issue i{font-size:8.5px;color:var(--pv-warn)}
+.preview-issue b{flex:0 0 auto;font:9px 'JetBrains Mono',monospace;color:var(--pv-warn)}
+.preview-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px 11px;border-top:1px solid var(--pv-line);background:var(--pv-bar)}
+/* The footer line used to describe the carousel. It now offers one short word of encouragement at
+   a time: three quotes share the window's own 48s loop, so the line changes as the pages move and
+   comes back around with them. Only one quote is visible; each rises in and lifts out again. */
+.preview-foot-label{position:relative;flex:1;min-width:0;height:14px;line-height:14px;overflow:hidden;font-size:9.5px;color:var(--pv-muted)}
+.preview-foot-label>span{position:absolute;left:0;top:0;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0;animation:previewQuotePro 48s linear infinite}
+.preview-foot-label>span:nth-child(1){animation-delay:0s}
+.preview-foot-label>span:nth-child(2){animation-delay:-32s}
+.preview-foot-label>span:nth-child(3){animation-delay:-16s}
+.preview-cycle{flex:0 0 150px;height:4px;overflow:hidden;border-radius:999px;background:var(--pv-line-soft)}
+.preview-cycle i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--pv-accent),var(--pv-accent-line));transform:scaleX(1);transform-origin:left;animation:previewCyclePro 48s linear infinite}
+/* Six seconds per module: the page rests for most of it, then glides for a little over a second. */
+@keyframes previewTrackPro{
+  0%,9.75%{transform:translateX(0)}
+  12.5%,22.25%{transform:translateX(-11.1111%)}
+  25%,34.75%{transform:translateX(-22.2222%)}
+  37.5%,47.25%{transform:translateX(-33.3333%)}
+  50%,59.75%{transform:translateX(-44.4444%)}
+  62.5%,72.25%{transform:translateX(-55.5555%)}
+  75%,84.75%{transform:translateX(-66.6666%)}
+  87.5%,97.25%{transform:translateX(-77.7777%)}
+  100%{transform:translateX(-88.8888%)}
+}
+@keyframes previewBarsPro{0%,24%{transform:scaleY(.1)}30%,100%{transform:scaleY(1)}}
+@keyframes previewFillPro{0%,38%{transform:scaleX(0)}46%,100%{transform:scaleX(1)}}
+@keyframes previewCyclePro{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+/* A third of the loop each: in over the first second, out just before the next quote starts. */
+@keyframes previewQuotePro{
+  0%{opacity:0;transform:translateY(4px)}
+  2%{opacity:1;transform:translateY(0)}
+  31%{opacity:1;transform:translateY(0)}
+  33.4%,100%{opacity:0;transform:translateY(-4px)}
+}
+@keyframes previewRisePro{
+  0%{opacity:0;transform:translateY(5px)}
+  1%{opacity:1;transform:translateY(0)}
+  96%{opacity:1;transform:translateY(0)}
+  100%{opacity:0;transform:translateY(5px)}
+}
+@keyframes previewIntroPro{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){
+  .preview-track{animation:none!important;transform:none!important}
+  .preview-scene>*{animation:none!important;opacity:1!important;transform:none!important}
+  .preview-foot-label>span{animation:none!important;opacity:0!important;transform:none!important}
+  .preview-foot-label>span:first-child{opacity:1!important}
+}
+/* Phones give the quote room by shortening the progress rail rather than cutting the sentence. */
+@media(max-width:520px){.preview-cycle{flex-basis:84px}}
+@media(max-width:400px){.preview-cycle{flex-basis:64px}}
+/* Give the column a little more room, so the window can be read at a glance rather than squinted at. */
+@media(min-width:901px){
+  .shell{width:min(100% - 32px,1140px);padding:76px 0 44px}
+  .intro{max-width:560px}
+  .intro-copy{max-width:470px}
+}
+/* Short laptop screens: keep the whole page on one screen by dropping the bullet list and
+   trimming the window height rather than letting the footer fall below the fold. */
+@media(min-width:901px) and (max-height:860px){
+  .shell{padding:64px 0 28px}
+  .feature-list{display:none}
+  .preview{margin-top:18px}
+  .preview-stage{height:210px}
+}
+
+
+/* ===== usmsmart-login-live-stats-2026 ===== */
+/* The window and its three counters are the page's second act: the writing sits directly above
+   them, so the reader scrolls to reach them, and they arrive as they come into view — the window
+   and the outer counters from their own side, the middle counter from below. Presence is a
+   five-minute window over usmsmart_users.last_seen_at, refreshed by a 30s poll. */
+html,body{overflow-x:hidden}
+/* A short account of what the window is, placed directly above it: it settles the reader on the
+   page before the window arrives, and pushes the window and counters past the first screen so
+   their entrance is seen while scrolling. */
+/* The left column is the taller one now; anchoring the card to the top keeps its header aligned
+   with the brand instead of drifting down as the story below grows. */
+@media(min-width:901px){.shell{align-items:start}}
+/* The window fills its column so it shares an edge with the card; the counters form a full-width
+   band beneath both. The headline keeps its own measure so the wider column does not reflow it. */
+@media(min-width:901px){.intro{max-width:none}.intro h1,.feature-list{max-width:560px}}
+/* On a wide desktop the composition was an island in the middle of the photo. It now takes its
+   width from the viewport (92%, capped at 1400) so the two columns and the counters scale together
+   instead of leaving broad empty gutters, and the card keeps a reading-width form. */
+@media(min-width:1200px){
+  .shell{width:min(92vw,1400px);gap:clamp(48px,4.5vw,80px);grid-template-columns:minmax(0,1fr) clamp(400px,30vw,460px)}
+  .intro h1,.feature-list{max-width:600px}
+  .intro-copy{max-width:520px}
+  .preview-intro{max-width:560px}
+}
+.preview-intro{max-width:520px;margin-top:26px}
+.preview-intro h2{margin:0 0 8px;font-size:16px;font-weight:800;letter-spacing:-.025em;color:#f3f6fb}
+.preview-points{margin:0;padding:0;list-style:none;display:grid;gap:5px}
+.preview-points li{position:relative;padding-left:17px;color:#e2e8f0;font-size:13.5px;line-height:1.65}
+.preview-points li::before{content:"";position:absolute;left:2px;top:.62em;width:5px;height:5px;border-radius:50%;background:#c4b5fd;box-shadow:0 0 0 3px rgba(167,139,250,.16)}
+.preview-hint{margin:9px 0 0;color:#d5deeb;font-size:12px;line-height:1.6;letter-spacing:.01em}
+/* The counters are the page's closing band: a full-width row under both columns, so the three of
+   them share the whole width evenly instead of hanging off the window's edge. */
+.auth-stats{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%;max-width:none;margin-top:0}
+.auth-stats[hidden]{display:none}
+.auth-stat{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;padding:19px 12px 17px;border:1px solid rgba(226,232,240,.2);border-radius:16px;background:rgba(15,23,42,.55);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#e8eef7;text-align:center;box-shadow:0 10px 24px rgba(15,23,42,.16)}
+.auth-stat-value{font-size:27px;font-weight:800;line-height:1.05;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+.auth-stat-label{display:inline-flex;align-items:center;gap:5px;max-width:100%;overflow:hidden;color:#cbd5e1;font:9.5px 'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;text-overflow:ellipsis}
+.auth-stat-label i{font-size:5px;color:#34d399}
+/* Only the scripted page hides the start state: with JavaScript off everything is simply visible. */
+.js-reveal .reveal{opacity:0;will-change:opacity,transform;transition:opacity .7s cubic-bezier(.22,.68,.3,1),transform .7s cubic-bezier(.22,.68,.3,1)}
+.js-reveal .reveal-from-left{transform:translate3d(-42px,12px,0)}
+.js-reveal .reveal-from-right{transform:translate3d(42px,12px,0)}
+.js-reveal .reveal-from-below{transform:translate3d(0,44px,0)}
+.js-reveal .reveal.is-in{opacity:1;transform:none;will-change:auto}
+.auth-stats .reveal:nth-child(2){transition-delay:.1s}
+.auth-stats .reveal:nth-child(3){transition-delay:.2s}
+@media(prefers-reduced-motion:reduce){.js-reveal .reveal{opacity:1;transform:none;transition:none}}
+/* Phones keep the form first: the writing, window and counters follow underneath, so the two
+   revealed pieces still have somewhere to scroll from. */
+@media(max-width:760px){
+  .intro{display:block;order:2;max-width:none;margin-top:8px}
+  .intro .brand{display:none}
+  .feature-list{display:none}
+  .card{order:1}
+  .auth-stats{gap:8px;order:3}
+  .preview-intro{margin-top:22px}
+  .auth-stat{padding:15px 8px 13px}
+  .auth-stat-value{font-size:21px}
+  .auth-stat-label{font-size:8px;letter-spacing:.02em}
+  .js-reveal .reveal-from-left{transform:translate3d(-20px,10px,0)}
+  .js-reveal .reveal-from-right{transform:translate3d(20px,10px,0)}
+}
+
+
+/* ===== usmsmart-password-reset-v1 ===== */
+/* The forgot/reset screens stand on the same photograph and borrow the sign-in card wholesale:
+   one reading-width column, the same porcelain surface, the same violet controls. Everything new
+   here is form feedback — the strength meter, the rule checklist, the expiry chip and the two
+   terminal panels — so the page reads as the same product, one step deeper. */
+.forgot-row{display:flex;justify-content:flex-end;margin-top:9px}
+.forgot-link{font-size:11.5px;font-weight:700;color:var(--indigo);text-decoration:none;letter-spacing:.01em;border-radius:6px;padding:2px 4px;margin-right:-4px}
+.forgot-link:hover{text-decoration:underline;color:var(--indigo-hover)}
+html.dark .forgot-link{color:#c4b5fd}
+html.dark .forgot-link:hover{color:#ddd6fe}
+
+.reset-shell{width:min(100% - 32px,470px);margin:auto;display:flex;flex-direction:column;gap:22px;padding:48px 0}
+.reset-brand{display:flex;align-items:center;gap:12px;justify-content:center;text-decoration:none}
+.reset-brand .brand-name{display:block;font-size:17px;font-weight:800;letter-spacing:-.04em}
+.reset-brand .brand-sub{display:block;margin-top:3px}
+.reset-card{width:100%;animation:resetCardIn .55s cubic-bezier(.22,.68,.3,1) both}
+@keyframes resetCardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.reset-back-row{display:flex;justify-content:center;margin-top:18px}
+.reset-back{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--indigo);text-decoration:none;border-radius:8px;padding:4px 8px}
+.reset-back i{font-size:10px}
+.reset-back:hover{text-decoration:underline;color:var(--indigo-hover)}
+html.dark .reset-back{color:#c4b5fd}
+html.dark .reset-back:hover{color:#ddd6fe}
+
+/* Account + expiry chip on the set-new-password card. */
+.reset-account{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:0 0 4px;border:1px solid var(--border);border-radius:12px;background:#f8f9fe}
+.reset-account-avatar{display:grid;place-items:center;width:30px;height:30px;flex:0 0 auto;border-radius:9px;background:var(--soft);color:var(--indigo);font-size:12px}
+.reset-account-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:700;color:var(--text)}
+.reset-expiry{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;padding:5px 10px;border-radius:999px;background:var(--soft);border:1px solid #e2dbff;color:var(--indigo);font:10.5px 'JetBrains Mono',monospace;letter-spacing:.03em}
+.reset-expiry i{font-size:9px}
+.reset-expiry.is-low{background:#fffbeb;border-color:#fde68a;color:#b45309}
+html.dark .reset-account{background:#0e1119;border-color:#3a4152}
+html.dark .reset-expiry{background:#251d3f;border-color:#3b2f5c;color:#c4b5fd}
+html.dark .reset-expiry.is-low{background:#241c0c;border-color:#5a4814;color:#fcd34d}
+
+/* Strength meter: four bars fill with the score; the label names the level in words as well. */
+.pw-meter{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:10px}
+.pw-meter i{height:4px;border-radius:99px;background:#e6e8f2;transition:background .25s ease}
+.pw-meter[data-score="1"] i:nth-child(-n+1){background:#e11d48}
+.pw-meter[data-score="2"] i:nth-child(-n+2){background:#d97706}
+.pw-meter[data-score="3"] i:nth-child(-n+3){background:#059669}
+.pw-meter[data-score="4"] i:nth-child(-n+4){background:#6d28d9}
+.pw-meter-label{margin-top:6px;font-size:11px;font-weight:600;color:var(--muted);transition:color .25s ease}
+.pw-meter-label[data-score="1"]{color:#e11d48}
+.pw-meter-label[data-score="2"]{color:#d97706}
+.pw-meter-label[data-score="3"]{color:#059669}
+.pw-meter-label[data-score="4"]{color:#6d28d9}
+html.dark .pw-meter i{background:#272b38}
+html.dark .pw-meter[data-score="1"] i:nth-child(-n+1){background:#fb7185}
+html.dark .pw-meter[data-score="2"] i:nth-child(-n+2){background:#fbbf24}
+html.dark .pw-meter[data-score="3"] i:nth-child(-n+3){background:#34d399}
+html.dark .pw-meter[data-score="4"] i:nth-child(-n+4){background:#a78bfa}
+html.dark .pw-meter-label[data-score="1"]{color:#fb7185}
+html.dark .pw-meter-label[data-score="2"]{color:#fbbf24}
+html.dark .pw-meter-label[data-score="3"]{color:#34d399}
+html.dark .pw-meter-label[data-score="4"]{color:#a78bfa}
+
+/* Live rule checklist: grey until satisfied, then a green check. */
+.pw-rules{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
+.pw-rules li{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted)}
+.pw-rules li i{font-size:7px;color:#b6bfd2;transition:color .2s ease;width:12px;text-align:center}
+.pw-rules li.ok{color:#047857}
+.pw-rules li.ok i{color:#059669}
+.pw-rules li.ok i::before{content:"\f00c";font-family:'Font Awesome 6 Free';font-weight:900;font-size:10px}
+html.dark .pw-rules li.ok{color:#6ee7b7}
+html.dark .pw-rules li.ok i{color:#34d399}
+
+/* Terminal panels: recorded request, saved password, dead link. */
+.reset-done{text-align:center;padding:6px 0 2px}
+.reset-done h2{font-size:20px;letter-spacing:-.035em;margin:0 0 8px;font-weight:800}
+.reset-done .card-desc{margin-bottom:16px}
+.reset-done-icon{width:62px;height:62px;margin:2px auto 16px;display:grid;place-items:center;border-radius:50%;background:#ecfdf5;border:1px solid #a7f3d0;color:#059669;font-size:24px;animation:resetPop .5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes resetPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+.reset-invalid-icon{width:62px;height:62px;margin:2px auto 16px;display:grid;place-items:center;border-radius:50%;background:#fffbeb;border:1px solid #fde68a;color:#b45309;font-size:22px;animation:resetPop .5s cubic-bezier(.34,1.56,.64,1) both}
+.reset-next{list-style:none;margin:0 0 6px;padding:14px 16px;display:grid;gap:10px;text-align:left;border:1px solid var(--border);border-radius:12px;background:#f8f9fe}
+.reset-next li{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.55;color:#3a4459}
+.reset-next li i{margin-top:3px;flex:0 0 auto;width:14px;text-align:center;color:var(--indigo);font-size:11px}
+.reset-done-btn{margin-top:18px;text-decoration:none}
+a.reset-done-btn:hover{color:#fff}
+#msg a{color:inherit;font-weight:700;text-decoration:underline}
+html.dark .reset-done h2{color:#eef0f8}
+html.dark .reset-done-icon{background:#0b241c;border-color:#1f5b48;color:#6ee7b7}
+html.dark .reset-invalid-icon{background:#241c0c;border-color:#5a4814;color:#fcd34d}
+html.dark .reset-next{background:#0e1119;border-color:#3a4152}
+html.dark .reset-next li{color:#c6cede}
+
+@media(max-width:520px){
+  .reset-shell{width:calc(100% - 24px);padding:32px 0;gap:18px}
+  .reset-account{flex-wrap:wrap}
+}
+@media(prefers-reduced-motion:reduce){
+  .reset-card,.reset-done-icon,.reset-invalid-icon{animation:none!important}
+}

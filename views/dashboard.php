@@ -35,6 +35,8 @@
     <link rel="stylesheet" href="assets/vendor/font-awesome.css?v=<?php echo @filemtime(__DIR__ . '/../assets/vendor/font-awesome.css'); ?>">
     <link rel="stylesheet" href="assets/tailwind.css?v=<?php echo @filemtime(__DIR__ . '/../assets/tailwind.css'); ?>">
         <link rel="stylesheet" href="assets/usmsmart-dashboard.css?v=<?php echo @filemtime(__DIR__ . '/../assets/usmsmart-dashboard.css'); ?>">
+    <link rel="stylesheet" href="assets/usmsmart-i18n.css?v=<?php echo @filemtime(__DIR__ . '/../assets/usmsmart-i18n.css'); ?>">
+    <link rel="stylesheet" href="assets/ops/usmsmart-ops.css?v=<?php echo @filemtime(__DIR__ . '/../assets/ops/usmsmart-ops.css'); ?>">
 
 
 
@@ -43,6 +45,8 @@
 
 
 
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>window.USMSMART_GOOGLE_CLIENT_ID = <?php echo json_encode($usmGoogleClientId ?? ''); ?>;</script>
 </head>
 <body class="font-sans antialiased min-h-screen flex flex-col bg-[#F8FAFC] text-[#0F172A] dark:bg-[#09090B] dark:text-[#F4F4F5] transition-colors duration-200">
     <a href="#usm-main" class="usm-skip">Langkau ke kandungan utama</a>
@@ -98,6 +102,7 @@
             <div class="flex items-center gap-1.5 text-[11px]">
                 <?php if (!empty($_SESSION['user_id']) && in_array(($_SESSION['role'] ?? ''), array('admin','viewer'), true) && $action === ''): ?>
                 <div class="usm-header-tools" role="group" aria-label="Panel maklumat">
+                    <button id="usm-command-launch" type="button" aria-label="Cari atau jalankan arahan (Ctrl+K)" title="Cari (Ctrl+K)" onclick="openCommandPalette()"><i class="fa-solid fa-search" aria-hidden="true"></i></button>
                     <button id="usm-db-status" type="button" class="usm-db-status is-checking" aria-controls="usm-health-panel" aria-expanded="false" aria-label="Data source status" title="Data sources: checking"><span class="usm-db-dot" aria-hidden="true"></span><span class="usm-db-label">Checking</span></button>
                     <button id="usm-requests-launch" type="button" aria-label="<?php echo (($_SESSION['role'] ?? '') === 'admin') ? 'Pending Approvals' : 'My Requests'; ?>" title="<?php echo (($_SESSION['role'] ?? '') === 'admin') ? 'Pending Approvals' : 'My Requests'; ?>"><i class="fa-solid fa-inbox" aria-hidden="true"></i></button>
                     <button id="usm-notifications-launch" type="button" aria-label="Notifications" title="Notifications"><i class="fa-solid fa-bell" aria-hidden="true"></i><span id="usm-notifications-badge" hidden>0</span></button>
@@ -242,14 +247,14 @@
                         <div class="rounded-xl border border-rose-200 bg-rose-50/60 p-4 dark:border-rose-900/60 dark:bg-rose-950/20"><p class="text-[11px] text-rose-700 dark:text-rose-300">Semak UID / siri</p><p id="live-summary-invalid" class="mt-1 text-2xl font-semibold tracking-tight text-rose-700 dark:text-rose-300">0</p></div>
                     </div>
 
-                    <!-- SEMAKAN UID LAYAK EKSPORT (PELAJAR + STAF, StatusKad 02) — dalam panel tarikan yang sama -->
+                    <!-- SEMAKAN UID LAYAK EKSPORT — hanya pada rekod yang baru ditarik, StatusKad 02 -->
                     <div id="uid-eligibility-panel" class="border-t border-slate-100 pt-5 dark:border-zinc-800">
                         <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div class="flex items-start gap-2">
                                 <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"><i class="fa-solid fa-shield-halved text-[10px]"></i></span>
                                 <div>
                                     <h3 id="uid-eligibility-title" class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-zinc-200">Semakan UID layak eksport</h3>
-                                    <p class="mt-1 max-w-2xl text-[11px] leading-5 text-slate-500 dark:text-zinc-400">Baca dbo.Pelajar dan dbo.Staf, StatusKad 02 sahaja. UID mesti 8 aksara hexadecimal dan unik merentas pelajar serta staf, termasuk rekod yang telah tamat tempoh. Semakan berjalan automatik setiap kali “Tarik rekod”.</p>
+                                    <p class="mt-1 max-w-2xl text-[11px] leading-5 text-slate-500 dark:text-zinc-400">Semak hanya rekod yang anda tarik dengan “Tarik rekod”, dan hanya baris StatusKad 02 daripadanya. UID mesti 8 aksara hexadecimal dan unik merentas pelajar serta staf dalam dbo.Pelajar dan dbo.Staf, termasuk rekod yang telah tamat tempoh. Baris yang disekat kerana UID berulang boleh dibuka untuk melihat kad lain yang memegang UID tersebut.</p>
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-2 self-start">
@@ -258,10 +263,10 @@
                         </div>
                         <div class="space-y-4">
                             <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/70" aria-live="polite">
-                                <p id="uid-eligibility-status" class="text-xs leading-5 text-slate-600 dark:text-zinc-300"><i class="fa-solid fa-circle-info mr-1.5 text-emerald-600 dark:text-emerald-400"></i>Belum disemak. Semakan akan berjalan automatik selepas anda menekan “Tarik rekod”.</p>
+                                <p id="uid-eligibility-status" class="text-xs leading-5 text-slate-600 dark:text-zinc-300"><i class="fa-solid fa-circle-info mr-1.5 text-emerald-600 dark:text-emerald-400"></i>Belum disemak. Semakan akan dijalankan pada rekod yang ditarik sebaik anda menekan “Tarik rekod”.</p>
                             </div>
                             <div id="uid-eligibility-summary" class="hidden grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"><p class="text-[11px] text-slate-500 dark:text-zinc-400">Rekod StatusKad 02</p><p id="uid-summary-scanned" class="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">0</p></div>
+                                <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"><p class="text-[11px] text-slate-500 dark:text-zinc-400">StatusKad 02 disemak</p><p id="uid-summary-scanned" class="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">0</p></div>
                                 <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald-900/60 dark:bg-emerald-950/20"><p class="text-[11px] text-emerald-700 dark:text-emerald-300">Layak dieksport</p><p id="uid-summary-eligible" class="mt-1 text-2xl font-semibold tracking-tight text-emerald-700 dark:text-emerald-300">0</p></div>
                                 <div class="rounded-xl border border-rose-200 bg-rose-50/60 p-4 dark:border-rose-900/60 dark:bg-rose-950/20"><p class="text-[11px] text-rose-700 dark:text-rose-300">Disekat</p><p id="uid-summary-blocked" class="mt-1 text-2xl font-semibold tracking-tight text-rose-700 dark:text-rose-300">0</p></div>
                                 <div class="rounded-xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-900/60 dark:bg-amber-950/20"><p class="text-[11px] text-amber-700 dark:text-amber-300">Rekod UID berulang</p><p id="uid-summary-duplicate" class="mt-1 text-2xl font-semibold tracking-tight text-amber-700 dark:text-amber-300">0</p></div>
@@ -869,6 +874,19 @@
                         <div class="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/70 p-4"><div class="flex items-center justify-between"><span class="text-[11px] text-slate-500 dark:text-zinc-400">Akaun aktif</span><span class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-user-check"></i></span></div><div id="users-active-count" class="text-2xl font-bold mt-2 text-slate-900 dark:text-white">—</div></div>
                         <div class="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/70 p-4"><div class="flex items-center justify-between"><span class="text-[11px] text-slate-500 dark:text-zinc-400">Pentadbir aktif</span><span class="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/70 text-violet-600 dark:text-violet-400 flex items-center justify-center"><i class="fa-solid fa-shield-halved"></i></span></div><div id="users-admin-count" class="text-2xl font-bold mt-2 text-slate-900 dark:text-white">—</div></div>
                     </div>
+                    <div id="reset-requests-panel" class="hidden rounded-2xl border border-amber-200/80 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/15 overflow-hidden">
+                        <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/70 dark:border-amber-900/40">
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 shrink-0 rounded-xl bg-amber-100 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 flex items-center justify-center"><i class="fa-solid fa-key"></i></span>
+                                <div>
+                                    <h3 class="font-semibold text-sm text-slate-900 dark:text-white">Permintaan set semula kata laluan</h3>
+                                    <p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">Pengguna yang terlupa kata laluan. Jana pautan sekali guna dan serahkan melalui saluran selamat.</p>
+                                </div>
+                            </div>
+                            <span id="reset-requests-count" class="inline-flex self-start sm:self-center items-center justify-center min-w-[26px] h-[26px] px-2 rounded-full bg-amber-500 text-white text-[11px] font-bold">0</span>
+                        </div>
+                        <div id="reset-requests-list" class="divide-y divide-amber-100 dark:divide-amber-950/40"></div>
+                    </div>
                     <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(280px,.72fr)] gap-5 items-start">
                         <div class="rounded-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden min-w-0">
                             <div class="p-4 border-b border-slate-200 dark:border-zinc-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between bg-white dark:bg-[#121214]">
@@ -889,6 +907,26 @@
                     </div>
                 </div>
             </section>
+            <div id="reset-link-modal" class="hidden fixed inset-0 z-[1400] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="reset-link-modal-title">
+                <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onclick="closeResetLinkModal()"></div>
+                <div class="relative w-full max-w-lg rounded-2xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-2xl p-6 space-y-4">
+                    <div class="flex items-start gap-3">
+                        <span class="w-10 h-10 shrink-0 rounded-xl bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 border border-violet-100 dark:border-violet-900 flex items-center justify-center"><i class="fa-solid fa-link"></i></span>
+                        <div>
+                            <h3 id="reset-link-modal-title" class="font-semibold text-sm text-slate-900 dark:text-white">Pautan set semula dijana</h3>
+                            <p id="reset-link-meta" class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1"></p>
+                        </div>
+                    </div>
+                    <div class="rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/30 p-3 text-[11px] leading-relaxed text-amber-800 dark:text-amber-300"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>Pautan ini dipaparkan sekali sahaja, sah selama 30 minit dan hanya boleh digunakan sekali. Serahkan kepada pengguna melalui saluran selamat; menjana pautan baharu membatalkan pautan ini.</div>
+                    <div class="flex gap-2">
+                        <input id="reset-link-value" type="text" readonly class="flex-1 min-w-0 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 text-[11px] font-mono text-slate-700 dark:text-zinc-300 outline-none" aria-label="Pautan set semula">
+                        <button type="button" id="reset-link-copy" onclick="copyResetLink()" class="px-3.5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold transition shrink-0"><i class="fa-solid fa-copy mr-1.5"></i>Salin</button>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="closeResetLinkModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 text-xs font-semibold transition">Selesai</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- HALAMAN KHAS: KEMASKINI PUKAL -->
@@ -2315,6 +2353,45 @@
                     <p class="text-[10px] text-slate-500 dark:text-zinc-400 mt-1">Digunakan untuk notifikasi akaun (pilihan).</p>
                 </div>
 
+                <div class="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 overflow-hidden">
+                    <div class="flex items-center gap-3 px-3.5 py-3 border-b border-slate-100 dark:border-zinc-800">
+                        <span class="grid place-items-center w-9 h-9 shrink-0 rounded-lg bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 shadow-sm">
+                            <svg style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                        </span>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-xs font-bold text-slate-800 dark:text-zinc-100">Pautan Google</div>
+                            <div class="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">Log masuk satu klik &amp; OTP pemulihan kata laluan</div>
+                        </div>
+                        <span id="profile-gmail-badge" class="usm-glink-badge">Belum dipaut</span>
+                    </div>
+                    <div class="p-3.5 space-y-3">
+                        <div id="google-linked-row" class="usm-glink-linked items-center gap-2.5 rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800/60 px-3 py-2.5">
+                            <svg class="shrink-0" style="width:14px;height:14px" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                            <span id="google-linked-email" class="flex-1 min-w-0 truncate text-xs font-semibold text-slate-700 dark:text-zinc-200">—</span>
+                            <button type="button" id="btn-unlink-google" onclick="unlinkGoogleAccount()" class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold text-slate-500 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer" title="Putuskan pautan Google">
+                                <i class="fa-solid fa-link-slash" aria-hidden="true"></i><span>Putuskan</span>
+                            </button>
+                        </div>
+                        <div id="google-connect-area" class="usm-glink-connect space-y-2.5">
+                            <div id="google-signin-btn-container" class="flex justify-center"></div>
+                            <button type="button" id="btn-connect-google" onclick="connectGoogleAccountPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700/60 text-slate-700 dark:text-zinc-100 font-semibold text-xs inline-flex items-center justify-center gap-2 shadow-sm transition cursor-pointer">
+                                <svg class="shrink-0" style="width:16px;height:16px" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                                <span>Sambung akaun Google</span>
+                            </button>
+                        </div>
+                        <div id="google-manual-block" class="usm-glink-manual space-y-1.5">
+                            <div class="flex items-center gap-2 text-[10px] font-medium text-slate-400 dark:text-zinc-500" aria-hidden="true"><span class="h-px flex-1 bg-slate-200 dark:bg-zinc-800"></span>atau Gmail manual<span class="h-px flex-1 bg-slate-200 dark:bg-zinc-800"></span></div>
+                            <label for="profile-gmail" class="sr-only">Alamat Gmail manual</label>
+                            <input id="profile-gmail" name="gmail" type="email" maxlength="190" placeholder="contoh@gmail.com"
+                                   class="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition text-xs">
+                        </div>
+                        <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
+                        <p class="flex items-start gap-1.5 text-[10px] leading-relaxed text-amber-700 dark:text-amber-400"><i class="fa-solid fa-shield-halved mt-0.5" aria-hidden="true"></i><span>Akaun Admin hanya boleh dipaut dengan e-mel USM (@<?php echo htmlspecialchars(implode(', @', $usmGoogleAdminDomains), ENT_QUOTES, 'UTF-8'); ?>).</span></p>
+                        <?php endif; ?>
+                        <p class="flex items-start gap-1.5 text-[10px] leading-relaxed text-slate-500 dark:text-zinc-400"><i class="fa-solid fa-circle-info mt-0.5" aria-hidden="true"></i><span>Gmail yang dipaut menerima <strong>kod OTP pemulihan kata laluan</strong> apabila anda terlupa kata laluan.</span></p>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div class="rounded-xl border border-slate-200 dark:border-zinc-800 p-3">
                         <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-zinc-400 font-bold">Akaun dicipta</div>
@@ -2406,6 +2483,47 @@
         </div>
     </div>
     <!-- ===== END NEW ===== -->
+
+    <!-- ===== MODAL ALU-ALUAN (BOLEH DIMATIKAN TERUS) ===== -->
+    <div id="welcome-modal" class="fixed inset-0 z-[100] bg-slate-950/50 backdrop-blur-sm p-4 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="welcome-modal-title" aria-describedby="welcome-modal-desc" data-modal-close="closeWelcomeModal" onclick="if(event.target===this)closeWelcomeModal()">
+        <div class="w-full max-w-md rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] shadow-2xl page-transition font-mono">
+            <div class="relative p-6">
+                <button type="button" onclick="closeWelcomeModal()" class="absolute right-3 top-3 rounded-lg p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer" aria-label="Tutup alu-aluan"><i class="fa-solid fa-xmark text-base"></i></button>
+                <div class="flex items-center gap-3 pr-8">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-200/60 bg-indigo-50 text-lg text-indigo-600 dark:border-indigo-800/40 dark:bg-indigo-950/60 dark:text-indigo-400" aria-hidden="true"><i class="fa-solid fa-id-card-clip"></i></span>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Kampus Kejuruteraan USM</p>
+                        <h3 id="welcome-modal-title" class="mt-0.5 text-sm font-bold text-slate-900 dark:text-white"><span id="welcome-greeting">Selamat datang</span>, <span class="text-indigo-600 dark:text-indigo-400"><?php echo htmlspecialchars($usmHeroName, ENT_QUOTES, 'UTF-8'); ?></span></h3>
+                    </div>
+                </div>
+                <p id="welcome-modal-desc" class="mt-4 text-[11px] leading-relaxed text-slate-600 dark:text-zinc-300">Semua modul ada di rel kiri — Direktori Kad, Sysweb, laporan dan tetapan. Butang profil di atas membuka maklumat akaun, kata laluan dan passkey anda.</p>
+                <label class="mt-4 flex cursor-pointer items-start gap-2 text-[11px] text-slate-600 dark:text-zinc-300">
+                    <input id="welcome-never" type="checkbox" class="mt-0.5 rounded accent-indigo-600">
+                    <span>Jangan tunjukkan alu-aluan ini lagi pada pelayar ini.</span>
+                </label>
+                <div class="mt-5 flex justify-end">
+                    <button type="button" onclick="closeWelcomeModal()" class="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 cursor-pointer">Mula</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PALET ARAHAN (CTRL/CMD + K) ===== -->
+    <div id="command-palette" class="fixed inset-0 z-[3000] bg-slate-950/50 backdrop-blur-sm p-4 flex items-start justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="command-palette-title" data-modal-close="closeCommandPalette" onclick="if(event.target===this)closeCommandPalette()">
+        <div class="mt-[10vh] w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-[#121214]">
+            <h2 id="command-palette-title" class="sr-only">Cari dan jalankan arahan</h2>
+            <div class="flex items-center gap-2.5 border-b border-slate-100 px-4 py-3 dark:border-zinc-800">
+                <i class="fa-solid fa-search text-sm text-slate-400" aria-hidden="true"></i>
+                <input id="command-palette-input" type="text" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls="command-palette-list" autocomplete="off" spellcheck="false" placeholder="Cari pelajar, modul atau arahan…" class="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 dark:text-white">
+                <kbd class="usm-kbd">Esc</kbd>
+            </div>
+            <div id="command-palette-list" role="listbox" aria-label="Hasil carian" class="max-h-[55vh] overflow-y-auto p-2"></div>
+            <div class="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-2 text-[10px] text-slate-500 dark:border-zinc-800 dark:text-zinc-400">
+                <span><kbd class="usm-kbd">↑</kbd><kbd class="usm-kbd">↓</kbd> pilih <span class="mx-1">·</span> <kbd class="usm-kbd">Enter</kbd> buka</span>
+                <span>Ctrl K</span>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== MODAL INTEGRASI SYSWEB (LANGKAH SETERUSNYA SELEPAS EKSPORT UDA) ===== -->
     <div id="usm-sysweb-demo-modal" class="hidden fixed inset-0 z-[2000] bg-slate-950/60 backdrop-blur-sm p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="usm-sysweb-demo-title" data-modal-close="closeSyswebDemo">
@@ -2509,7 +2627,10 @@
         const USMSMART_USER_ID = <?php echo json_encode((int)($_SESSION['user_id'] ?? 0)); ?>;
         const USM_SMART_IS_ADMIN = <?php echo json_encode(($_SESSION['role'] ?? '') === 'admin'); ?>;
     </script>
+    <script src="assets/usmsmart-i18n.js?v=<?php echo @filemtime(__DIR__ . '/../assets/usmsmart-i18n.js'); ?>"></script>
     <script src="assets/usmsmart-dashboard.js?v=<?php echo @filemtime(__DIR__ . '/../assets/usmsmart-dashboard.js'); ?>"></script>
+    <script src="assets/vendor/qrcode-1.4.4.min.js?v=<?php echo @filemtime(__DIR__ . '/../assets/vendor/qrcode-1.4.4.min.js'); ?>"></script>
+    <script src="assets/ops/usmsmart-ops.js?v=<?php echo @filemtime(__DIR__ . '/../assets/ops/usmsmart-ops.js'); ?>"></script>
     <button id="themeToggle" aria-label="Toggle dark mode"
         style="position:fixed;top:1rem;right:1rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;">
     🌙
@@ -2641,6 +2762,45 @@ launch.addEventListener('click',()=>{panel.classList.add('open');panel.setAttrib
 })();
 </script>
 
+<?php
+/* Video ringkas for the Panduan dialog. A clip is declared by slug and rendered only when
+   media/manual/<slug>.mp4 exists, so the dialog never points at a file that is not there.
+   Optional siblings beside the MP4: .webm (second source), .vtt (Malay captions), .jpg
+   (poster) and .txt (transcript, escaped and folded into a details block). The files are
+   static; PHP reads only the transcript text and never serves media itself. */
+$usmManualClipSlots = array(
+    'tarik-rekod-uid' => array(
+        'title' => 'Tarik rekod, semak UID dan eksport',
+        'desc' => 'Aliran kerja penuh daripada tarikan rekod sehingga fail eksport dimuat turun. Data dalam rakaman ialah contoh.',
+    ),
+);
+$usmManualVideoDir = USM_ROOT . '/media/manual/';
+$usmManualVideos = array();
+foreach ($usmManualClipSlots as $usmSlug => $usmSlot) {
+    if (!preg_match('/^[a-z0-9-]{1,64}$/', $usmSlug) || !is_file($usmManualVideoDir . $usmSlug . '.mp4')) {
+        continue;
+    }
+    $usmTranscript = '';
+    if (is_file($usmManualVideoDir . $usmSlug . '.txt')) {
+        $usmTranscript = trim((string)@file_get_contents($usmManualVideoDir . $usmSlug . '.txt'));
+    }
+    /* Each media URL carries the file's mtime as ?v= so a replaced clip is fetched fresh
+       even when the browser still holds a long-lived cached copy of the old URL. */
+    $usmManualVideos[] = array(
+        'slug' => $usmSlug,
+        'title' => $usmSlot['title'],
+        'desc' => $usmSlot['desc'],
+        'webm' => is_file($usmManualVideoDir . $usmSlug . '.webm'),
+        'vtt' => is_file($usmManualVideoDir . $usmSlug . '.vtt'),
+        'poster' => is_file($usmManualVideoDir . $usmSlug . '.jpg'),
+        'transcript' => $usmTranscript,
+        'v_mp4' => (int)@filemtime($usmManualVideoDir . $usmSlug . '.mp4'),
+        'v_webm' => (int)@filemtime($usmManualVideoDir . $usmSlug . '.webm'),
+        'v_vtt' => (int)@filemtime($usmManualVideoDir . $usmSlug . '.vtt'),
+        'v_poster' => (int)@filemtime($usmManualVideoDir . $usmSlug . '.jpg'),
+    );
+}
+?>
 <!-- User manual: self-contained help dialog; no database changes required. -->
 <div id="usmsmart-manual-backdrop" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-950/60 p-3 sm:p-6" role="presentation" onclick="if(event.target===this)closeUserManual()">
   <section id="usmsmart-manual-dialog" class="w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl bg-white dark:bg-[#111318] shadow-2xl border border-slate-200 dark:border-zinc-700 flex flex-col" role="dialog" aria-modal="true" aria-labelledby="usmsmart-manual-title" aria-describedby="usmsmart-manual-intro">
@@ -2650,6 +2810,46 @@ launch.addEventListener('click',()=>{panel.classList.add('open');panel.setAttrib
       <button type="button" onclick="closeUserManual()" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800" aria-label="Tutup panduan" title="Tutup"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div role="region" aria-label="Kandungan panduan pengguna" tabindex="0" class="overflow-y-auto p-5 space-y-5 text-sm text-slate-700 dark:text-zinc-300">
+      <section class="usm-manual-video" aria-labelledby="usmsmart-manual-video-title" aria-describedby="usmsmart-manual-video-desc">
+        <div class="usm-manual-video-head">
+          <span class="usm-manual-video-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" focusable="false"><path d="M8 5v14l11-7z"/></svg></span>
+          <div class="usm-manual-video-copy">
+            <h3 id="usmsmart-manual-video-title" class="usm-manual-video-title">Video ringkas</h3>
+            <p id="usmsmart-manual-video-desc" class="usm-manual-video-intro">Rakaman skrin pendek untuk aliran kerja yang paling kerap digunakan.</p>
+          </div>
+        </div>
+        <?php if (!$usmManualVideos): ?>
+        <div class="usm-manual-video-slot">
+          <span class="usm-manual-video-slot-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" focusable="false"><path d="M8 5v14l11-7z"/></svg></span>
+          <p class="usm-manual-video-slot-title">Video belum tersedia</p>
+          <p class="usm-manual-video-slot-note">Panduan teks di bawah merangkumi semua langkah. Rakaman pendek akan dimuatkan di ruang ini.</p>
+        </div>
+        <?php else: ?>
+        <div class="usm-manual-video-body">
+          <?php foreach ($usmManualVideos as $usmVideo): ?>
+          <figure class="usm-manual-video-item">
+            <video class="usm-manual-video-player" controls preload="none" playsinline aria-label="Video ringkas: <?php echo htmlspecialchars($usmVideo['title'], ENT_QUOTES, 'UTF-8'); ?>"<?php if ($usmVideo['poster']): ?> poster="media/manual/<?php echo $usmVideo['slug']; ?>.jpg?v=<?php echo $usmVideo['v_poster']; ?>"<?php endif; ?>>
+              <source src="media/manual/<?php echo $usmVideo['slug']; ?>.mp4?v=<?php echo $usmVideo['v_mp4']; ?>" type="video/mp4">
+              <?php if ($usmVideo['webm']): ?><source src="media/manual/<?php echo $usmVideo['slug']; ?>.webm?v=<?php echo $usmVideo['v_webm']; ?>" type="video/webm"><?php endif; ?>
+              <?php if ($usmVideo['vtt']): ?><track kind="captions" src="media/manual/<?php echo $usmVideo['slug']; ?>.vtt?v=<?php echo $usmVideo['v_vtt']; ?>" srclang="ms" label="Bahasa Melayu" default><?php endif; ?>
+              <p>Pelayar anda tidak menyokong video. <a href="media/manual/<?php echo $usmVideo['slug']; ?>.mp4?v=<?php echo $usmVideo['v_mp4']; ?>">Muat turun video (MP4)</a>.</p>
+            </video>
+            <figcaption class="usm-manual-video-caption">
+              <strong><?php echo htmlspecialchars($usmVideo['title'], ENT_QUOTES, 'UTF-8'); ?></strong>
+              &mdash; <?php echo htmlspecialchars($usmVideo['desc'], ENT_QUOTES, 'UTF-8'); ?>
+              <a href="media/manual/<?php echo $usmVideo['slug']; ?>.mp4?v=<?php echo $usmVideo['v_mp4']; ?>">Buka dalam tab baharu</a>
+            </figcaption>
+            <?php if ($usmVideo['transcript'] !== ''): ?>
+            <details class="usm-manual-video-transcript">
+              <summary>Transkrip video</summary>
+              <div><?php echo nl2br(htmlspecialchars($usmVideo['transcript'], ENT_QUOTES, 'UTF-8')); ?></div>
+            </details>
+            <?php endif; ?>
+          </figure>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+      </section>
       <div class="rounded-xl border border-sky-200 bg-sky-50 dark:bg-sky-950/30 dark:border-sky-900 p-4"><h3 class="font-bold text-sky-900 dark:text-sky-200 mb-1"><i class="fa-solid fa-circle-info mr-1" aria-hidden="true"></i> Mula di sini</h3><p>Gunakan tab <strong>Transporter Utama</strong> untuk modul pengurusan dan <strong>Analisis Grafik</strong> untuk ringkasan serta carta. Butang <strong>Panduan</strong> di bahagian atas boleh dibuka bila-bila masa.</p></div>
       <div><h3 class="font-bold text-base text-slate-900 dark:text-white mb-2">1. Cari dan tapis rekod pelajar</h3><ol class="list-decimal pl-5 space-y-1"><li>Buka <strong>Direktori Pelajar</strong>.</li><li>Taip kata kunci dalam kotak carian; gunakan penapis yang tersedia untuk mengecilkan hasil.</li><li>Pilih cip penapis untuk melihat keadaan tertentu. Kosongkan carian atau penapis jika hasil tiada.</li><li>Klik tajuk lajur yang boleh diisih untuk menukar susunan. Gunakan kawalan halaman untuk bergerak antara halaman.</li><li>Pilih saiz halaman yang sesuai; pilihan mungkin diingati oleh pelayar pada peranti yang sama.</li></ol></div>
       <div><h3 class="font-bold text-base text-slate-900 dark:text-white mb-2">2. Tambah atau kemas kini rekod</h3><ul class="list-disc pl-5 space-y-1"><li>Gunakan tindakan tambah atau edit yang tersedia dalam modul berkenaan.</li><li>Semak nombor matrik/kad dan butiran pelajar sebelum menyimpan untuk mengelakkan rekod pendua atau kesilapan.</li><li>Jika akaun anda berperanan Viewer, perubahan mungkin perlu dihantar sebagai permintaan dan diluluskan oleh Admin.</li><li>Semak mesej pengesahan atau ralat selepas setiap tindakan; jangan anggap perubahan berjaya jika tiada pengesahan.</li></ul></div>
@@ -2670,7 +2870,7 @@ launch.addEventListener('click',()=>{panel.classList.add('open');panel.setAttrib
   window.openUserManual=function(){if(!backdrop)return;previousFocus=document.activeElement;backdrop.classList.remove('hidden');backdrop.classList.add('flex');document.body.style.overflow='hidden';const close=backdrop.querySelector('button[aria-label="Tutup panduan"]');if(close)close.focus();};
   window.closeUserManual=function(){if(!backdrop)return;backdrop.classList.add('hidden');backdrop.classList.remove('flex');document.body.style.overflow='';if(previousFocus&&typeof previousFocus.focus==='function')previousFocus.focus();};
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&backdrop&&!backdrop.classList.contains('hidden'))window.closeUserManual();});
-  if(dialog)dialog.addEventListener('keydown',function(e){if(e.key!=='Tab')return;const items=Array.from(dialog.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])')).filter(el=>!el.disabled);if(!items.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
+  if(dialog)dialog.addEventListener('keydown',function(e){if(e.key!=='Tab')return;const items=Array.from(dialog.querySelectorAll('button,a,input,select,textarea,video,summary,[tabindex]:not([tabindex="-1"])')).filter(el=>!el.disabled);if(!items.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
 })();
 </script>
 <?php endif; ?>
