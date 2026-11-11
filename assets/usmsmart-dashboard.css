@@ -2728,6 +2728,7 @@ html.dark .usm-expiry-chip.is-danger b{color:#fb7185}
 .usm-weather-pill{font-family:inherit;cursor:pointer;transition:opacity .15s ease,transform .15s ease}
 .usm-weather-pill svg{width:12px;height:12px;flex:none;color:currentColor}
 .usm-weather-pill .usm-weather-temp{font-weight:800}
+.usm-weather-pill .usm-weather-cond{font-weight:600}
 .usm-weather-pill .usm-weather-sep{opacity:.55}
 .usm-weather-pill:active{transform:scale(.97)}
 .usm-weather-pill:focus-visible{outline:3px solid var(--usm-accent-ring,rgba(109,40,217,.2));outline-offset:2px}
