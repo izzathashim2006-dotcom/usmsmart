@@ -77,6 +77,7 @@
             <button type="button" class="usm-rail-link seg-audit" data-usm-view="view-audit-history" onclick="navigateToAuditHistory('directory')" title="Sejarah Rekod &amp; Log Audit"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span class="usm-rail-label">Sejarah &amp; Log Audit</span></button>
             <?php if (($_SESSION['role'] ?? '') === 'admin') { ?>
             <button type="button" class="usm-rail-link seg-users" data-usm-view="view-user-management" onclick="navigateToUserManagement()" title="Pengurusan Akaun"><i class="fa-solid fa-users-gear" aria-hidden="true"></i><span class="usm-rail-label">Pengurusan Akaun</span></button>
+            <button type="button" class="usm-rail-link seg-retention" data-usm-view="view-retention" onclick="navigateToRetention()" title="Retensi &amp; Arkib"><i class="fa-solid fa-database" aria-hidden="true"></i><span class="usm-rail-label">Retensi &amp; Arkib</span></button>
             <?php } ?>
             <button type="button" class="usm-rail-link seg-quality" data-usm-view="view-data-quality" onclick="navigateToDataQuality()" title="Kualiti Data"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><span class="usm-rail-label">Kualiti Data</span></button>
         </div>
@@ -1078,6 +1079,84 @@
                 <div id="duplicate-preview-content" class="p-5 space-y-4"></div>
                 <div class="p-4 border-t border-slate-200 dark:border-zinc-800 flex justify-end"><button type="button" onclick="closeDuplicatePreview()" class="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-sm font-semibold">Tutup pratonton</button></div>
             </div>
+        </div>
+
+        <!-- HALAMAN KHAS: RETENSI & ARKIB (ADMIN) -->
+        <div id="view-retention" class="hidden page-transition space-y-6">
+            <section class="bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-clean">
+                <div class="p-5 sm:p-6 bg-slate-50/80 dark:bg-zinc-900 border-b border-slate-200/80 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="backToMainTransporter()" class="w-9 h-9 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 flex items-center justify-center text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-700 transition" title="Kembali ke dashboard"><i class="fa-solid fa-arrow-left text-xs"></i></button>
+                        <div>
+                            <p class="text-[10px] uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400 font-bold font-mono">KAWALAN REKOD</p>
+                            <h2 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight">Retensi &amp; Arkib</h2>
+                            <p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">Rekod tamat dipindahkan ke arkib selepas kelulusan Admin kedua.</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="loadRetention()" class="px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700 text-xs font-medium transition"><i class="fa-solid fa-rotate mr-1.5"></i>Muat semula</button>
+                </div>
+                <div class="p-5 sm:p-6 space-y-5">
+                    <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(280px,.72fr)] gap-5 items-start">
+                        <div class="space-y-5 min-w-0">
+                            <div class="rounded-2xl border border-slate-200 dark:border-zinc-800 p-5 space-y-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900 flex items-center justify-center"><i class="fa-solid fa-database"></i></div>
+                                    <div><h3 class="font-semibold text-sm text-slate-900 dark:text-white">Dasar retensi</h3><p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">Pelajar yang kadnya tamat melebihi had ini akan disenaraikan untuk arkib.</p></div>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="retention-months" class="block text-[11px] font-medium text-slate-600 dark:text-zinc-400 mb-1.5">Simpan rekod aktif (bulan)</label>
+                                        <select id="retention-months" onchange="refreshRetentionPreview()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 text-xs text-slate-900 dark:text-white focus:border-indigo-500 outline-none">
+                                            <option value="12">12 bulan</option>
+                                            <option value="24" selected>24 bulan</option>
+                                            <option value="36">36 bulan</option>
+                                            <option value="48">48 bulan</option>
+                                            <option value="60">60 bulan</option>
+                                            <option value="120">120 bulan</option>
+                                        </select>
+                                    </div>
+                                    <label class="flex items-start gap-2 text-[11px] text-slate-600 dark:text-zinc-400"><input id="retention-include-sessions" type="checkbox" checked onchange="refreshRetentionPreview()" class="mt-1"><span>Sertakan sesi pengangkutan lama dalam permintaan arkib.</span></label>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" onclick="refreshRetentionPreview()" class="px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700 text-xs font-semibold transition"><i class="fa-solid fa-eye mr-1.5"></i>Pratonton</button>
+                                    <button type="button" id="retention-request-btn" onclick="submitArchiveRequest()" disabled class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-semibold transition shadow-sm"><i class="fa-solid fa-paper-plane mr-1.5"></i>Hantar untuk kelulusan</button>
+                                </div>
+                                <p id="retention-status" class="text-[11px] text-slate-500 dark:text-zinc-400">Pratonton belum dijalankan.</p>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/70 p-4"><div class="flex items-center justify-between"><span class="text-[11px] text-slate-500 dark:text-zinc-400">Pelajar layak</span><span class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center"><i class="fa-solid fa-graduation-cap"></i></span></div><div id="retention-student-count" class="text-2xl font-bold mt-2 text-slate-900 dark:text-white">—</div></div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/70 p-4"><div class="flex items-center justify-between"><span class="text-[11px] text-slate-500 dark:text-zinc-400">Sesi layak</span><span class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-bus"></i></span></div><div id="retention-session-count" class="text-2xl font-bold mt-2 text-slate-900 dark:text-white">—</div></div>
+                                <div class="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/70 p-4"><div class="flex items-center justify-between"><span class="text-[11px] text-slate-500 dark:text-zinc-400">Dikecualikan</span><span class="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 flex items-center justify-center"><i class="fa-solid fa-shield-halved"></i></span></div><div id="retention-excluded-count" class="text-2xl font-bold mt-2 text-slate-900 dark:text-white">—</div><p class="text-[10px] text-slate-500 dark:text-zinc-400 mt-1">Masih ada rekod UDA atau polisi.</p></div>
+                            </div>
+                            <div class="rounded-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden">
+                                <div class="p-4 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214]"><h3 class="font-semibold text-sm text-slate-900 dark:text-white">Contoh pelajar</h3><p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">Sepuluh rekod paling lama dalam senarai layak.</p></div>
+                                <div class="overflow-x-auto"><table class="w-full text-left text-xs min-w-[680px]"><thead class="bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 uppercase tracking-wider text-[10px]"><tr><th class="p-3.5">Pelajar</th><th class="p-3.5">Matrik</th><th class="p-3.5">Tarikh luput</th></tr></thead><tbody id="retention-student-samples" class="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300"><tr><td colspan="3" class="p-6 text-center text-slate-500">Pratonton belum dijalankan.</td></tr></tbody></table></div>
+                            </div>
+                            <div class="rounded-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden">
+                                <div class="p-4 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214]"><h3 class="font-semibold text-sm text-slate-900 dark:text-white">Contoh sesi pengangkutan</h3><p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">Sesi lama yang akan dipindahkan apabila kotak di atas ditanda.</p></div>
+                                <div class="overflow-x-auto"><table class="w-full text-left text-xs min-w-[680px]"><thead class="bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 uppercase tracking-wider text-[10px]"><tr><th class="p-3.5">Sesi</th><th class="p-3.5">Tarikh</th><th class="p-3.5">Rekod</th><th class="p-3.5">Status</th></tr></thead><tbody id="retention-session-samples" class="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300"><tr><td colspan="4" class="p-6 text-center text-slate-500">Pratonton belum dijalankan.</td></tr></tbody></table></div>
+                            </div>
+                        </div>
+                        <div class="space-y-5 min-w-0">
+                            <div class="rounded-2xl border border-amber-200/80 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/15 overflow-hidden">
+                                <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/70 dark:border-amber-900/40">
+                                    <div class="flex items-center gap-3">
+                                        <span class="w-9 h-9 shrink-0 rounded-xl bg-amber-100 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 flex items-center justify-center"><i class="fa-solid fa-clock"></i></span>
+                                        <div><h3 class="font-semibold text-sm text-slate-900 dark:text-white">Menunggu kelulusan</h3><p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">Admin lain boleh meluluskan. Admin yang sama perlu taip kod pengesahan.</p></div>
+                                    </div>
+                                    <span id="retention-pending-count" class="inline-flex self-start sm:self-center items-center justify-center min-w-[26px] h-[26px] px-2 rounded-full bg-amber-500 text-white text-[11px] font-bold">0</span>
+                                </div>
+                                <div id="retention-pending-list" class="divide-y divide-amber-100 dark:divide-amber-950/40"></div>
+                            </div>
+                            <div class="rounded-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden">
+                                <div class="p-4 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214]"><h3 class="font-semibold text-sm text-slate-900 dark:text-white">Sejarah arkib</h3><p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">Manifest CSV tersedia untuk permintaan yang diluluskan.</p></div>
+                                <div class="overflow-x-auto"><table class="w-full text-left text-xs min-w-[680px]"><thead class="bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 uppercase tracking-wider text-[10px]"><tr><th class="p-3.5">ID</th><th class="p-3.5">Peminta</th><th class="p-3.5">Jumlah</th><th class="p-3.5">Status</th><th class="p-3.5 text-right">Manifest</th></tr></thead><tbody id="retention-history-tbody" class="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300"><tr><td colspan="5" class="p-6 text-center text-slate-500">Memuatkan sejarah arkib...</td></tr></tbody></table></div>
+                                <div id="retention-history-count" class="px-4 py-3 bg-slate-50 dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 text-[11px] text-slate-500 dark:text-zinc-400">Memuatkan...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
 
         <!-- HALAMAN KHAS: SEJARAH REKOD & AUDIT LOG (DEDICATED SEGMENT) -->

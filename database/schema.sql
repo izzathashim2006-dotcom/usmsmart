@@ -96,6 +96,71 @@ CREATE TABLE IF NOT EXISTS `usmsmart_access_policy_locations` (
   CONSTRAINT `fk_usm_apl_policy` FOREIGN KEY (`policy_id`) REFERENCES `usmsmart_access_policies` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE IF NOT EXISTS `usmsmart_archive_runs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `policy_months` smallint(5) unsigned NOT NULL,
+  `include_sessions` tinyint(1) NOT NULL DEFAULT 1,
+  `cutoff_at` datetime NOT NULL,
+  `student_count` int(11) NOT NULL DEFAULT 0,
+  `session_count` int(11) NOT NULL DEFAULT 0,
+  `student_ids` longtext NOT NULL,
+  `session_ids` longtext NOT NULL,
+  `manifest_hash` char(64) NOT NULL,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `requested_by` bigint(20) unsigned NOT NULL,
+  `requested_by_username` varchar(80) NOT NULL,
+  `reviewed_by` bigint(20) unsigned DEFAULT NULL,
+  `reviewed_by_username` varchar(80) DEFAULT NULL,
+  `review_note` varchar(500) DEFAULT NULL,
+  `self_approved` tinyint(1) NOT NULL DEFAULT 0,
+  `archived_students` int(11) NOT NULL DEFAULT 0,
+  `archived_sessions` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `completed_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_archive_status_created` (`status`,`created_at`),
+  KEY `idx_archive_requester` (`requested_by`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `usmsmart_archive_sessions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `run_id` bigint(20) unsigned NOT NULL,
+  `session_id` int(11) NOT NULL,
+  `session_date` datetime DEFAULT NULL,
+  `total_records` int(11) DEFAULT NULL,
+  `details` text DEFAULT NULL,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
+  `session_name` varchar(120) DEFAULT NULL,
+  `archived_by` varchar(80) NOT NULL,
+  `archived_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_archive_sessions_run` (`run_id`),
+  KEY `idx_archive_sessions_session` (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `usmsmart_archive_students` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `run_id` bigint(20) unsigned NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `matric` varchar(50) DEFAULT NULL,
+  `school` varchar(150) DEFAULT NULL,
+  `date_joined` date DEFAULT NULL,
+  `expiry_date` date DEFAULT NULL,
+  `usm_uid` varchar(50) DEFAULT NULL,
+  `serial_no` varchar(50) DEFAULT NULL,
+  `policy` varchar(50) DEFAULT NULL,
+  `nationality` varchar(100) DEFAULT NULL,
+  `education_level` varchar(100) DEFAULT NULL,
+  `student_category` varchar(30) DEFAULT NULL,
+  `archived_by` varchar(80) NOT NULL,
+  `archived_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_archive_students_run` (`run_id`),
+  KEY `idx_archive_students_matric` (`matric`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 CREATE TABLE IF NOT EXISTS `usmsmart_audit_log` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `action` varchar(60) NOT NULL,

@@ -155,6 +155,7 @@
             ];
             if (usmPaletteAdmin()) {
                 destinations.push({ group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Pengurusan Akaun', 'Account Management'), meta: usmPaletteT('Pengguna dan peranan', 'Users and roles'), icon: 'fa-users-gear', keywords: 'akaun pengguna user admin peranan', run: function () { navigateToUserManagement(); } });
+                destinations.push({ group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Retensi & Arkib', 'Retention & Archive'), meta: usmPaletteT('Dasar dan manifest', 'Policy and manifests'), icon: 'fa-database', keywords: 'retensi arkib retention archive manifest luput tamat', run: function () { navigateToRetention(); } });
             }
             const actions = [
                 { group: usmPaletteT('Tindakan', 'Actions'), label: usmPaletteT('Profil Saya', 'My Profile'), meta: usmPaletteT('Nama, avatar, kata laluan, passkey', 'Name, avatar, password, passkey'), icon: 'fa-user-circle', keywords: 'profil akaun avatar kata laluan passkey', run: function () { openMyProfile(); } },
@@ -2167,7 +2168,7 @@
         }
 
         function hideAllMainViews() {
-            ['view-transporter','view-analytics','view-directory-page','view-staff-directory','view-edit-student','view-user-management','view-audit-history','view-bulk-update','view-data-quality','view-sysweb','view-expiry-calendar'].forEach(id => {
+            ['view-transporter','view-analytics','view-directory-page','view-staff-directory','view-edit-student','view-user-management','view-retention','view-audit-history','view-bulk-update','view-data-quality','view-sysweb','view-expiry-calendar'].forEach(id => {
                 const el = document.getElementById(id); if (el) el.classList.add('hidden');
             });
             // Deep segments belong to no top tab, so no tab is marked current.
@@ -2212,6 +2213,7 @@
             let tDir = document.getElementById('view-directory-page');
             let tEdit = document.getElementById('view-edit-student');
             let tUsers = document.getElementById('view-user-management');
+            let tRetention = document.getElementById('view-retention');
             let tAudit = document.getElementById('view-audit-history');
             let tSysweb = document.getElementById('view-sysweb');
             let tCal = document.getElementById('view-expiry-calendar');
@@ -2219,6 +2221,7 @@
             if (tDir) tDir.classList.add('hidden');
             if (tEdit) tEdit.classList.add('hidden');
             if (tUsers) tUsers.classList.add('hidden');
+            if (tRetention) tRetention.classList.add('hidden');
             if (tAudit) tAudit.classList.add('hidden');
             if (tSysweb) tSysweb.classList.add('hidden');
             if (tCal) tCal.classList.add('hidden');
@@ -5485,6 +5488,234 @@
             }
         });
         // ===== END password reset queue =====
+
+        // ===== Retention & archive =====
+        let retentionState = null;
+        let retentionRuns = [];
+        let retentionCurrentUserId = 0;
+
+        function retentionT(ms, en) {
+            return typeof window.__usmT === 'function' ? window.__usmT(ms, en) : ms;
+        }
+        function retentionDate(value, withTime) {
+            if (!value) return '—';
+            const text = String(value).replace('T', ' ');
+            return withTime ? text.slice(0, 16) : text.slice(0, 10);
+        }
+        function retentionEsc(value) { return escapeHtml(value == null ? '' : value); }
+        function retentionStatusBadge(status) {
+            if (status === 'approved') return '<span class="inline-flex px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold">' + retentionT('Diluluskan', 'Approved') + '</span>';
+            if (status === 'rejected') return '<span class="inline-flex px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-[10px] font-semibold">' + retentionT('Ditolak', 'Rejected') + '</span>';
+            return '<span class="inline-flex px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 text-[10px] font-semibold">' + retentionT('Menunggu', 'Pending') + '</span>';
+        }
+
+        function navigateToRetention() {
+            if (!USMSMART_IS_ADMIN) { showToast('Akses Admin diperlukan.'); return; }
+            hideAllMainViews();
+            const view = document.getElementById('view-retention');
+            if (view) view.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            usmRevealArm('view-retention');
+            loadRetention();
+        }
+
+        function loadRetention() {
+            if (!USMSMART_IS_ADMIN) return;
+            refreshRetentionPreview();
+            loadArchiveHistory();
+        }
+
+        async function refreshRetentionPreview() {
+            if (!USMSMART_IS_ADMIN) return;
+            const status = document.getElementById('retention-status');
+            const requestBtn = document.getElementById('retention-request-btn');
+            const months = Number((document.getElementById('retention-months') || {}).value || 24);
+            if (requestBtn) requestBtn.disabled = true;
+            if (status) status.textContent = retentionT('Menjana pratonton...', 'Building preview...');
+            try {
+                const response = await fetch('index.php?action=archive_preview&months=' + encodeURIComponent(months), { headers: { 'Accept': 'application/json' }, cache: 'no-store' });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.message || 'Pratonton arkib gagal.');
+                retentionState = result;
+                renderRetentionPreview();
+                const includeBox = document.getElementById('retention-include-sessions');
+                const includeSessions = !includeBox || includeBox.checked;
+                const total = Number(result.students.count || 0) + (includeSessions ? Number(result.sessions.count || 0) : 0);
+                if (requestBtn) requestBtn.disabled = total === 0;
+                if (status) status.textContent = retentionPreviewStatus(result, includeSessions);
+            } catch (error) {
+                retentionState = null;
+                renderRetentionPreview();
+                if (requestBtn) requestBtn.disabled = true;
+                if (status) status.textContent = error.message || retentionT('Pratonton arkib gagal.', 'Archive preview failed.');
+                showToast(error.message || 'Pratonton arkib gagal.');
+            }
+        }
+
+        function retentionPreviewStatus(result, includeSessions) {
+            if (!result) return retentionT('Pratonton belum dijalankan.', 'Preview has not been run.');
+            const total = Number((result.students || {}).count || 0) + (includeSessions ? Number((result.sessions || {}).count || 0) : 0);
+            return total === 0
+                ? retentionT('Tiada rekod layak untuk tempoh ini.', 'No records qualify for this window.')
+                : retentionT('Pratonton sedia: rekod sebelum ' + result.cutoff + ' disenaraikan.', 'Preview ready: records before ' + result.cutoff + ' are listed.');
+        }
+
+        function renderRetentionPreview() {
+            const students = retentionState && retentionState.students ? retentionState.students : { count: 0, excluded: 0, samples: [] };
+            const sessions = retentionState && retentionState.sessions ? retentionState.sessions : { count: 0, samples: [] };
+            const studentCount = document.getElementById('retention-student-count');
+            const sessionCount = document.getElementById('retention-session-count');
+            const excludedCount = document.getElementById('retention-excluded-count');
+            if (studentCount) studentCount.textContent = String(Number(students.count || 0));
+            if (sessionCount) sessionCount.textContent = String(Number(sessions.count || 0));
+            if (excludedCount) excludedCount.textContent = String(Number(students.excluded || 0));
+
+            const studentBody = document.getElementById('retention-student-samples');
+            if (studentBody) {
+                studentBody.innerHTML = (students.samples && students.samples.length)
+                    ? students.samples.map(function (row) {
+                        return '<tr><td class="p-3.5">' + retentionEsc(row.name || retentionT('Pelajar tanpa nama', 'Unnamed student')) + '</td><td class="p-3.5 font-mono text-[11px]">' + retentionEsc(row.matric || '—') + '</td><td class="p-3.5">' + retentionEsc(retentionDate(row.expiry_date)) + '</td></tr>';
+                    }).join('')
+                    : '<tr><td colspan="3" class="p-6 text-center text-slate-500">' + retentionT('Tiada pelajar layak.', 'No eligible students.') + '</td></tr>';
+            }
+
+            const sessionBody = document.getElementById('retention-session-samples');
+            if (sessionBody) {
+                sessionBody.innerHTML = (sessions.samples && sessions.samples.length)
+                    ? sessions.samples.map(function (row) {
+                        const label = row.session_name ? String(row.session_name) : '#' + Number(row.id);
+                        const badge = Number(row.is_deleted) === 1
+                            ? '<span class="inline-flex px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[10px] font-semibold">' + retentionT('Dipadam', 'Deleted') + '</span>'
+                            : '<span class="inline-flex px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-semibold">' + retentionT('Aktif', 'Active') + '</span>';
+                        return '<tr><td class="p-3.5">' + retentionEsc(label) + '</td><td class="p-3.5">' + retentionEsc(retentionDate(row.session_date, true)) + '</td><td class="p-3.5">' + Number(row.total_records || 0) + '</td><td class="p-3.5">' + badge + '</td></tr>';
+                    }).join('')
+                    : '<tr><td colspan="4" class="p-6 text-center text-slate-500">' + retentionT('Tiada sesi layak.', 'No eligible sessions.') + '</td></tr>';
+            }
+        }
+
+        async function submitArchiveRequest() {
+            if (!USMSMART_IS_ADMIN) { showToast('Akses Admin diperlukan.'); return; }
+            const months = Number((document.getElementById('retention-months') || {}).value || 24);
+            const includeBox = document.getElementById('retention-include-sessions');
+            const includeSessions = !includeBox || includeBox.checked;
+            if (!confirm(retentionT('Hantar permintaan arkib untuk tempoh ' + months + ' bulan? Rekod asal tidak berubah sehingga Admin kedua meluluskan.', 'Send an archive request for a ' + months + '-month window? Live records stay unchanged until a second Admin approves.'))) return;
+            const btn = document.getElementById('retention-request-btn');
+            if (btn) btn.disabled = true;
+            try {
+                const response = await fetch('index.php?action=archive_request', {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': USMSMART_CSRF_TOKEN },
+                    body: JSON.stringify({ months: months, include_sessions: includeSessions })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.message || 'Permintaan arkib gagal.');
+                showToast(result.message || retentionT('Permintaan dihantar.', 'Request submitted.'));
+                await loadArchiveHistory();
+            } catch (error) {
+                showToast(error.message || 'Permintaan arkib gagal.');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function loadArchiveHistory() {
+            if (!USMSMART_IS_ADMIN) return;
+            const tbody = document.getElementById('retention-history-tbody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>' + retentionT('Memuatkan sejarah arkib...', 'Loading archive history...') + '</td></tr>';
+            try {
+                const response = await fetch('index.php?action=archive_history', { headers: { 'Accept': 'application/json' }, cache: 'no-store' });
+                const result = await response.json();
+                if (!response.ok || !result.success || !Array.isArray(result.runs)) throw new Error(result.message || 'Sejarah arkib tidak tersedia.');
+                retentionRuns = result.runs;
+                retentionCurrentUserId = Number(result.current_user_id || 0);
+                renderArchiveHistory();
+            } catch (error) {
+                retentionRuns = [];
+                renderArchiveHistory();
+                const count = document.getElementById('retention-history-count');
+                if (count) count.textContent = error.message || retentionT('Sejarah arkib gagal dimuatkan.', 'Archive history could not be loaded.');
+            }
+        }
+
+        function renderArchiveHistory() {
+            const pending = retentionRuns.filter(function (run) { return run.status === 'pending'; });
+            const pendingCount = document.getElementById('retention-pending-count');
+            if (pendingCount) pendingCount.textContent = String(pending.length);
+            const pendingList = document.getElementById('retention-pending-list');
+            if (pendingList) {
+                pendingList.innerHTML = pending.length
+                    ? pending.map(function (run) {
+                        const meta = retentionT('Dicipta ' + retentionDate(run.created_at, true) + ' · ' + Number(run.policy_months) + ' bulan · ' + Number(run.student_count) + ' pelajar · ' + Number(run.session_count) + ' sesi', 'Created ' + retentionDate(run.created_at, true) + ' · ' + Number(run.policy_months) + ' months · ' + Number(run.student_count) + ' students · ' + Number(run.session_count) + ' sessions');
+                        return '<div class="p-4 space-y-3"><div class="flex items-start justify-between gap-3"><div><p class="text-xs font-semibold text-slate-900 dark:text-white">#' + Number(run.id) + ' · ' + retentionEsc(run.requested_by_username) + '</p><p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">' + retentionEsc(meta) + '</p></div></div><div class="flex flex-wrap gap-2"><button type="button" onclick="reviewArchiveRequest(' + Number(run.id) + ',&quot;approve&quot;)" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-semibold transition"><i class="fa-solid fa-check mr-1.5"></i>' + retentionT('Luluskan', 'Approve') + '</button><button type="button" onclick="reviewArchiveRequest(' + Number(run.id) + ',&quot;reject&quot;)" class="px-3 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[10px] font-semibold transition"><i class="fa-solid fa-xmark mr-1.5"></i>' + retentionT('Tolak', 'Reject') + '</button></div></div>';
+                    }).join('')
+                    : '<div class="p-6 text-center text-[11px] text-slate-500 dark:text-zinc-400">' + retentionT('Tiada permintaan menunggu kelulusan.', 'No requests awaiting approval.') + '</div>';
+            }
+
+            const tbody = document.getElementById('retention-history-tbody');
+            if (tbody) {
+                tbody.innerHTML = retentionRuns.length
+                    ? retentionRuns.map(function (run) {
+                        const students = run.status === 'approved' ? Number(run.archived_students || 0) : Number(run.student_count || 0);
+                        const sessions = run.status === 'approved' ? Number(run.archived_sessions || 0) : Number(run.session_count || 0);
+                        const links = [];
+                        if (run.status === 'approved') {
+                            links.push('<a href="index.php?action=archive_manifest&amp;id=' + Number(run.id) + '&amp;kind=students" class="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">' + retentionT('Pelajar', 'Students') + '</a>');
+                            if (sessions > 0) links.push('<a href="index.php?action=archive_manifest&amp;id=' + Number(run.id) + '&amp;kind=sessions" class="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">' + retentionT('Sesi', 'Sessions') + '</a>');
+                        }
+                        return '<tr><td class="p-3.5 font-mono text-[11px]">#' + Number(run.id) + '</td><td class="p-3.5"><div class="font-medium text-slate-900 dark:text-white">' + retentionEsc(run.requested_by_username) + '</div><div class="text-[10px] text-slate-500 dark:text-zinc-400">' + retentionEsc(retentionDate(run.created_at, true)) + '</div></td><td class="p-3.5">' + students + ' ' + retentionT('pelajar', 'students') + '<br><span class="text-slate-500 dark:text-zinc-400">' + sessions + ' ' + retentionT('sesi', 'sessions') + '</span></td><td class="p-3.5">' + retentionStatusBadge(run.status) + '</td><td class="p-3.5 text-right">' + (links.length ? links.join(' · ') : '<span class="text-slate-400">—</span>') + '</td></tr>';
+                    }).join('')
+                    : '<tr><td colspan="5" class="p-6 text-center text-slate-500">' + retentionT('Tiada arkib lagi.', 'No archive runs yet.') + '</td></tr>';
+            }
+
+            const count = document.getElementById('retention-history-count');
+            if (count) count.textContent = retentionT(retentionRuns.length + ' permintaan · ' + pending.length + ' menunggu kelulusan', retentionRuns.length + ' requests · ' + pending.length + ' awaiting approval');
+        }
+
+        async function reviewArchiveRequest(runId, decision) {
+            if (!USMSMART_IS_ADMIN) { showToast('Akses Admin diperlukan.'); return; }
+            const run = retentionRuns.find(function (row) { return Number(row.id) === Number(runId); });
+            if (!run) { showToast('Permintaan arkib tidak ditemui.'); return; }
+            const body = { id: Number(runId) };
+            if (decision === 'reject') {
+                const note = prompt(retentionT('Sebab penolakan (wajib, maksimum 500 aksara):', 'Rejection reason (required, max 500 characters):'));
+                if (note === null) return;
+                body.note = String(note).trim();
+                if (!body.note) { showToast(retentionT('Sebab penolakan diperlukan.', 'A rejection reason is required.')); return; }
+            } else if (Number(run.requested_by) === retentionCurrentUserId) {
+                const code = prompt(retentionT('Permintaan ini dibuat oleh anda. Taip ARKIB-' + runId + ' untuk mengesahkan kelulusan sendiri:', 'This request was created by you. Type ARKIB-' + runId + ' to confirm self-approval:'));
+                if (code === null) return;
+                body.confirm = String(code).trim();
+            } else if (!confirm(retentionT('Luluskan permintaan #' + runId + '? Rekod akan dipindahkan ke arkib dan dipadam daripada jadual aktif.', 'Approve request #' + runId + '? Records move to the archive and are removed from the active tables.'))) {
+                return;
+            }
+            try {
+                const response = await fetch('index.php?action=' + (decision === 'reject' ? 'archive_reject' : 'archive_approve'), {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': USMSMART_CSRF_TOKEN },
+                    body: JSON.stringify(body)
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.message || 'Tindakan gagal.');
+                showToast(result.message || retentionT('Tindakan selesai.', 'Action completed.'));
+                await loadRetention();
+            } catch (error) {
+                showToast(error.message || 'Tindakan arkib gagal.');
+            }
+        }
+
+        window.addEventListener('usm:langchange', function () {
+            if (!USMSMART_IS_ADMIN) return;
+            const view = document.getElementById('view-retention');
+            if (!view || view.classList.contains('hidden')) return;
+            renderRetentionPreview();
+            renderArchiveHistory();
+            const status = document.getElementById('retention-status');
+            if (status && retentionState) {
+                const includeBox = document.getElementById('retention-include-sessions');
+                status.textContent = retentionPreviewStatus(retentionState, !includeBox || includeBox.checked);
+            }
+        });
+        // ===== END retention & archive =====
 
         // Audit statistics reuse the analytics card language and chart theme. Everything here is built
         // from the FILTERED log, so these figures describe the rows the list is showing — unlike the four

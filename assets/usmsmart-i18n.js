@@ -1504,7 +1504,37 @@
         ['Carian suara gagal. Cuba lagi.', 'Voice search failed. Try again.'],
         ['Akses mikrofon ditolak. Benarkan mikrofon dalam tetapan pelayar untuk carian suara.', 'Microphone access denied. Allow the microphone in your browser settings for voice search.'],
         ['Mikrofon tidak ditemui. Sambungkan mikrofon dan cuba lagi.', 'No microphone found. Connect a microphone and try again.'],
-        ['Carian suara memerlukan sambungan internet. Semak rangkaian dan cuba lagi.', 'Voice search requires an internet connection. Check your network and try again.']
+        ['Carian suara memerlukan sambungan internet. Semak rangkaian dan cuba lagi.', 'Voice search requires an internet connection. Check your network and try again.'],
+
+        /* ---- retention & archive ---- */
+        ['Retensi & Arkib', 'Retention & Archive'],
+        ['KAWALAN REKOD', 'RECORD CONTROL'],
+        ['Rekod tamat dipindahkan ke arkib selepas kelulusan Admin kedua.', 'Expired records move to the archive after a second Admin approves.'],
+        ['Dasar retensi', 'Retention policy'],
+        ['Pelajar yang kadnya tamat melebihi had ini akan disenaraikan untuk arkib.', 'Students whose cards expired beyond this window are listed for archiving.'],
+        ['Simpan rekod aktif (bulan)', 'Keep active records (months)'],
+        ['Sertakan sesi pengangkutan lama dalam permintaan arkib.', 'Include old transport sessions in the archive request.'],
+        ['Pratonton', 'Preview'],
+        ['Hantar untuk kelulusan', 'Send for approval'],
+        ['Pratonton belum dijalankan.', 'Preview has not been run.'],
+        ['Pelajar layak', 'Eligible students'],
+        ['Sesi layak', 'Eligible sessions'],
+        ['Dikecualikan', 'Excluded'],
+        ['Masih ada rekod UDA atau polisi.', 'Still has a UDA record or policy.'],
+        ['Contoh pelajar', 'Student sample'],
+        ['Sepuluh rekod paling lama dalam senarai layak.', 'The ten oldest records in the eligible list.'],
+        ['Contoh sesi pengangkutan', 'Transport session sample'],
+        ['Sesi lama yang akan dipindahkan apabila kotak di atas ditanda.', 'Old sessions move when the box above is checked.'],
+        ['Tarikh luput', 'Expiry Date'],
+        ['Status', 'Status'],
+        ['Menunggu kelulusan', 'Awaiting approval'],
+        ['Admin lain boleh meluluskan. Admin yang sama perlu taip kod pengesahan.', 'Another Admin can approve. The same Admin must type a confirmation code.'],
+        ['Sejarah arkib', 'Archive history'],
+        ['Manifest CSV tersedia untuk permintaan yang diluluskan.', 'CSV manifests are available for approved requests.'],
+        ['Memuatkan sejarah arkib...', 'Loading archive history...'],
+        ['Peminta', 'Requested by'],
+        ['Jumlah', 'Total'],
+        ['Manifest', 'Manifest']
     ];
     /* ================= Engine ================= */
 

@@ -1240,6 +1240,7 @@ html.dark .usm-rail #nav-tabs .usm-tab.is-active{color:var(--usm-accent-hover)}
 .seg-staff{--seg:#0f766e;--seg-soft:rgba(15,118,110,.11)}
 .seg-audit{--seg:#475569;--seg-soft:rgba(71,85,105,.11)}
 .seg-users{--seg:#86198f;--seg-soft:rgba(134,25,143,.10)}
+.seg-retention{--seg:#0f766e;--seg-soft:rgba(15,118,110,.10)}
 .seg-quality{--seg:#be123c;--seg-soft:rgba(190,18,60,.10)}
 .seg-calendar{--seg:#4d7c0f;--seg-soft:rgba(77,124,15,.11)}
 html.dark .seg-transporter{--seg:#c4b5fd;--seg-soft:rgba(139,92,246,.20)}
@@ -1249,6 +1250,7 @@ html.dark .seg-directory{--seg:#fcd34d;--seg-soft:rgba(217,119,6,.22)}
 html.dark .seg-staff{--seg:#5eead4;--seg-soft:rgba(20,184,166,.20)}
 html.dark .seg-audit{--seg:#cbd5e1;--seg-soft:rgba(148,163,184,.18)}
 html.dark .seg-users{--seg:#f0abfc;--seg-soft:rgba(217,70,239,.20)}
+html.dark .seg-retention{--seg:#5eead4;--seg-soft:rgba(45,212,191,.20)}
 html.dark .seg-quality{--seg:#fda4af;--seg-soft:rgba(244,63,94,.20)}
 html.dark .seg-calendar{--seg:#bef264;--seg-soft:rgba(163,230,53,.18)}
 #usm-rail .usm-rail-link>i,#usm-rail #nav-tabs .usm-tab>i{flex:none;width:22px;height:22px;border-radius:7px;
@@ -1714,6 +1716,7 @@ html:has(.usm-rail-link.seg-directory.is-active){--usm-chrome-hue:#b45309;--usm-
 html:has(.usm-rail-link.seg-staff.is-active){--usm-chrome-hue:#0f766e;--usm-chrome-soft:rgba(15,118,110,.11);--usm-chrome-line:rgba(15,118,110,.34)}
 html:has(.usm-rail-link.seg-audit.is-active){--usm-chrome-hue:#475569;--usm-chrome-soft:rgba(71,85,105,.11);--usm-chrome-line:rgba(71,85,105,.38)}
 html:has(.usm-rail-link.seg-users.is-active){--usm-chrome-hue:#86198f;--usm-chrome-soft:rgba(134,25,143,.10);--usm-chrome-line:rgba(134,25,143,.34)}
+html:has(.usm-rail-link.seg-retention.is-active){--usm-chrome-hue:#0f766e;--usm-chrome-soft:rgba(15,118,110,.10);--usm-chrome-line:rgba(15,118,110,.34)}
 html:has(.usm-rail-link.seg-quality.is-active){--usm-chrome-hue:#be123c;--usm-chrome-soft:rgba(190,18,60,.10);--usm-chrome-line:rgba(190,18,60,.32)}
 html:has(.usm-rail-link.seg-calendar.is-active){--usm-chrome-hue:#4d7c0f;--usm-chrome-soft:rgba(77,124,15,.11);--usm-chrome-line:rgba(77,124,15,.32)}
 /* Each dark rule carries one more class than any light rule, so a segment hue can never paint a dark rail with a
@@ -1727,6 +1730,7 @@ html.dark:has(.usm-rail-link.seg-directory.is-active){--usm-chrome-hue:#fcd34d;-
 html.dark:has(.usm-rail-link.seg-staff.is-active){--usm-chrome-hue:#5eead4;--usm-chrome-soft:rgba(20,184,166,.20);--usm-chrome-line:rgba(94,234,212,.42)}
 html.dark:has(.usm-rail-link.seg-audit.is-active){--usm-chrome-hue:#cbd5e1;--usm-chrome-soft:rgba(148,163,184,.18);--usm-chrome-line:rgba(203,213,225,.40)}
 html.dark:has(.usm-rail-link.seg-users.is-active){--usm-chrome-hue:#f0abfc;--usm-chrome-soft:rgba(217,70,239,.20);--usm-chrome-line:rgba(240,171,252,.42)}
+html.dark:has(.usm-rail-link.seg-retention.is-active){--usm-chrome-hue:#5eead4;--usm-chrome-soft:rgba(45,212,191,.20);--usm-chrome-line:rgba(94,234,212,.42)}
 html.dark:has(.usm-rail-link.seg-quality.is-active){--usm-chrome-hue:#fda4af;--usm-chrome-soft:rgba(244,63,94,.20);--usm-chrome-line:rgba(253,164,175,.42)}
 html.dark:has(.usm-rail-link.seg-calendar.is-active){--usm-chrome-hue:#bef264;--usm-chrome-soft:rgba(163,230,53,.18);--usm-chrome-line:rgba(190,242,100,.42)}
 

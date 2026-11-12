@@ -333,5 +333,6 @@ if ($action !== '') {
     require USM_ROOT . '/controllers/routes-cards.php';
     require USM_ROOT . '/controllers/routes-sessions.php';
     require USM_ROOT . '/controllers/routes-backups.php';
+    require USM_ROOT . '/controllers/routes-archive.php';
 }
 require __DIR__ . '/views/dashboard.php';
