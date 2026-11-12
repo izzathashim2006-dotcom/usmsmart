@@ -15,9 +15,104 @@ if (!defined('USM_ROOT')) {
         http_response_code(401); header('Content-Type: application/json; charset=utf-8'); echo json_encode(array('success'=>false,'error'=>'Sesi log masuk diperlukan.','message'=>'Sesi log masuk telah tamat. Sila log masuk semula.')); exit;
     }
     if ($action !== '' && $isAuthenticated) {
-        $adminOnlyActions = array('export_csv','export_audit_csv','backup_database','restore_database','import_csv','create_user','list_users','manage_user','get_audit_log_page','get_audit_log','get_audit_stats','get_sessions','backup_status','create_server_backup','download_server_backup','delete_server_backup','verify_server_backup','validate_restore_backup','bulk_delete_students','bulk_update_students','get_card_policies','assign_card_policy','manage_access_policies','manage_access_locations','get_access_policy_details','save_local_staff','delete_local_staff','create_sysweb_record','update_sysweb_record','delete_sysweb_record','reset_sysweb_password','sysweb_generate_missing_passwords','get_sysweb_password','sysweb_authorize_password_export','merge_students','bulk_restore_fields','send_ops_digest','sysweb_write_state','sysweb_write_save','sysweb_write_test','push_cards_ccadmin');
+        $adminOnlyActions = array('export_csv','export_audit_csv','backup_database','restore_database','import_csv','create_user','list_users','manage_user','get_audit_log_page','get_audit_log','get_audit_stats','get_sessions','backup_status','create_server_backup','download_server_backup','delete_server_backup','verify_server_backup','validate_restore_backup','bulk_delete_students','bulk_update_students','get_card_policies','assign_card_policy','manage_access_policies','manage_access_locations','get_access_policy_details','save_local_staff','delete_local_staff','create_sysweb_record','update_sysweb_record','delete_sysweb_record','reset_sysweb_password','sysweb_generate_missing_passwords','get_sysweb_password','sysweb_authorize_password_export','merge_students','bulk_restore_fields','send_ops_digest','sysweb_write_state','sysweb_write_save','sysweb_write_test','push_cards_ccadmin','smartcard_write_preview','smartcard_write_export');
         if (in_array($action, $adminOnlyActions, true) && ($_SESSION['role'] ?? '') !== 'admin') {
             http_response_code(403); header('Content-Type: application/json; charset=utf-8'); echo json_encode(array('success'=>false,'error'=>'Akses pentadbir diperlukan.','message'=>'Akses ditolak — tindakan ini memerlukan kebenaran Admin.')); exit;
+        }
+    }
+
+    /* ===== Smartcard Stage 1: read-only preview of the latest UDA batch =====
+       This endpoint never writes to SQL Server. Candidates come only from uda_system_records,
+       which is populated by an approved UDA export. Smartcard remains read-only until its
+       official update procedure and field mapping are confirmed. */
+    if (in_array($action, array('smartcard_write_preview','smartcard_write_export'), true)) {
+        header('Cache-Control: no-store, private');
+        if (($_SESSION['role'] ?? '') !== 'admin') {
+            http_response_code(403); header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(array('success'=>false,'message'=>'Akses pentadbir diperlukan.')); exit;
+        }
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            http_response_code(405); header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(array('success'=>false,'message'=>'GET diperlukan.')); exit;
+        }
+        try {
+            $udaRows = $pdo->query("SELECT matric, cardholder_type, converted_uid, policy, status FROM uda_system_records WHERE TRIM(COALESCE(matric,'')) <> '' ORDER BY cardholder_type, matric")->fetchAll(PDO::FETCH_ASSOC);
+            if (!$udaRows) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(array('success'=>true,'generatedAt'=>date('c'),'totals'=>array('scanned'=>0,'eligible'=>0,'matching'=>0,'blocked'=>0),'records'=>array(),'message'=>'Tiada rekod UDA ditemui. Eksport UDA dahulu.')); exit;
+            }
+            $sqlServer = usmsmartGetSqlServerPdo();
+            $records = array(); $candidateUids = array();
+            foreach ($udaRows as $uda) {
+                $type = strtolower((string)($uda['cardholder_type'] ?? 'student')) === 'staff' ? 'staff' : 'student';
+                $uid = strtoupper(preg_replace('/\s+/', '', (string)($uda['converted_uid'] ?? '')));
+                if ($uid !== '') $candidateUids[] = $uid;
+                $identifier = trim((string)$uda['matric']);
+                $records[] = array('cardholderType'=>$type,'identifier'=>$identifier,'convertedUid'=>$uid,'policy'=>trim((string)($uda['policy'] ?? '')),'udaStatus'=>trim((string)($uda['status'] ?? '')));
+            }
+            $uidDetails = usmsmartUidUsageDetails($sqlServer, $candidateUids);
+            $batchUidCounts = array();
+            foreach ($records as $candidate) { if ($candidate['convertedUid'] !== '') { $batchUidCounts[$candidate['convertedUid']] = ($batchUidCounts[$candidate['convertedUid']] ?? 0) + 1; } }
+            foreach ($records as &$record) {
+                $table = $record['cardholderType'] === 'staff' ? 'dbo.Staf' : 'dbo.Pelajar';
+                $identifierColumn = $record['cardholderType'] === 'staff' ? 'NoStaf' : 'NoMatrik';
+                $lookup = $sqlServer->prepare("SELECT TOP 2 id, LTRIM(RTRIM(COALESCE(Nama,''))) AS name, LTRIM(RTRIM(COALESCE(StatusKad,''))) AS card_status, LTRIM(RTRIM(COALESCE(NoSiriKad,''))) AS current_uid, TkhTamat AS expiry_date FROM {$table} WHERE LTRIM(RTRIM(COALESCE({$identifierColumn},''))) = ?");
+                $lookup->execute(array($record['identifier']));
+                $matches = $lookup->fetchAll(PDO::FETCH_ASSOC);
+                $record['verdict'] = 'blocked'; $record['reasons'] = array();
+                if (count($matches) !== 1) {
+                    $record['reasons'][] = count($matches) === 0 ? 'Rekod tidak ditemui dalam Smartcard' : 'Pengenal sepadan dengan lebih daripada satu rekod Smartcard';
+                    continue;
+                }
+                $live = $matches[0];
+                $record['sourceRecordId'] = (string)$live['id'];
+                $record['name'] = trim((string)$live['name']);
+                $record['cardStatus'] = trim((string)$live['card_status']);
+                $record['currentUid'] = strtoupper(preg_replace('/\s+/', '', (string)$live['current_uid']));
+                $record['expiryDate'] = !empty($live['expiry_date']) ? substr((string)$live['expiry_date'], 0, 10) : '';
+                if ($record['udaStatus'] !== 'READY_TO_ISSUE') $record['reasons'][] = 'Rekod UDA bukan dalam status READY_TO_ISSUE';
+                if ($record['cardStatus'] !== '02') $record['reasons'][] = 'StatusKad bukan 02';
+                if (preg_match('/^[0-9A-F]{8}$/', $record['convertedUid']) !== 1) $record['reasons'][] = 'UID ditukar bukan 8 aksara hexadecimal';
+                if ($record['expiryDate'] === '') $record['reasons'][] = 'Tarikh luput tiada';
+                elseif (!isValidIsoDate($record['expiryDate'])) $record['reasons'][] = 'Tarikh luput tidak sah';
+                elseif ($record['expiryDate'] < date('Y-m-d')) $record['reasons'][] = 'Kad telah tamat tempoh';
+                $holders = $uidDetails[$record['convertedUid']] ?? array();
+                $otherHolders = array();
+                foreach ($holders as $holder) {
+                    $sameHolder = strtolower((string)($holder['cardholderType'] ?? '')) === $record['cardholderType']
+                        && strcasecmp((string)($holder['identifier'] ?? ''), $record['identifier']) === 0;
+                    if (!$sameHolder) $otherHolders[] = $holder;
+                }
+                if (count($otherHolders) > 0) $record['reasons'][] = 'UID sasaran sudah digunakan oleh '.count($otherHolders).' rekod Smartcard lain';
+                if (($batchUidCounts[$record['convertedUid']] ?? 0) > 1) $record['reasons'][] = 'UID sasaran berulang dalam batch UDA';
+                if ($record['currentUid'] !== '' && $record['currentUid'] !== $record['convertedUid']) $record['reasons'][] = 'UID sedia ada berbeza; perlu semakan Admin (tiada overwrite automatik)';
+                if ($record['currentUid'] === $record['convertedUid'] && !$record['reasons']) {
+                    $record['verdict'] = 'matching';
+                    $record['reasons'][] = 'UID sudah sepadan; tiada perubahan diperlukan';
+                } elseif ($record['currentUid'] === '' && !$record['reasons']) {
+                    $record['verdict'] = 'eligible';
+                    $record['reasons'][] = 'Lulus semakan awal; menunggu kelulusan Admin';
+                }
+            }
+            unset($record);
+            $totals = array('scanned'=>count($records),'eligible'=>0,'matching'=>0,'blocked'=>0);
+            foreach ($records as $record) $totals[$record['verdict']]++;
+            $payload = array('success'=>true,'generatedAt'=>date('c'),'readOnly'=>true,'target'=>'Smartcard dbo.Pelajar / dbo.Staf','uidColumn'=>'NoSiriKad (mapping evidence; official write procedure not yet confirmed)','totals'=>$totals,'records'=>$records,'notice'=>'Pratonton ini hanya membaca SQL Server. Tiada rekod Smartcard diubah, dimasukkan atau dipadam.');
+            if ($action === 'smartcard_write_export') {
+                header('Content-Type: text/csv; charset=utf-8');
+                header('Content-Disposition: attachment; filename="usmsmart_smartcard_dry_run_'.date('Ymd_His').'.csv"');
+                $out = fopen('php://output', 'w');
+                fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
+                fputcsv($out, array('Type','Identifier','Name','Source Record ID','Converted UID','Current UID','StatusKad','Expiry','Verdict','Reasons'));
+                foreach ($records as $r) fputcsv($out, array($r['cardholderType'],$r['identifier'],$r['name']??'',$r['sourceRecordId']??'',$r['convertedUid'],$r['currentUid']??'',$r['cardStatus']??'',$r['expiryDate']??'',$r['verdict'],implode('; ', $r['reasons'])));
+                fclose($out); exit;
+            }
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($payload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); exit;
+        } catch (Throwable $e) {
+            error_log('USMSmart Smartcard dry-run failed: '.$e->getMessage());
+            http_response_code(502); header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(array('success'=>false,'readOnly'=>true,'message'=>'Tidak dapat menjana pratonton Smartcard. Semak sambungan SQL Server dan log pelayan.')); exit;
         }
     }
 
@@ -107,7 +202,7 @@ if (!defined('USM_ROOT')) {
     }
 
     // Internal messaging API. Every read/write checks conversation membership on the server.
-    if (in_array($action, array('get_message_contacts','get_message_conversations','create_message_conversation','get_conversation_messages','send_message'), true)) {
+    if (in_array($action, array('get_message_contacts','get_message_conversations','create_message_conversation','get_conversation_messages','send_message','message_stream'), true)) {
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store, private');
         $messageUserId = (int)($_SESSION['user_id'] ?? 0);
@@ -133,6 +228,67 @@ if (!defined('USM_ROOT')) {
                     ? "SELECT c.id,c.subject,c.request_id,c.updated_at,c.admin_user_id,c.viewer_user_id, v.username AS viewer_username, a.username AS admin_username, v.avatar_updated_at AS viewer_avatar, a.avatar_updated_at AS admin_avatar, (SELECT message_body FROM usmsmart_messages m WHERE m.conversation_id=c.id ORDER BY m.id DESC LIMIT 1) AS last_message, (SELECT COUNT(*) FROM usmsmart_messages m2 WHERE m2.conversation_id=c.id AND m2.recipient_id=? AND m2.is_read=0) AS unread FROM usmsmart_conversations c JOIN usmsmart_users v ON v.id=c.viewer_user_id JOIN usmsmart_users a ON a.id=c.admin_user_id WHERE c.admin_user_id=? ORDER BY c.updated_at DESC LIMIT 200"
                     : "SELECT c.id,c.subject,c.request_id,c.updated_at,c.admin_user_id,c.viewer_user_id, v.username AS viewer_username, a.username AS admin_username, v.avatar_updated_at AS viewer_avatar, a.avatar_updated_at AS admin_avatar, (SELECT message_body FROM usmsmart_messages m WHERE m.conversation_id=c.id ORDER BY m.id DESC LIMIT 1) AS last_message, (SELECT COUNT(*) FROM usmsmart_messages m2 WHERE m2.conversation_id=c.id AND m2.recipient_id=? AND m2.is_read=0) AS unread FROM usmsmart_conversations c JOIN usmsmart_users v ON v.id=c.viewer_user_id JOIN usmsmart_users a ON a.id=c.admin_user_id WHERE c.viewer_user_id=? ORDER BY c.updated_at DESC LIMIT 200";
                 $st=$pdo->prepare($sql); $st->execute(array($messageUserId,$messageUserId)); echo json_encode(array('success'=>true,'conversations'=>$st->fetchAll(PDO::FETCH_ASSOC))); exit;
+            }
+            if ($action === 'message_stream') {
+                /* Server-sent events for messaging. A short-lived connection (about 24 seconds)
+                   watches the newest conversation timestamp and the recipient's unread total,
+                   then ends so EventSource can reconnect; that bounds each worker instead of
+                   parking one connection open forever. The session lock is released before the
+                   loop, because holding it would block every other request in the same tab for
+                   the life of the stream. Two cheap reads run per tick; the full newest row is
+                   fetched only when the timestamp actually moves. */
+                if ($_SERVER['REQUEST_METHOD'] !== 'GET') { http_response_code(405); header('Content-Type: application/json; charset=utf-8'); echo json_encode(array('success'=>false,'message'=>'GET diperlukan.')); exit; }
+                header('Content-Type: text/event-stream; charset=utf-8');
+                header('Cache-Control: no-store, private');
+                header('X-Accel-Buffering: no');
+                header('Connection: keep-alive');
+                @ini_set('zlib.output_compression', '0');
+                @set_time_limit(50);
+                while (ob_get_level() > 0) { @ob_end_flush(); }
+                $streamColumn = $isMessageAdmin ? 'admin_user_id' : 'viewer_user_id';
+                session_write_close();
+                echo "retry: 4000\n\n";
+                flush();
+                $streamLatest = $pdo->prepare("SELECT MAX(updated_at) FROM usmsmart_conversations WHERE {$streamColumn}=?");
+                $streamUnread = $pdo->prepare("SELECT COUNT(*) FROM usmsmart_messages m INNER JOIN usmsmart_conversations c ON c.id=m.conversation_id WHERE c.{$streamColumn}=? AND m.recipient_id=? AND m.is_read=0");
+                $streamNewest = $pdo->prepare("SELECT c.id,c.subject,c.request_id,c.updated_at,c.admin_user_id,c.viewer_user_id, v.username AS viewer_username, a.username AS admin_username, (SELECT COUNT(*) FROM usmsmart_messages m2 WHERE m2.conversation_id=c.id AND m2.recipient_id=? AND m2.is_read=0) AS unread, (SELECT message_body FROM usmsmart_messages m3 WHERE m3.conversation_id=c.id ORDER BY m3.id DESC LIMIT 1) AS last_message FROM usmsmart_conversations c JOIN usmsmart_users v ON v.id=c.viewer_user_id JOIN usmsmart_users a ON a.id=c.admin_user_id WHERE c.{$streamColumn}=? ORDER BY c.updated_at DESC LIMIT 1");
+                $streamDeadline = microtime(true) + 24;
+                $streamSeenLatest = null; $streamSeenUnread = null; $streamFirst = true;
+                while (microtime(true) < $streamDeadline) {
+                    if (connection_aborted()) break;
+                    $latest = ''; $unread = 0;
+                    try {
+                        $streamLatest->execute(array($messageUserId)); $latest = (string)($streamLatest->fetchColumn() ?: '');
+                        $streamUnread->execute(array($messageUserId, $messageUserId)); $unread = (int)$streamUnread->fetchColumn();
+                    } catch (Throwable $streamReadError) {
+                        // A transient read failure must not end the stream; keep the last known state.
+                        $latest = $streamSeenLatest === null ? '' : $streamSeenLatest;
+                        $unread = $streamSeenUnread === null ? 0 : $streamSeenUnread;
+                    }
+                    if ($streamFirst) {
+                        echo 'event: ready' . "\n" . 'data: ' . json_encode(array('unread'=>$unread,'latest'=>$latest)) . "\n\n";
+                    } elseif ($latest !== $streamSeenLatest || $unread !== $streamSeenUnread) {
+                        $streamConversation = null;
+                        if ($latest !== $streamSeenLatest && $latest !== '') {
+                            try {
+                                $streamNewest->execute(array($messageUserId, $messageUserId));
+                                $streamRow = $streamNewest->fetch(PDO::FETCH_ASSOC);
+                                if ($streamRow) $streamConversation = $streamRow;
+                            } catch (Throwable $streamRowError) { $streamConversation = null; }
+                        }
+                        echo 'event: messages' . "\n" . 'data: ' . json_encode(array('unread'=>$unread,'conversation'=>$streamConversation)) . "\n\n";
+                    } else {
+                        echo ": keep-alive\n\n";
+                    }
+                    $streamSeenLatest = $latest; $streamSeenUnread = $unread; $streamFirst = false;
+                    if (ob_get_level() > 0) { @ob_flush(); }
+                    flush();
+                    sleep(4);
+                }
+                echo "event: bye\ndata: {}\n\n";
+                if (ob_get_level() > 0) { @ob_flush(); }
+                flush();
+                exit;
             }
             if ($action === 'create_message_conversation') {
                 $requireMessagePost(); $b=$readBody(); $subject=trim((string)($b['subject']??'')); $body=trim((string)($b['message']??'')); $contactId=(int)($b['contact_id']??0); $requestId=(int)($b['request_id']??0);

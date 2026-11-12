@@ -73,6 +73,7 @@
         <div class="usm-rail-group">
             <p class="usm-rail-eyebrow">Data &amp; Rekod</p>
             <button type="button" class="usm-rail-link seg-directory" data-usm-view="view-directory-page" onclick="navigateToDirectoryPage()" title="Direktori Kad Pelajar &amp; Staf"><i class="fa-solid fa-id-card-clip" aria-hidden="true"></i><span class="usm-rail-label">Direktori Kad</span></button>
+            <button type="button" class="usm-rail-link seg-calendar" data-usm-view="view-expiry-calendar" onclick="navigateToExpiryCalendar()" title="Kalendar Luput Kad"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i><span class="usm-rail-label">Kalendar Luput</span></button>
             <button type="button" class="usm-rail-link seg-audit" data-usm-view="view-audit-history" onclick="navigateToAuditHistory('directory')" title="Sejarah Rekod &amp; Log Audit"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span class="usm-rail-label">Sejarah &amp; Log Audit</span></button>
             <?php if (($_SESSION['role'] ?? '') === 'admin') { ?>
             <button type="button" class="usm-rail-link seg-users" data-usm-view="view-user-management" onclick="navigateToUserManagement()" title="Pengurusan Akaun"><i class="fa-solid fa-users-gear" aria-hidden="true"></i><span class="usm-rail-label">Pengurusan Akaun</span></button>
@@ -113,7 +114,7 @@
                 <?php endif; ?>
             <div class="flex items-center gap-1.5 text-[11px]">
 
-                <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800/60 text-slate-500 dark:text-zinc-400 transition" title="Toggle dark mode">
+                <button onclick="toggleDarkMode(this)" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800/60 text-slate-500 dark:text-zinc-400 transition" title="Toggle dark mode">
                     <i id="theme-icon" class="fa-solid fa-moon text-sm"></i>
                 </button>
 
@@ -128,10 +129,10 @@
         
         <?php
         // Who the hero greets. The script fills in the clock and the date so they follow the
-        // browser's time zone instead of the server's; the role picks the subline.
+        // browser's time zone instead of the server's, and swaps the status line once the
+        // card counts are known.
         $usmHeroName = trim((string)($_SESSION['display_name'] ?? ''));
         if ($usmHeroName === '') { $usmHeroName = (string)($_SESSION['username'] ?? 'pengguna'); }
-        $usmHeroAdmin = (($_SESSION['role'] ?? '') === 'admin');
         ?>
 
         <!-- HALAMAN UTAMA: TRANSPORTER -->
@@ -140,16 +141,27 @@
             <section class="usm-hero" aria-labelledby="usm-dash-hero-title">
                 <span class="usm-hero-blob usm-hero-blob-a" aria-hidden="true"></span>
                 <span class="usm-hero-blob usm-hero-blob-b" aria-hidden="true"></span>
-                <div class="usm-hero-inner">
-                    <span class="usm-hero-mark" aria-hidden="true"><i id="usm-dash-icon" class="fa-solid fa-sun"></i></span>
-                    <p class="usm-hero-eyebrow">Kampus Kejuruteraan USM</p>
-                    <h2 id="usm-dash-hero-title" class="usm-hero-title"><span id="usm-dash-greeting">Selamat datang</span>, <span class="usm-hero-name"><?php echo htmlspecialchars($usmHeroName, ENT_QUOTES, 'UTF-8'); ?></span></h2>
-                    <p class="usm-hero-sub"><?php echo $usmHeroAdmin
-                        ? 'Semoga hari anda tenang dan produktif. Akses penuh — tarikan rekod, kemas kini pukal, log audit dan eksport tersedia di rel kiri.'
-                        : 'Semoga hari anda tenang dan produktif. Akses baca — direktori kad, statistik dan eksport tersedia di rel kiri.'; ?></p>
-                    <div class="usm-hero-meta">
-                        <span class="usm-hero-pill"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i><span id="usm-dash-date">Hari ini</span></span>
-                        <span class="usm-hero-pill"><i class="fa-solid fa-clock" aria-hidden="true"></i><time id="usm-dash-time" datetime="">--:--</time></span>
+                <div class="usm-hero-stage" id="usm-hero-stage">
+                    <div class="usm-hero-viewport">
+                        <div class="usm-hero-track" id="usm-hero-track">
+                            <div class="usm-hero-page" id="usm-hero-page-greeting">
+                                <div class="usm-hero-inner">
+                                    <span class="usm-hero-mark" aria-hidden="true"><i id="usm-dash-icon" class="fa-solid fa-sun"></i></span>
+                                    <p class="usm-hero-eyebrow">Kampus Kejuruteraan USM</p>
+                                    <h2 id="usm-dash-hero-title" class="usm-hero-title"><span id="usm-dash-greeting">Selamat datang</span>, <span class="usm-hero-name"><?php echo htmlspecialchars($usmHeroName, ENT_QUOTES, 'UTF-8'); ?></span></h2>
+                                    <p class="usm-hero-sub" id="usm-hero-status" data-usm-nolang role="status" aria-live="polite">Memeriksa status kad…</p>
+                                    <div class="usm-hero-meta">
+                                        <span class="usm-hero-pill"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i><span id="usm-dash-date">Hari ini</span></span>
+                                        <span class="usm-hero-pill"><i class="fa-solid fa-clock" aria-hidden="true"></i><time id="usm-dash-time" datetime="">--:--</time></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- One page per card fact is appended here by the hero slider module. -->
+                        </div>
+                    </div>
+                    <!-- Dots only: picking one holds that slide, picking it again lets the rotation run. -->
+                    <div class="usm-hero-pager" id="usm-hero-pager" data-usm-nolang hidden>
+                        <div class="usm-hero-dots" id="usm-hero-dots"></div>
                     </div>
                 </div>
             </section>
@@ -853,6 +865,9 @@
                 </section>
             </div>
         </div>
+
+        <!-- HALAMAN KHAS: KALENDAR LUPUT KAD (modul membina grid di dalam bekas ini) -->
+        <div id="view-expiry-calendar" class="hidden page-transition space-y-6"></div>
 
         <!-- HALAMAN KHAS: PENGURUSAN AKAUN PENGGUNA (ADMIN) -->
         <div id="view-user-management" class="hidden page-transition space-y-6">
@@ -1898,7 +1913,7 @@
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Jumlah rekod kad</p>
                             <span class="text-[10px] font-medium text-indigo-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                         </div>
-                        <p id="card-stat-total" class="analytics-stat-value text-2xl font-bold mt-1">—</p>
+                        <p class="analytics-stat-value text-2xl font-bold mt-1 usm-trend-value"><span id="card-stat-total">—</span><span id="card-delta-total" class="usm-trend-delta" data-usm-nolang hidden></span></p>
                         <div class="flex items-center justify-between mt-1">
                             <p class="text-[11px] text-slate-500 dark:text-zinc-400">Semua rekod pelajar</p>
                             <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium group-hover:underline">Papar semua →</span>
@@ -1909,7 +1924,7 @@
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Kad aktif</p>
                             <span class="text-[10px] font-medium text-emerald-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                         </div>
-                        <p id="card-stat-active" class="analytics-stat-value text-2xl font-bold text-emerald-600 mt-1">—</p>
+                        <p class="analytics-stat-value text-2xl font-bold text-emerald-600 mt-1 usm-trend-value"><span id="card-stat-active">—</span><span id="card-delta-active" class="usm-trend-delta" data-usm-nolang hidden></span></p>
                         <div class="flex items-center justify-between mt-1">
                             <p id="card-stat-active-rate" class="text-[11px] text-slate-500 dark:text-zinc-400">—% daripada rekod</p>
                             <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium group-hover:underline">Papar aktif →</span>
@@ -1920,7 +1935,7 @@
                             <p class="text-xs font-semibold text-amber-800 dark:text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-clock text-amber-500 animate-pulse"></i> Luput dalam 30 hari</p>
                             <span class="text-[10px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/60 px-1.5 py-0.5 rounded flex items-center gap-1">Tindakan <i class="fa-solid fa-arrow-right text-[8px]"></i></span>
                         </div>
-                        <p id="card-stat-expiring" class="analytics-stat-value text-2xl font-bold text-amber-600 mt-1">—</p>
+                        <p class="analytics-stat-value text-2xl font-bold text-amber-600 mt-1 usm-trend-value"><span id="card-stat-expiring">—</span><span id="card-delta-expiring" class="usm-trend-delta" data-usm-nolang hidden></span></p>
                         <div class="flex items-center justify-between mt-1">
                             <p class="text-[11px] text-amber-700/80 dark:text-zinc-400">Perlu perhatian / pembaharuan</p>
                             <span class="text-[10px] text-amber-700 dark:text-amber-400 font-bold group-hover:underline">Klik lihat senarai →</span>
@@ -1931,13 +1946,14 @@
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Kad tamat tempoh</p>
                             <span class="text-[10px] font-medium text-rose-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                         </div>
-                        <p id="card-stat-expired" class="analytics-stat-value text-2xl font-bold text-rose-600 mt-1">—</p>
+                        <p class="analytics-stat-value text-2xl font-bold text-rose-600 mt-1 usm-trend-value"><span id="card-stat-expired">—</span><span id="card-delta-expired" class="usm-trend-delta" data-usm-nolang hidden></span></p>
                         <div class="flex items-center justify-between mt-1">
                             <p class="text-[11px] text-slate-500 dark:text-zinc-400">Tarikh luput sebelum hari ini</p>
                             <span class="text-[10px] text-rose-600 dark:text-rose-400 font-medium group-hover:underline">Papar tamat →</span>
                         </div>
                     </div>
                 </section>
+                <p id="card-trend-hint" class="usm-trend-hint hidden" data-usm-nolang role="status"></p>
                 <div data-usm-reveal class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 px-1">
                     <div>
                         <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-400 mb-2">USMSmart / Statistik</p>
@@ -2509,7 +2525,7 @@
     </div>
 
     <!-- ===== PALET ARAHAN (CTRL/CMD + K) ===== -->
-    <div id="command-palette" class="fixed inset-0 z-[3000] bg-slate-950/50 backdrop-blur-sm p-4 flex items-start justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="command-palette-title" data-modal-close="closeCommandPalette" onclick="if(event.target===this)closeCommandPalette()">
+    <div id="command-palette" class="fixed inset-0 z-[3000] bg-slate-950/50 backdrop-blur-sm p-4 flex items-start justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="command-palette-title" data-modal-close="closeCommandPalette" data-usm-nolang onclick="if(event.target===this)closeCommandPalette()">
         <div class="mt-[10vh] w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-[#121214]">
             <h2 id="command-palette-title" class="sr-only">Cari dan jalankan arahan</h2>
             <div class="flex items-center gap-2.5 border-b border-slate-100 px-4 py-3 dark:border-zinc-800">
@@ -2519,7 +2535,7 @@
             </div>
             <div id="command-palette-list" role="listbox" aria-label="Hasil carian" class="max-h-[55vh] overflow-y-auto p-2"></div>
             <div class="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-2 text-[10px] text-slate-500 dark:border-zinc-800 dark:text-zinc-400">
-                <span><kbd class="usm-kbd">↑</kbd><kbd class="usm-kbd">↓</kbd> pilih <span class="mx-1">·</span> <kbd class="usm-kbd">Enter</kbd> buka</span>
+                <span><kbd class="usm-kbd">↑</kbd><kbd class="usm-kbd">↓</kbd> <span id="command-palette-hint">pilih</span> <span class="mx-1">·</span> <kbd class="usm-kbd">Enter</kbd> <span id="command-palette-open">buka</span></span>
                 <span>Ctrl K</span>
             </div>
         </div>
@@ -2647,13 +2663,10 @@
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const active = saved ? saved === 'dark' : prefersDark;
     if (active) root.classList.add('dark');
+    btn.textContent = active ? '☀️' : '🌙';
 
-    btn.addEventListener('click', () => {
-      root.classList.toggle('dark');
-      const isDark = root.classList.contains('dark');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-      btn.textContent = isDark ? '☀️' : '🌙';
-    });
+    // Same entry point as the header switch so both get the circular reveal and stay in sync.
+    btn.addEventListener('click', () => { if (typeof toggleDarkMode === 'function') toggleDarkMode(btn); });
   })();
 </script>
 
@@ -2688,27 +2701,81 @@ launch.addEventListener('click',()=>{panel.classList.add('open');panel.setAttrib
   <div class="usm-msg-eyebrow"><span>Your conversations</span><span id="usm-msg-count" class="usm-panel-count">0</span></div><div id="usm-msg-list"><div class="usm-msg-empty">Loading conversations…</div></div>
  </aside><div class="usm-msg-thread"><div id="usm-msg-thread-title" class="usm-msg-thread-title">Select a conversation<small>Choose a conversation or start a new one.</small></div><div id="usm-msg-feed" class="usm-msg-feed"><div class="usm-msg-empty">Your messages will appear here.</div></div><form id="usm-msg-compose" class="usm-msg-compose"><div class="usm-msg-compose-field"><textarea id="usm-msg-reply" maxlength="4000" rows="2" placeholder="Write a reply…" aria-label="Write a reply" disabled></textarea><span class="usm-msg-hint">Enter sends · Shift+Enter adds a line</span></div><button type="submit" id="usm-msg-send" disabled><i class="fa-solid fa-paper-plane" aria-hidden="true"></i><span>Send</span></button></form></div></div>
 </section>
+<aside id="usm-message-preview" class="usm-msg-preview" aria-live="polite" aria-atomic="true" aria-hidden="true" hidden data-usm-nolang>
+  <button type="button" id="usm-message-preview-open" class="usm-msg-preview-open">
+    <span class="usm-msg-preview-icon" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span>
+    <span class="usm-msg-preview-copy">
+      <span class="usm-msg-preview-kicker">New message</span>
+      <span id="usm-message-preview-subject" class="usm-msg-preview-subject"></span>
+      <span id="usm-message-preview-body" class="usm-msg-preview-body"></span>
+      <span id="usm-message-preview-meta" class="usm-msg-preview-meta"></span>
+    </span>
+  </button>
+  <button type="button" id="usm-message-preview-close" class="usm-msg-preview-close" aria-label="Dismiss message preview" title="Dismiss">×</button>
+</aside>
 <script>
 (function(){
  const page=document.getElementById('usm-messages-page'),launch=document.getElementById('usm-messages-launch'),close=document.getElementById('usm-messages-close'),list=document.getElementById('usm-msg-list'),feed=document.getElementById('usm-msg-feed'),threadTitle=document.getElementById('usm-msg-thread-title'),contactSelect=document.getElementById('usm-msg-contact'),requestSelect=document.getElementById('usm-msg-request'),startForm=document.getElementById('usm-msg-start-form'),compose=document.getElementById('usm-msg-compose'),reply=document.getElementById('usm-msg-reply'),send=document.getElementById('usm-msg-send'),badge=document.getElementById('usm-messages-unread');
+ const previewBox=document.getElementById('usm-message-preview'),previewOpen=document.getElementById('usm-message-preview-open'),previewClose=document.getElementById('usm-message-preview-close'),previewSubject=document.getElementById('usm-message-preview-subject'),previewBody=document.getElementById('usm-message-preview-body'),previewMeta=document.getElementById('usm-message-preview-meta');
  if(!page||!launch)return;const csrf=<?php echo json_encode((string)($_SESSION['usmsmart_csrf_token']??'')); ?>;const me=Number(<?php echo (int)($_SESSION['user_id']??0); ?>);const isAdmin=<?php echo (($_SESSION['role']??'')==='admin')?'true':'false'; ?>;let activeId=0,contacts=[],requests=[],conversations=[];
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const avatarChip=(id,version,name,extra)=>{const two=(String(name||'').trim().slice(0,2)||'--').toUpperCase();const url=(typeof avatarUrl==='function')?avatarUrl(Number(id)||0,String(version||'')):'';return '<span class="usm-avatar '+esc(extra)+(url?' has-picture':'')+'">'+(url?'<img alt="" src="'+esc(url)+'">':'<img alt="" hidden>')+'<span>'+esc(two)+'</span></span>';};
  async function api(action,opts={}){const r=await fetch('index.php?action='+action+(opts.query||''),{credentials:'same-origin',headers:{'Accept':'application/json',...(opts.body?{'Content-Type':'application/json','X-CSRF-Token':csrf}:{})},...(opts.body?{method:'POST',body:JSON.stringify(opts.body)}:{})});const j=await r.json();if(!r.ok||!j.success)throw new Error(j.message||'Messaging request failed.');return j;}
  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],stamp=v=>{const d=String(v||'').split(' ')[0].split('-'),mo=d.length===3?MON[Number(d[1])-1]:'';return mo?d[2]+' '+mo+' '+d[0]:String(v||'');},ago=v=>{const t=Date.parse(String(v||'').replace(' ','T'));if(!isFinite(t))return stamp(v);const s=(Date.now()-t)/1000;if(s<0)return stamp(v);if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';if(s<604800)return Math.floor(s/86400)+'d ago';return stamp(String(v||'').split(' ')[0]);};
- function updateUnread(){const n=conversations.reduce((a,c)=>a+(Number(c.unread)||0),0);badge.hidden=n===0;badge.textContent=n>99?'99+':String(n);}
+ let badgeValue=0;
+ function setUnreadBadge(n){badgeValue=Math.max(0,Number(n)||0);badge.hidden=badgeValue===0;badge.textContent=badgeValue>99?'99+':String(badgeValue);}
+ function updateUnread(){setUnreadBadge(conversations.reduce((a,c)=>a+(Number(c.unread)||0),0));}
+ /* New-message preview ------------------------------------------------
+    The conversation list now polls in the background, so a reply that arrives while the
+    user is elsewhere gets a small card in the bottom-left corner. The first poll only
+    records what is already there; from then on a newer timestamp carrying unread messages
+    raises the card. Clicking it opens that conversation. It slides out on its own after
+    eight seconds unless it is hovered or focused, and closing it never opens the panel. */
+ const hasPreview=!!(previewBox&&previewOpen&&previewClose&&previewSubject&&previewBody&&previewMeta);
+ let seenUpdates={},seenPrimed=false,pendingPreview=null,stream=null,previewId=0,previewTimer=0,previewExit=0;
+ function noteNewMessages(next){const snapshot={};let candidate=null;next.forEach(c=>{const id=String(c.id),stamp=String(c.updated_at||'');snapshot[id]=stamp;if(!seenPrimed||page.classList.contains('open')||document.hidden||Number(c.unread)<=0)return;if(seenUpdates[id]!==undefined&&stamp<=seenUpdates[id])return;if(!candidate||String(candidate.updated_at||'')<stamp)candidate=c;});const primed=seenPrimed;seenUpdates=snapshot;seenPrimed=true;if(primed&&candidate&&hasPreview)showPreview(candidate);}
+ function showPreview(c){if(!hasPreview)return;const id=Number(c.id)||0;if(!id)return;previewId=id;window.clearTimeout(previewExit);previewBox.hidden=false;previewBox.setAttribute('aria-hidden','false');previewSubject.textContent=String(c.subject||'Conversation');previewBody.textContent=String(c.last_message||'New message');const who=String((isAdmin?c.viewer_username:c.admin_username)||'');previewMeta.textContent=(who?'From '+who+' · ':'')+ago(c.updated_at);void previewBox.offsetWidth;window.requestAnimationFrame(function(){previewBox.classList.add('is-in');});armPreview();}
+ function dismissPreview(){if(!hasPreview||previewBox.hidden)return;window.clearTimeout(previewTimer);previewTimer=0;previewBox.classList.remove('is-in');previewBox.setAttribute('aria-hidden','true');previewId=0;previewExit=window.setTimeout(function(){previewBox.hidden=true;},380);}
+ function armPreview(){window.clearTimeout(previewTimer);if(!previewId)return;previewTimer=window.setTimeout(dismissPreview,8000);}
+ if(hasPreview){
+   previewOpen.addEventListener('click',function(){const id=previewId;dismissPreview();toggle(true);if(id)openConversation(id).catch(function(err){alert(err.message);});});
+   previewClose.addEventListener('click',dismissPreview);
+   previewBox.addEventListener('mouseenter',function(){window.clearTimeout(previewTimer);previewTimer=0;});
+   previewBox.addEventListener('mouseleave',armPreview);
+   previewBox.addEventListener('focusin',function(){window.clearTimeout(previewTimer);previewTimer=0;});
+   previewBox.addEventListener('focusout',function(){window.setTimeout(function(){if(!previewBox.contains(document.activeElement))armPreview();},0);});
+   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&previewId&&!previewBox.hidden)dismissPreview();});
+ }
+ /* Live updates ---------------------------------------------------------
+    The stream sends one `ready` snapshot, then a `messages` event only when the newest
+    conversation timestamp or the unread total moves. It ends after about 24 seconds and
+    EventSource reconnects by itself; the per-tab token rides in the query so the stream
+    reads the same tab session as the rest of the page. A preview that would fire in a
+    hidden tab is held and shown once the tab is visible again. */
+ function handleStreamMessage(event){let data;try{data=JSON.parse(event.data||'{}');}catch(err){return;}if(typeof data.unread==='number')setUnreadBadge(data.unread);const c=data.conversation;if(!c)return;seenUpdates[String(c.id)]=String(c.updated_at||'');if(Number(c.unread)<=0||page.classList.contains('open')){pendingPreview=null;return;}if(document.hidden){pendingPreview=c;return;}if(hasPreview)showPreview(c);}
+ function startStream(){if(typeof window.EventSource!=='function')return;let token='';try{token=window.sessionStorage.getItem('usmsmart_tab_token')||'';}catch(err){}try{stream=new window.EventSource('index.php?action=message_stream&usm_tab='+encodeURIComponent(token));}catch(err){stream=null;return;}
+   stream.addEventListener('ready',function(event){let data;try{data=JSON.parse(event.data||'{}');}catch(err){return;}if(typeof data.unread==='number'&&data.unread!==badgeValue&&!page.classList.contains('open'))loadConversations().catch(function(){});});
+   stream.addEventListener('messages',handleStreamMessage);
+   stream.onerror=function(){if(!stream)return;/* CLOSED means the browser gave up (for example an expired session); CONNECTING means it is already retrying. */if(stream.readyState===2){stream.close();stream=null;}};
+ }
  async function loadContacts(){const j=await api('get_message_contacts');contacts=j.contacts||[];requests=j.requests||[];contactSelect.innerHTML='<option value="">Choose a recipient…</option>'+contacts.map(u=>'<option value="'+esc(u.id)+'">'+esc(u.username)+'</option>').join('');requestSelect.innerHTML='<option value="0">No linked request</option>'+requests.map(r=>'<option value="'+esc(r.id)+'" data-viewer="'+esc(r.viewer_user_id)+'">Request #'+esc(r.id)+' · '+esc(r.request_type.replace(/_/g,' '))+' · '+esc(r.status)+'</option>').join('');}
- async function loadConversations(){const j=await api('get_message_conversations');conversations=j.conversations||[];updateUnread();const cnt=document.getElementById('usm-msg-count');if(cnt)cnt.textContent=String(conversations.length);if(!conversations.length){list.innerHTML='<div class="usm-msg-empty"><i class="fa-regular fa-comments usm-empty-ico" aria-hidden="true"></i><strong>No conversations yet</strong><span>Open New conversation above to write the first one.</span></div>';return;}list.innerHTML=conversations.map(c=>{const who=String((isAdmin?c.viewer_username:c.admin_username)||''),un=Number(c.unread)||0;return '<button type="button" class="usm-msg-list-item'+(Number(c.id)===activeId?' active':'')+(un>0?' unread':'')+'" data-conversation="'+esc(c.id)+'" title="'+esc(c.updated_at)+'">' + avatarChip(isAdmin?c.viewer_user_id:c.admin_user_id,isAdmin?c.viewer_avatar:c.admin_avatar,who,'usm-msg-avatar usm-avatar-28') + '<span class="usm-msg-li-main"><strong>'+esc(c.subject)+'</strong><span class="usm-msg-prev">'+esc(c.last_message||'No messages yet')+'</span><span class="usm-msg-meta"><time>'+esc(ago(c.updated_at))+'</time>'+(c.request_id?'<span class="usm-chip">#'+esc(c.request_id)+'</span>':'')+(un>0?'<em class="usm-msg-unread">'+esc(un)+'</em>':'')+'</span></span></button>';}).join('');}
+ async function loadConversations(){const j=await api('get_message_conversations');conversations=j.conversations||[];updateUnread();noteNewMessages(conversations);const cnt=document.getElementById('usm-msg-count');if(cnt)cnt.textContent=String(conversations.length);if(!conversations.length){list.innerHTML='<div class="usm-msg-empty"><i class="fa-regular fa-comments usm-empty-ico" aria-hidden="true"></i><strong>No conversations yet</strong><span>Open New conversation above to write the first one.</span></div>';return;}list.innerHTML=conversations.map(c=>{const who=String((isAdmin?c.viewer_username:c.admin_username)||''),un=Number(c.unread)||0;return '<button type="button" class="usm-msg-list-item'+(Number(c.id)===activeId?' active':'')+(un>0?' unread':'')+'" data-conversation="'+esc(c.id)+'" title="'+esc(c.updated_at)+'">' + avatarChip(isAdmin?c.viewer_user_id:c.admin_user_id,isAdmin?c.viewer_avatar:c.admin_avatar,who,'usm-msg-avatar usm-avatar-28') + '<span class="usm-msg-li-main"><strong>'+esc(c.subject)+'</strong><span class="usm-msg-prev">'+esc(c.last_message||'No messages yet')+'</span><span class="usm-msg-meta"><time>'+esc(ago(c.updated_at))+'</time>'+(c.request_id?'<span class="usm-chip">#'+esc(c.request_id)+'</span>':'')+(un>0?'<em class="usm-msg-unread">'+esc(un)+'</em>':'')+'</span></span></button>';}).join('');}
  async function openConversation(id){activeId=Number(id);const j=await api('get_conversation_messages',{query:'&id='+encodeURIComponent(activeId)});const c=j.conversation;threadTitle.innerHTML=esc(c.subject)+'<small>Conversation #'+esc(c.id)+(c.request_id?' · Linked to approval request #'+esc(c.request_id):'')+'</small>';let lastDay='';feed.innerHTML=(j.messages||[]).map(m=>{const when=String(m.created_at||'').split(' '),day=when[0]||'',mine=Number(m.sender_id)===me;let sep='';if(day&&day!==lastDay){lastDay=day;sep='<div class="usm-msg-day"><span>'+esc(stamp(day))+'</span></div>';}return sep+'<div class="usm-msg-row'+(mine?' mine':'')+'">'+(mine?'':avatarChip(m.sender_id,m.sender_avatar,m.sender_username,'usm-msg-avatar usm-avatar-24'))+'<div class="usm-msg-bubble'+(mine?' mine':'')+'">'+esc(m.message_body)+'<small>'+esc(m.sender_username)+(when[1]?' · '+esc(when[1].slice(0,5)):'')+'</small></div></div>';}).join('')||'<div class="usm-msg-empty"><i class="fa-regular fa-comment-dots usm-empty-ico" aria-hidden="true"></i><strong>No messages in this conversation</strong><span>Write the first reply below.</span></div>';feed.scrollTop=feed.scrollHeight;reply.disabled=false;send.disabled=false;await loadConversations();}
- function toggle(open){page.classList.toggle('open',open);page.setAttribute('aria-hidden',open?'false':'true');if(open){loadContacts().catch(e=>{contactSelect.innerHTML='<option value="">'+esc(e.message)+'</option>';});loadConversations().catch(e=>{list.textContent=e.message;});}}
+ function toggle(open){page.classList.toggle('open',open);page.setAttribute('aria-hidden',open?'false':'true');if(open){/* The panel now holds the conversation list, so a lingering preview card would only repeat it. */if(hasPreview&&!previewBox.hidden)dismissPreview();pendingPreview=null;loadContacts().catch(e=>{contactSelect.innerHTML='<option value="">'+esc(e.message)+'</option>';});loadConversations().catch(e=>{list.textContent=e.message;});}}
  launch.addEventListener('click',()=>toggle(true));close.addEventListener('click',()=>toggle(false));list.addEventListener('click',e=>{const b=e.target.closest('[data-conversation]');if(b)openConversation(b.dataset.conversation).catch(err=>alert(err.message));});
  requestSelect.addEventListener('change',()=>{const opt=requestSelect.selectedOptions[0];if(!opt||requestSelect.value==='0')return;const viewerId=Number(opt.dataset.viewer);if(isAdmin){contactSelect.value=String(viewerId);}else{const own=Number(<?php echo (int)($_SESSION['user_id']??0); ?>);if(Number(opt.dataset.viewer)!==own){requestSelect.value='0';alert('You can only link your own requests.');}}});
  startForm.addEventListener('submit',async e=>{e.preventDefault();const contactId=Number(contactSelect.value),subject=document.getElementById('usm-msg-subject').value.trim(),message=document.getElementById('usm-msg-first').value.trim(),requestId=Number(requestSelect.value||0);if(!contactId||!subject||!message)return;const opt=requestSelect.selectedOptions[0];if(requestId&&isAdmin&&opt&&Number(opt.dataset.viewer)!==contactId){alert('The linked request must belong to the selected Viewer.');return;}const btn=startForm.querySelector('button[type="submit"]');btn.disabled=true;try{const j=await api('create_message_conversation',{body:{contact_id:contactId,subject,message,request_id:requestId}});startForm.reset();const sheet=startForm.closest('details');if(sheet)sheet.open=false;await loadConversations();await openConversation(j.conversation_id);}catch(err){alert(err.message);}finally{btn.disabled=false;}});
  compose.addEventListener('submit',async e=>{e.preventDefault();const message=reply.value.trim();if(!activeId||!message||send.disabled)return;send.disabled=true;try{await api('send_message',{body:{conversation_id:activeId,message}});reply.value='';await openConversation(activeId);}catch(err){alert(err.message);}finally{send.disabled=!activeId;}});
   reply.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.shiftKey||e.isComposing||send.disabled)return;e.preventDefault();if(compose.requestSubmit)compose.requestSubmit();else compose.dispatchEvent(new Event('submit',{cancelable:true}));});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&page.classList.contains('open'))toggle(false);});
- // Refresh the list periodically while open so unread counts and new replies stay current.
+ // Refresh while open so replies stay current. The stream is the fast path while the panel
+ // is closed; this minute poll only runs when no stream is connected, so an environment
+ // without EventSource keeps a working badge and preview. Returning to the tab shows a
+ // preview held while it was hidden and reconciles once.
  setInterval(()=>{if(page.classList.contains('open'))loadConversations().catch(()=>{});},20000);
+ setInterval(()=>{if(document.hidden||page.classList.contains('open'))return;if(stream&&stream.readyState===1)return;loadConversations().catch(()=>{});},60000);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(pendingPreview&&!page.classList.contains('open')&&hasPreview){const held=pendingPreview;pendingPreview=null;showPreview(held);}if(!page.classList.contains('open'))loadConversations().catch(()=>{});});
+ loadConversations().catch(()=>{}).then(startStream);
 })();
 </script>
 <?php endif; ?>
@@ -2868,7 +2935,7 @@ foreach ($usmManualClipSlots as $usmSlug => $usmSlot) {
   const dialog=document.getElementById('usmsmart-manual-dialog');
   let previousFocus=null;
   window.openUserManual=function(){if(!backdrop)return;previousFocus=document.activeElement;backdrop.classList.remove('hidden');backdrop.classList.add('flex');document.body.style.overflow='hidden';const close=backdrop.querySelector('button[aria-label="Tutup panduan"]');if(close)close.focus();};
-  window.closeUserManual=function(){if(!backdrop)return;backdrop.classList.add('hidden');backdrop.classList.remove('flex');document.body.style.overflow='';if(previousFocus&&typeof previousFocus.focus==='function')previousFocus.focus();};
+  window.closeUserManual=function(){if(!backdrop)return;/* Closing hides the dialog but the media element keeps playing on its own, so the clip's audio carried on after the panel was gone. Stop every clip before the dialog leaves the screen. */backdrop.querySelectorAll('video').forEach(function(clip){if(!clip.paused)clip.pause();});backdrop.classList.add('hidden');backdrop.classList.remove('flex');document.body.style.overflow='';if(previousFocus&&typeof previousFocus.focus==='function')previousFocus.focus();};
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&backdrop&&!backdrop.classList.contains('hidden'))window.closeUserManual();});
   if(dialog)dialog.addEventListener('keydown',function(e){if(e.key!=='Tab')return;const items=Array.from(dialog.querySelectorAll('button,a,input,select,textarea,video,summary,[tabindex]:not([tabindex="-1"])')).filter(el=>!el.disabled);if(!items.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
 })();

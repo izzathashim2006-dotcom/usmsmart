@@ -139,25 +139,29 @@
         function usmPaletteAdmin() {
             try { return typeof USMSMART_IS_ADMIN !== 'undefined' && !!USMSMART_IS_ADMIN; } catch (error) { return false; }
         }
+        function usmPaletteT(ms, en) {
+            return typeof window.__usmT === 'function' ? window.__usmT(ms, en) : ms;
+        }
         function usmPaletteCommands() {
             const destinations = [
-                { group: 'Bahagian', label: 'Transporter Utama', meta: 'Papan pemuka', icon: 'fa-bus', keywords: 'utama dashboard transporter rekod', run: function () { switchMainTab('transporter'); } },
-                { group: 'Bahagian', label: 'Analisis Grafik', meta: 'Statistik dan eksport', icon: 'fa-chart-column', keywords: 'analisis statistik graf chart laporan', run: function () { switchMainTab('analytics'); } },
-                { group: 'Bahagian', label: 'Sysweb', meta: 'Integrasi dan batch', icon: 'fa-network-wired', keywords: 'sysweb integrasi batch hantar', run: function () { navigateToSyswebSegment('header'); } },
-                { group: 'Bahagian', label: 'Direktori Kad', meta: 'Pelajar', icon: 'fa-id-card-clip', keywords: 'direktori kad pelajar directory', run: function () { navigateToDirectoryPage('student'); } },
-                { group: 'Bahagian', label: 'Direktori Staf', meta: 'Rekod staf tempatan', icon: 'fa-user-tie', keywords: 'direktori staf staff', run: function () { navigateToDirectoryPage('staff'); } },
-                { group: 'Bahagian', label: 'Sejarah & Log Audit', meta: 'Jejak rekod', icon: 'fa-clock-rotate-left', keywords: 'sejarah audit log jejak', run: function () { navigateToAuditHistory('directory'); } },
-                { group: 'Bahagian', label: 'Kualiti Data', meta: 'Isu dan pendua', icon: 'fa-triangle-exclamation', keywords: 'kualiti data isu pendua duplicate', run: function () { navigateToDataQuality(); } }
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Transporter Utama', 'Main Transporter'), meta: usmPaletteT('Papan pemuka', 'Dashboard'), icon: 'fa-bus', keywords: 'utama dashboard transporter rekod', run: function () { switchMainTab('transporter'); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Analisis Grafik', 'Graphical Analysis'), meta: usmPaletteT('Statistik dan eksport', 'Statistics and exports'), icon: 'fa-chart-column', keywords: 'analisis statistik graf chart laporan', run: function () { switchMainTab('analytics'); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: 'Sysweb', meta: usmPaletteT('Integrasi dan batch', 'Integration and batches'), icon: 'fa-network-wired', keywords: 'sysweb integrasi batch hantar', run: function () { navigateToSyswebSegment('header'); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Direktori Kad', 'Card Directory'), meta: usmPaletteT('Pelajar', 'Students'), icon: 'fa-id-card-clip', keywords: 'direktori kad pelajar directory', run: function () { navigateToDirectoryPage('student'); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Direktori Staf', 'Staff Directory'), meta: usmPaletteT('Rekod staf tempatan', 'Local staff records'), icon: 'fa-user-tie', keywords: 'direktori staf staff', run: function () { navigateToDirectoryPage('staff'); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Kalendar Luput', 'Expiry Calendar'), meta: usmPaletteT('Peta haba tarikh luput kad', 'Heatmap of card expiry dates'), icon: 'fa-calendar-check', keywords: 'kalendar luput expiry calendar tarikh heat peta', run: function () { navigateToExpiryCalendar(); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Sejarah & Log Audit', 'History & Audit Log'), meta: usmPaletteT('Jejak rekod', 'Record trail'), icon: 'fa-clock-rotate-left', keywords: 'sejarah audit log jejak', run: function () { navigateToAuditHistory('directory'); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Kualiti Data', 'Data Quality'), meta: usmPaletteT('Isu dan pendua', 'Issues and duplicates'), icon: 'fa-triangle-exclamation', keywords: 'kualiti data isu pendua duplicate', run: function () { navigateToDataQuality(); } }
             ];
             if (usmPaletteAdmin()) {
-                destinations.push({ group: 'Bahagian', label: 'Pengurusan Akaun', meta: 'Pengguna dan peranan', icon: 'fa-users-gear', keywords: 'akaun pengguna user admin peranan', run: function () { navigateToUserManagement(); } });
+                destinations.push({ group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Pengurusan Akaun', 'Account Management'), meta: usmPaletteT('Pengguna dan peranan', 'Users and roles'), icon: 'fa-users-gear', keywords: 'akaun pengguna user admin peranan', run: function () { navigateToUserManagement(); } });
             }
             const actions = [
-                { group: 'Tindakan', label: 'Profil Saya', meta: 'Nama, avatar, kata laluan, passkey', icon: 'fa-user-circle', keywords: 'profil akaun avatar kata laluan passkey', run: function () { openMyProfile(); } },
-                { group: 'Tindakan', label: 'Imbas Kad', meta: 'Kamera atau pengimbas', icon: 'fa-camera', keywords: 'imbas kad scan kamera qr', run: function () { openScannerModal(); } },
-                { group: 'Tindakan', label: 'Panduan Pengguna', meta: 'Buku panduan dalam aplikasi', icon: 'fa-book-open', keywords: 'panduan manual bantuan help', run: function () { openUserManual(); } },
-                { group: 'Tindakan', label: 'Tukar Tema', meta: 'Terang atau gelap', icon: 'fa-moon', keywords: 'tema gelap terang dark light appearance', run: function () { toggleDarkMode(); } },
-                { group: 'Tindakan', label: 'Cetak Halaman', meta: 'Pencetak pelayar', icon: 'fa-print', keywords: 'cetak print kertas', run: function () { window.print(); } }
+                { group: usmPaletteT('Tindakan', 'Actions'), label: usmPaletteT('Profil Saya', 'My Profile'), meta: usmPaletteT('Nama, avatar, kata laluan, passkey', 'Name, avatar, password, passkey'), icon: 'fa-user-circle', keywords: 'profil akaun avatar kata laluan passkey', run: function () { openMyProfile(); } },
+                { group: usmPaletteT('Tindakan', 'Actions'), label: usmPaletteT('Imbas Kad', 'Scan Card'), meta: usmPaletteT('Kamera atau pengimbas', 'Camera or scanner'), icon: 'fa-camera', keywords: 'imbas kad scan kamera qr', run: function () { openScannerModal(); } },
+                { group: usmPaletteT('Tindakan', 'Actions'), label: usmPaletteT('Panduan Pengguna', 'User Guide'), meta: usmPaletteT('Buku panduan dalam aplikasi', 'In-app manual'), icon: 'fa-book-open', keywords: 'panduan manual bantuan help', run: function () { openUserManual(); } },
+                { group: usmPaletteT('Tindakan', 'Actions'), label: usmPaletteT('Tukar Tema', 'Toggle Theme'), meta: usmPaletteT('Terang atau gelap', 'Light or dark'), icon: 'fa-moon', keywords: 'tema gelap terang dark light appearance', run: function () { toggleDarkMode(); } },
+                { group: usmPaletteT('Tindakan', 'Actions'), label: usmPaletteT('Cetak Halaman', 'Print Page'), meta: usmPaletteT('Pencetak pelayar', 'Browser printer'), icon: 'fa-print', keywords: 'cetak print kertas', run: function () { window.print(); } }
             ];
             return destinations.concat(actions);
         }
@@ -190,7 +194,7 @@
                 const student = entry.student;
                 const meta = [student.matric, student.school].filter(Boolean).join(' · ');
                 return {
-                    group: 'Pelajar', label: student.name || 'Pelajar tanpa nama', meta: meta, icon: 'fa-graduation-cap',
+                    group: usmPaletteT('Pelajar', 'Students'), label: student.name || usmPaletteT('Pelajar tanpa nama', 'Unnamed student'), meta: meta, icon: 'fa-graduation-cap',
                     run: function () { openStudentProfile(student.id); }
                 };
             });
@@ -205,7 +209,7 @@
             }).slice(0, 5).map(function (record) {
                 const meta = [record.staffNo, record.department].filter(Boolean).join(' · ');
                 return {
-                    group: 'Staf', label: record.name || 'Staf tanpa nama', meta: meta, icon: 'fa-user-tie',
+                    group: usmPaletteT('Staf', 'Staff'), label: record.name || usmPaletteT('Staf tanpa nama', 'Unnamed staff member'), meta: meta, icon: 'fa-user-tie',
                     run: function () {
                         navigateToDirectoryPage('staff');
                         const search = document.getElementById('staff-directory-search');
@@ -277,7 +281,7 @@
                 icon.className = 'fa-solid fa-search';
                 icon.setAttribute('aria-hidden', 'true');
                 const line = document.createElement('div');
-                line.textContent = query ? 'Tiada padanan untuk “' + query + '”.' : 'Taip nama pelajar, matrik atau nama modul.';
+                line.textContent = query ? usmPaletteT('Tiada padanan untuk “' + query + '”.', 'No matches for “' + query + '”.') : usmPaletteT('Taip nama pelajar, matrik atau nama modul.', 'Type a student name, matric number or module name.');
                 empty.append(icon, line);
                 list.appendChild(empty);
                 input.removeAttribute('aria-activedescendant');
@@ -336,15 +340,35 @@
             // dialog, otherwise that focus return can pull focus back out.
             window.setTimeout(function () {
                 try { item.run(); } catch (error) {
-                    showToast(error && error.message ? error.message : 'Arahan tidak dapat dijalankan.');
+                    showToast(error && error.message ? error.message : usmPaletteT('Arahan tidak dapat dijalankan.', 'The command could not be run.'));
                 }
             }, 0);
+        }
+        function usmPaletteChrome() {
+            // The dialog carries data-usm-nolang, so the page-wide translator never
+            // rewrites it. Every string is rendered here in the active language, and
+            // the rows are rebuilt on usm:langchange, so English is immediate.
+            const title = document.getElementById('command-palette-title');
+            const input = document.getElementById('command-palette-input');
+            const list = document.getElementById('command-palette-list');
+            const hint = document.getElementById('command-palette-hint');
+            const openHint = document.getElementById('command-palette-open');
+            const placeholder = usmPaletteT('Cari pelajar, modul atau arahan…', 'Search students, modules or commands…');
+            if (title) title.textContent = usmPaletteT('Cari dan jalankan arahan', 'Search and run commands');
+            if (input) {
+                input.placeholder = placeholder;
+                input.setAttribute('aria-label', placeholder);
+            }
+            if (list) list.setAttribute('aria-label', usmPaletteT('Hasil carian', 'Search results'));
+            if (hint) hint.textContent = usmPaletteT('pilih', 'select');
+            if (openHint) openHint.textContent = usmPaletteT('buka', 'open');
         }
         function openCommandPalette() {
             const palette = document.getElementById('command-palette');
             if (!palette) return;
             const input = document.getElementById('command-palette-input');
             if (input) input.value = '';
+            usmPaletteChrome();
             usmPaletteRender();
             palette.classList.remove('hidden');
             if (input) input.setAttribute('aria-expanded', 'true');
@@ -387,6 +411,11 @@
                 if (usmPaletteObstructed()) return;
                 openCommandPalette();
             });
+            window.addEventListener('usm:langchange', function () {
+                usmPaletteChrome();
+                if (!palette.classList.contains('hidden')) usmPaletteRender();
+            });
+            usmPaletteChrome();
         })();
 
         let allMasterStudents = [];
@@ -397,6 +426,9 @@
         let duplicateStudentIds = new Set();
         let duplicateOnlyFilter = false;
         let duplicateAlertDismissed = false;
+        // Exact expiry-date drill-down set by the expiry calendar (YYYY-MM-DD, '' = off).
+        // Kept beside the other master-table filters so filterMasterTable honours it too.
+        let expiryExactDateFilter = '';
 
         let existingPolicyOptions = [];
         let currentFetchedRecords = [];
@@ -2064,17 +2096,68 @@
             });
         });
 
-        function toggleDarkMode() {
-            let html = document.getElementById('html-root');
-            let icon = document.getElementById('theme-icon');
-            if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                icon.className = "fa-solid fa-moon text-xs";
-                localStorage.setItem('theme', 'light');
-            } else {
-                html.classList.add('dark');
-                icon.className = "fa-solid fa-sun text-xs";
-                localStorage.setItem('theme', 'dark');
+        /* Applies the theme everywhere the chrome reads it: the root class, the header icon
+           and the small fixed switch. Kept separate so the reveal can snapshot around it. */
+        function applyDarkMode(dark) {
+            const html = document.getElementById('html-root');
+            const icon = document.getElementById('theme-icon');
+            if (!html) return;
+            html.classList.toggle('dark', !!dark);
+            if (icon) icon.className = dark ? "fa-solid fa-sun text-xs" : "fa-solid fa-moon text-xs";
+            const fixed = document.getElementById('themeToggle');
+            if (fixed) fixed.textContent = dark ? '☀️' : '🌙';
+            try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) { /* private mode */ }
+        }
+        /* The switch expands the new theme as a circle from the button that was pressed.
+           View Transitions snapshots the old frame before the theme flips, so the flip lands
+           about a frame later. themeTarget keeps a second quick click honest: it toggles from
+           the intended state, not from a DOM class that has not been rewritten yet. Browsers
+           without the API and reduced-motion visitors get the instant switch instead. */
+        let themeTarget = null;
+        function toggleDarkMode(source) {
+            const html = document.getElementById('html-root');
+            if (!html) return;
+            const current = themeTarget === null ? html.classList.contains('dark') : themeTarget;
+            const dark = !current;
+            const fallbackButton = document.getElementById('theme-icon');
+            const button = (source && typeof source.getBoundingClientRect === 'function') ? source
+                : (fallbackButton && fallbackButton.closest('button')) || document.getElementById('themeToggle');
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (typeof document.startViewTransition !== 'function' || reduceMotion) {
+                themeTarget = null;
+                applyDarkMode(dark);
+                return;
+            }
+            themeTarget = dark;
+            const rect = button && typeof button.getBoundingClientRect === 'function' ? button.getBoundingClientRect() : null;
+            const x = rect && rect.width ? rect.left + rect.width / 2 : window.innerWidth - 32;
+            const y = rect && rect.height ? rect.top + rect.height / 2 : 32;
+            const radius = Math.ceil(Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y)));
+            const root = document.documentElement;
+            root.style.setProperty('--usm-theme-x', x + 'px');
+            root.style.setProperty('--usm-theme-y', y + 'px');
+            root.style.setProperty('--usm-theme-r', radius + 'px');
+            let transition = null;
+            try {
+                transition = document.startViewTransition(function () { applyDarkMode(dark); });
+            } catch (e) {
+                themeTarget = null;
+                applyDarkMode(dark);
+            }
+            if (transition && transition.finished && typeof transition.finished.then === 'function') {
+                // A transition that gets skipped (a second click arrived) rejects ready/finished;
+                // both are expected, so consume them instead of leaving console noise behind.
+                if (transition.ready && typeof transition.ready.catch === 'function') transition.ready.catch(function () {});
+                const settle = function () {
+                    // A newer click may already own the reveal; only the last one tidies up.
+                    if (themeTarget === dark) themeTarget = null;
+                    if (themeTarget === null) {
+                        root.style.removeProperty('--usm-theme-x');
+                        root.style.removeProperty('--usm-theme-y');
+                        root.style.removeProperty('--usm-theme-r');
+                    }
+                };
+                transition.finished.then(settle, settle);
             }
         }
 
@@ -2084,7 +2167,7 @@
         }
 
         function hideAllMainViews() {
-            ['view-transporter','view-analytics','view-directory-page','view-staff-directory','view-edit-student','view-user-management','view-audit-history','view-bulk-update','view-data-quality','view-sysweb'].forEach(id => {
+            ['view-transporter','view-analytics','view-directory-page','view-staff-directory','view-edit-student','view-user-management','view-audit-history','view-bulk-update','view-data-quality','view-sysweb','view-expiry-calendar'].forEach(id => {
                 const el = document.getElementById(id); if (el) el.classList.add('hidden');
             });
             // Deep segments belong to no top tab, so no tab is marked current.
@@ -2131,12 +2214,14 @@
             let tUsers = document.getElementById('view-user-management');
             let tAudit = document.getElementById('view-audit-history');
             let tSysweb = document.getElementById('view-sysweb');
+            let tCal = document.getElementById('view-expiry-calendar');
             // The three button handles are gone: setMainTabState() is the only writer now.
             if (tDir) tDir.classList.add('hidden');
             if (tEdit) tEdit.classList.add('hidden');
             if (tUsers) tUsers.classList.add('hidden');
             if (tAudit) tAudit.classList.add('hidden');
             if (tSysweb) tSysweb.classList.add('hidden');
+            if (tCal) tCal.classList.add('hidden');
             if (tab === 'analytics') {
                 if (tTrans) tTrans.classList.add('hidden');
                 if (tAnal) tAnal.classList.remove('hidden');
@@ -3454,6 +3539,16 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // The calendar module builds its grid inside #view-expiry-calendar and exposes a
+        // render hook; opening the segment asks it to paint with the freshest loaded data.
+        function navigateToExpiryCalendar() {
+            hideAllMainViews();
+            const view = document.getElementById('view-expiry-calendar');
+            if (view) view.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (typeof window.__usmExpiryCalendarRender === 'function') window.__usmExpiryCalendarRender();
+        }
+
         let allStaffDirectoryRecords = [];
         let staffDirectoryLoaded = false;
         function navigateToStaffDirectory() {
@@ -3739,6 +3834,7 @@
             const ids = ['master-search', 'master-school-filter', 'master-status-filter', 'master-education-filter', 'master-category-filter'];
             ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
             duplicateOnlyFilter = false;
+            expiryExactDateFilter = '';
             currentPage = 1;
             filterMasterTable();
             const search = document.getElementById('master-search');
@@ -4314,7 +4410,7 @@
             const alertBox = document.getElementById('active-filter-alert');
             const alertText = document.getElementById('active-filter-text');
             if (!alertBox || !alertText) return;
-            if (!status) {
+            if (!status && !expiryExactDateFilter) {
                 alertBox.classList.add('hidden');
                 return;
             }
@@ -4324,6 +4420,11 @@
             else if (status === '14') label = 'Pelajar Kad Tamat (≤ 14 Hari)';
             else if (status === 'expired') label = 'Pelajar Kad Telah Tamat Tempoh';
             else if (status === 'active') label = 'Pelajar Kad Masih Aktif';
+            if (expiryExactDateFilter) {
+                label = status
+                    ? label + ' · Luput pada ' + expiryExactDateFilter
+                    : 'Pelajar Luput Pada ' + expiryExactDateFilter;
+            }
             alertText.textContent = 'Menapis: ' + label + ' (' + count + ' rekod dijumpai)';
             alertBox.classList.remove('hidden');
         }
@@ -4348,6 +4449,9 @@
         }
 
         function viewStudentsByExpiryStatus(status) {
+            // Quick pills and the banner's clear button own the status drill-down; picking one
+            // drops the calendar's exact-date filter so the two never silently stack.
+            expiryExactDateFilter = '';
             navigateToDirectoryPage();
             const statusSelect = document.getElementById('master-status-filter');
             if (statusSelect) {
@@ -4428,7 +4532,8 @@
                     }
                 }
                 const duplicateMatch = !duplicateOnlyFilter || duplicateStudentIds.has(String(r.id));
-                return searchable && schoolMatch && educationMatch && categoryMatch && statusMatch && duplicateMatch;
+                const dateMatch = !expiryExactDateFilter || String(r.expiryDate || '').slice(0, 10) === expiryExactDateFilter;
+                return searchable && schoolMatch && educationMatch && categoryMatch && statusMatch && duplicateMatch && dateMatch;
             });
             const sortConfig = {
                 name_asc: ['name', 1], name_desc: ['name', -1],
@@ -7049,6 +7154,41 @@
             setText('pill-count-expiring7', expiring7);
             setText('pill-count-expired', expired);
 
+            // Hand the four headline counts to the trend module, which keeps one snapshot per day.
+            if (typeof window.__usmTrendRecord === 'function') {
+                window.__usmTrendRecord({ total: total, active: active, expiring: expiring, expired: expired });
+            }
+            // The hero's status line shows whatever needs attention first.
+            if (typeof window.__usmHeroStatus === 'function') {
+                window.__usmHeroStatus({ total: total, active: active, expiring: expiring, expired: expired });
+            }
+
+            // Month-on-month registrations for the hero slider. Only a well-formed YYYY-MM
+            // joins a count; the same shape the quality scan already trusts.
+            const briefMonthOf = function (date) {
+                return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+            };
+            const briefThisMonth = briefMonthOf(today);
+            const briefPrevMonth = briefMonthOf(new Date(today.getFullYear(), today.getMonth() - 1, 1));
+            let joinedThisMonth = 0;
+            let joinedPrevMonth = 0;
+            allMasterStudents.forEach(r => {
+                const joined = String(r.dateJoined || r.date_joined || '').trim().slice(0, 7);
+                if (!/^\d{4}-\d{2}$/.test(joined)) return;
+                if (joined === briefThisMonth) joinedThisMonth++;
+                else if (joined === briefPrevMonth) joinedPrevMonth++;
+            });
+            if (typeof window.__usmHeroBrief === 'function') {
+                window.__usmHeroBrief({
+                    total: total,
+                    active: active,
+                    expiring: expiring,
+                    expired: expired,
+                    joinedThisMonth: joinedThisMonth,
+                    joinedPrevMonth: joinedPrevMonth
+                });
+            }
+
             // Synchronize Transporter Page Expiry Alert Banner
             const banner = document.getElementById('transporter-expiry-alert-banner');
             const expBadge = document.getElementById('transporter-expiring-badge');
@@ -8213,6 +8353,39 @@
             };
             const star = pinned => '<svg viewBox="0 0 24 24" fill="' + (pinned ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l2.9 6.4 7 .7-5.3 4.6 1.5 6.9-6.1-3.6-6.1 3.6 1.5-6.9L2.1 9.6l7-.7z"/></svg>';
 
+            /* Malay/English pairs for this segment's static chrome. The i18n module translates
+               tagged leaves into English but never captures their Malay baseline, so both
+               directions are restored from here on usm:langchange. Third entry = attribute. */
+            const VIEW_TAGS = {
+                'views.label': ['Paparan', 'Views'],
+                'views.saved': ['Paparan Tersimpan', 'Saved Views'],
+                'views.clearRecent': ['Kosongkan terkini', 'Clear recent'],
+                'views.save': ['Simpan paparan', 'Save view'],
+                'views.nameLabel': ['Nama paparan', 'View name'],
+                'views.previewLabel': ['Akan disimpan', 'Will save'],
+                'views.cancel': ['Batal', 'Cancel'],
+                'views.confirm': ['Simpan', 'Save'],
+                'views.saveHint': ['Enter simpan · Esc batal', 'Enter saves · Esc cancels'],
+                'views.namePlaceholder': ['cth. Hampir luput ≤30 hari', 'e.g. Expiring ≤30 days', 'placeholder'],
+                'views.panelAria': ['Paparan tersimpan dan carian terkini', 'Saved views and recent searches', 'aria-label'],
+                'views.saveAria': ['Simpan paparan', 'Save view', 'aria-label']
+            };
+            function retagViews() {
+                if (!bar) return;
+                bar.querySelectorAll('[data-usm-i18n]').forEach(el => {
+                    const p = VIEW_TAGS[el.getAttribute('data-usm-i18n')];
+                    if (p && !el.children.length) el.textContent = T(p[0], p[1]);
+                });
+                bar.querySelectorAll('[data-usm-i18n-placeholder]').forEach(el => {
+                    const p = VIEW_TAGS[el.getAttribute('data-usm-i18n-placeholder')];
+                    if (p) el.setAttribute(p[2] || 'placeholder', T(p[0], p[1]));
+                });
+                bar.querySelectorAll('[data-usm-i18n-aria]').forEach(el => {
+                    const p = VIEW_TAGS[el.getAttribute('data-usm-i18n-aria')];
+                    if (p) el.setAttribute(p[2] || 'aria-label', T(p[0], p[1]));
+                });
+            }
+
             let store = loadStore();
             let suppress = false;
             let recentTimer = 0;
@@ -8559,12 +8732,26 @@
                     });
                 }
                 if (clearBtn) clearBtn.disabled = store.recent.length === 0;
+                paintListFade();
+            }
+            /* Fade the bottom edge only while more rows are below the fold, so a clipped
+               row reads as "scroll for more" instead of a rendering glitch. */
+            function paintListFade() {
+                if (!listScroll) return;
+                const more = listScroll.scrollHeight - listScroll.clientHeight - listScroll.scrollTop > 4;
+                listScroll.classList.toggle('is-fade', more);
             }
 
             function build() {
                 const search = document.getElementById('master-search');
-                if (!search || !search.parentElement || !search.parentElement.parentElement) return false;
-                const grid = search.parentElement.parentElement;
+                if (!search) return false;
+                // The voice-search module wraps the input in span.usm-voice-field, so parent
+                // hop counts are unreliable; anchor on the filter grid itself and put the bar
+                // above it, full width, instead of inside the first filter column.
+                const grid = search.closest('.grid');
+                // Null checks spelled out: a negated grid identifier in source text is picked
+                // up by the Tailwind scanner as an important utility and pollutes the sheet.
+                if (grid === null || grid.parentElement === null) return false;
                 bar = document.createElement('div'); bar.className = 'usm-views-bar';
                 const label = document.createElement('span'); label.className = 'usm-views-label'; label.textContent = 'Paparan'; label.setAttribute('data-usm-i18n', 'views.label');
                 bar.appendChild(label);
@@ -8580,6 +8767,7 @@
                 listPanel = document.createElement('div'); listPanel.className = 'usm-views-panel'; listPanel.hidden = true;
                 listPanel.setAttribute('role', 'dialog'); listPanel.setAttribute('aria-label', 'Paparan tersimpan dan carian terkini'); listPanel.setAttribute('data-usm-i18n-aria', 'views.panelAria');
                 listScroll = document.createElement('div'); listScroll.className = 'usm-views-scroll';
+                listScroll.addEventListener('scroll', paintListFade);
                 const foot = document.createElement('div'); foot.className = 'usm-views-foot';
                 clearBtn = document.createElement('button'); clearBtn.type = 'button'; clearBtn.className = 'usm-views-link'; clearBtn.textContent = 'Kosongkan terkini'; clearBtn.setAttribute('data-usm-i18n', 'views.clearRecent');
                 clearBtn.addEventListener('click', clearRecent);
@@ -8600,6 +8788,7 @@
                 nameInput.placeholder = 'cth. Hampir luput ≤30 hari'; nameInput.id = 'usm-views-name-input'; nameInput.setAttribute('data-usm-i18n-placeholder', 'views.namePlaceholder');
                 fl.htmlFor = nameInput.id;
                 previewEl = document.createElement('div'); previewEl.className = 'usm-views-preview';
+                const pl = document.createElement('span'); pl.className = 'usm-views-fieldlabel usm-views-previewlabel'; pl.textContent = 'Akan disimpan'; pl.setAttribute('data-usm-i18n', 'views.previewLabel');
                 const actions = document.createElement('div'); actions.className = 'usm-views-actions';
                 const cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'usm-views-btn'; cancel.textContent = 'Batal'; cancel.setAttribute('data-usm-i18n', 'views.cancel');
                 cancel.addEventListener('click', closePanels);
@@ -8611,8 +8800,9 @@
                 };
                 confirm.addEventListener('click', doSave);
                 nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doSave(); } });
+                const hint = document.createElement('div'); hint.className = 'usm-views-hint'; hint.textContent = 'Enter simpan · Esc batal'; hint.setAttribute('data-usm-i18n', 'views.saveHint');
                 actions.appendChild(cancel); actions.appendChild(confirm);
-                savePanel.appendChild(fl); savePanel.appendChild(nameInput); savePanel.appendChild(previewEl); savePanel.appendChild(actions);
+                savePanel.appendChild(fl); savePanel.appendChild(nameInput); savePanel.appendChild(pl); savePanel.appendChild(previewEl); savePanel.appendChild(actions); savePanel.appendChild(hint);
                 saveAnchor.appendChild(saveBtn); saveAnchor.appendChild(savePanel);
                 bar.appendChild(saveAnchor);
 
@@ -8631,6 +8821,7 @@
                 });
                 document.addEventListener('keydown', e => { if (e.key === 'Escape' && openPanel) closePanels(); });
                 window.addEventListener('usm:langchange', () => {
+                    retagViews();
                     if (listScroll) renderList();
                     if (recentClear) recentClear.textContent = T('Kosongkan', 'Clear');
                     if (recentPanel) {
@@ -9030,4 +9221,867 @@
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
             else boot();
             window.addEventListener('load', () => { hookLoader(); refresh(); });
+        })();
+
+        /* ===== Expiry calendar =====
+           A month heatmap of student-card expiry dates, read straight from the loaded
+           allMasterStudents register — nothing here creates or changes a record. Clicking a
+           marked day drills the directory down to that exact expiry date through
+           expiryExactDateFilter; the banner there names the date and the quick pills clear it.
+           Month names, weekday names and day tooltips render through T() and re-render on
+           usm:langchange; static chrome carries data-usm-i18n tags (CAL_TAGS below). The head
+           reuses the usm-dir-* classes; everything else is custom usm-cal-* so Tailwind gains
+           nothing. */
+        (function initExpiryCalendar() {
+            'use strict';
+            function T(ms, en) { return (typeof window.__usmT === 'function') ? window.__usmT(ms, en) : ms; }
+            const MONTHS = [
+                ['Januari', 'January'], ['Februari', 'February'], ['Mac', 'March'], ['April', 'April'],
+                ['Mei', 'May'], ['Jun', 'June'], ['Julai', 'July'], ['Ogos', 'August'],
+                ['September', 'September'], ['Oktober', 'October'], ['November', 'November'], ['Disember', 'December']
+            ];
+            const WEEKDAYS = [['Ahad', 'Sun'], ['Isnin', 'Mon'], ['Selasa', 'Tue'], ['Rabu', 'Wed'], ['Khamis', 'Thu'], ['Jumaat', 'Fri'], ['Sabtu', 'Sat']];
+            /* [malay, english, attribute?] — attribute defaults to textContent. */
+            const CAL_TAGS = {
+                'cal.eyebrow': ['KALENDAR LUPUT', 'EXPIRY CALENDAR'],
+                'cal.title': ['Luput Kad Pelajar', 'Student Card Expiries'],
+                'cal.back': ['Kembali ke Utama', 'Back to main', 'aria-label'],
+                'cal.prev': ['Bulan sebelumnya', 'Previous month', 'aria-label'],
+                'cal.next': ['Bulan seterusnya', 'Next month', 'aria-label'],
+                'cal.today': ['Hari ini', 'Today'],
+                'cal.gridAria': ['Kalendar tarikh luput kad', 'Card expiry calendar', 'aria-label'],
+                'cal.legPast': ['Luput lepas', 'Past expiry'],
+                'cal.legSoon': ['≤ 7 hari', '≤ 7 days'],
+                'cal.legFuture': ['Akan datang', 'Upcoming'],
+                'cal.legNone': ['Tiada rekod', 'No records'],
+                'cal.statTotal': ['Luput bulan ini', 'Expiring this month'],
+                'cal.statExpired': ['Telah luput', 'Already expired'],
+                'cal.statSoon': ['≤ 7 hari', '≤ 7 days'],
+                'cal.hint': ['Klik hari bertanda untuk menapis direktori mengikut tarikh luput itu.', 'Click a marked day to filter the directory by that expiry date.'],
+                'cal.empty': ['Tiada rekod pelajar dimuatkan lagi.', 'No student records loaded yet.'],
+                'cal.loading': ['Memuatkan rekod pelajar…', 'Loading student records…'],
+                'cal.emptyBtn': ['Buka Direktori', 'Open Directory'],
+                'cal.d0': ['Ahad', 'Sun'], 'cal.d1': ['Isnin', 'Mon'], 'cal.d2': ['Selasa', 'Tue'], 'cal.d3': ['Rabu', 'Wed'],
+                'cal.d4': ['Khamis', 'Thu'], 'cal.d5': ['Jumaat', 'Fri'], 'cal.d6': ['Sabtu', 'Sat']
+            };
+
+            let built = false;
+            let dataAsked = false;
+            let dataPending = false;
+            const firstPaint = new Date();
+            let viewY = firstPaint.getFullYear();
+            let viewM = firstPaint.getMonth();
+            let shell = null; let monthEl = null; let weekEl = null; let gridEl = null;
+            let emptyEl = null; let emptyTextEl = null; let emptyBtnEl = null;
+            let statTotalEl = null; let statExpiredEl = null; let statSoonEl = null;
+
+            function pad2(n) { return String(n).padStart(2, '0'); }
+            function dateKey(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }
+            function todayKey() { const t = new Date(); return dateKey(t.getFullYear(), t.getMonth(), t.getDate()); }
+            function dayDiff(a, b) { return Math.round((new Date(a + 'T00:00:00').getTime() - new Date(b + 'T00:00:00').getTime()) / 86400000); }
+            function masterRows() { return (typeof allMasterStudents === 'undefined' || allMasterStudents === null) ? [] : allMasterStudents; }
+            function expiryIndex() {
+                const map = {};
+                masterRows().forEach(r => {
+                    const d = String(r.expiryDate || '').slice(0, 10);
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) { (map[d] = map[d] || []).push(r); }
+                });
+                return map;
+            }
+            function el(tag, cls, text) {
+                const node = document.createElement(tag);
+                if (cls) node.className = cls;
+                if (text != null) node.textContent = text;
+                return node;
+            }
+            function tag(node, key) { node.setAttribute('data-usm-i18n', key); return node; }
+            function tagAria(node, key) { node.setAttribute('data-usm-i18n-aria', key); return node; }
+
+            function build(host) {
+                shell = el('div', 'usm-cal-root');
+                const head = el('div', 'usm-dir-head');
+                const lead = el('div', 'usm-dir-head-lead');
+                const back = el('button', 'usm-dir-back');
+                back.type = 'button';
+                back.innerHTML = '<i class="fa-solid fa-arrow-left" aria-hidden="true"></i>';
+                tagAria(back, 'cal.back');
+                back.addEventListener('click', function () { if (typeof backToMainTransporter === 'function') backToMainTransporter(); });
+                const headText = el('div');
+                headText.appendChild(tag(el('p', 'usm-dir-eyebrow', 'KALENDAR LUPUT'), 'cal.eyebrow'));
+                headText.appendChild(tag(el('h2', 'usm-dir-title', 'Luput Kad Pelajar'), 'cal.title'));
+                lead.appendChild(back); lead.appendChild(headText);
+                const legend = el('div', 'usm-cal-legend');
+                [['is-past', 'cal.legPast', 'Luput lepas'], ['is-soon', 'cal.legSoon', '≤ 7 hari'], ['is-future', 'cal.legFuture', 'Akan datang'], ['is-none', 'cal.legNone', 'Tiada rekod']].forEach(item => {
+                    const wrap = el('span', 'usm-cal-legend-item');
+                    wrap.appendChild(el('span', 'usm-cal-swatch ' + item[0]));
+                    wrap.appendChild(tag(el('span', 'usm-cal-legend-label', item[2]), item[1]));
+                    legend.appendChild(wrap);
+                });
+                head.appendChild(lead); head.appendChild(legend);
+                shell.appendChild(head);
+
+                const card = el('section', 'usm-cal-shell');
+                const toolbar = el('div', 'usm-cal-toolbar');
+                const nav = el('div', 'usm-cal-navgroup');
+                const prev = el('button', 'usm-cal-nav');
+                prev.type = 'button';
+                prev.innerHTML = '<i class="fa-solid fa-chevron-left" aria-hidden="true"></i>';
+                tagAria(prev, 'cal.prev');
+                prev.addEventListener('click', function () { shiftMonth(-1); });
+                monthEl = el('span', 'usm-cal-month');
+                monthEl.setAttribute('aria-live', 'polite');
+                const next = el('button', 'usm-cal-nav');
+                next.type = 'button';
+                next.innerHTML = '<i class="fa-solid fa-chevron-right" aria-hidden="true"></i>';
+                tagAria(next, 'cal.next');
+                next.addEventListener('click', function () { shiftMonth(1); });
+                const todayBtn = el('button', 'usm-cal-todaybtn');
+                todayBtn.type = 'button';
+                tag(todayBtn, 'cal.today');
+                todayBtn.addEventListener('click', function () { const t = new Date(); viewY = t.getFullYear(); viewM = t.getMonth(); render(); });
+                nav.appendChild(prev); nav.appendChild(monthEl); nav.appendChild(next); nav.appendChild(todayBtn);
+                const stats = el('div', 'usm-cal-stats');
+                statTotalEl = el('b'); statExpiredEl = el('b'); statSoonEl = el('b');
+                [['cal.statTotal', 'Luput bulan ini', statTotalEl, 'is-total'], ['cal.statExpired', 'Telah luput', statExpiredEl, 'is-expired'], ['cal.statSoon', '≤ 7 hari', statSoonEl, 'is-soon']].forEach(item => {
+                    const chip = el('span', 'usm-cal-stat ' + item[3]);
+                    chip.appendChild(tag(el('span', 'usm-cal-stat-label', item[1]), item[0]));
+                    chip.appendChild(item[2]);
+                    stats.appendChild(chip);
+                });
+                toolbar.appendChild(nav); toolbar.appendChild(stats);
+                card.appendChild(toolbar);
+
+                weekEl = el('div', 'usm-cal-week');
+                WEEKDAYS.forEach((pair, i) => { weekEl.appendChild(tag(el('span', 'usm-cal-weekday', pair[0]), 'cal.d' + i)); });
+                card.appendChild(weekEl);
+
+                gridEl = el('div', 'usm-cal-grid');
+                tagAria(gridEl, 'cal.gridAria');
+                gridEl.addEventListener('keydown', onGridKey);
+                card.appendChild(gridEl);
+
+                emptyEl = el('div', 'usm-cal-empty');
+                emptyTextEl = el('p', 'usm-cal-empty-text');
+                emptyBtnEl = el('button', 'usm-cal-emptybtn');
+                emptyBtnEl.type = 'button';
+                tag(emptyBtnEl, 'cal.emptyBtn');
+                emptyBtnEl.addEventListener('click', function () { if (typeof navigateToDirectoryPage === 'function') navigateToDirectoryPage(); });
+                emptyEl.appendChild(emptyTextEl); emptyEl.appendChild(emptyBtnEl);
+                emptyEl.hidden = true;
+                card.appendChild(emptyEl);
+
+                card.appendChild(tag(el('p', 'usm-cal-hint', 'Klik hari bertanda untuk menapis direktori mengikut tarikh luput itu.'), 'cal.hint'));
+                shell.appendChild(card);
+                host.appendChild(shell);
+            }
+
+            /* Tagged chrome has no Malay baseline in the DOM (the translator skips tagged
+               nodes), so both directions are restored here on every language change. */
+            function retag() {
+                if (shell === null) return;
+                shell.querySelectorAll('[data-usm-i18n]').forEach(node => {
+                    const pair = CAL_TAGS[node.getAttribute('data-usm-i18n')];
+                    if (pair && node.children.length === 0) node.textContent = T(pair[0], pair[1]);
+                });
+                shell.querySelectorAll('[data-usm-i18n-aria]').forEach(node => {
+                    const pair = CAL_TAGS[node.getAttribute('data-usm-i18n-aria')];
+                    if (pair) {
+                        node.setAttribute(pair[2] || 'aria-label', T(pair[0], pair[1]));
+                        if (node.tagName === 'BUTTON') node.title = T(pair[0], pair[1]);
+                    }
+                });
+            }
+
+            function shiftMonth(delta) {
+                const d = new Date(viewY, viewM + delta, 1);
+                viewY = d.getFullYear(); viewM = d.getMonth();
+                render();
+            }
+
+            function render() {
+                if (built === false) return;
+                const idx = expiryIndex();
+                const today = todayKey();
+                monthEl.textContent = T(MONTHS[viewM][0], MONTHS[viewM][1]) + ' ' + viewY;
+                const hasData = masterRows().length > 0;
+
+                const prefix = viewY + '-' + pad2(viewM + 1);
+                let total = 0; let expired = 0; let soon = 0;
+                Object.keys(idx).forEach(key => {
+                    if (key.slice(0, 7) !== prefix) return;
+                    const n = idx[key].length;
+                    total += n;
+                    if (key < today) expired += n;
+                    else { const diff = dayDiff(key, today); if (diff >= 0 && diff <= 7) soon += n; }
+                });
+                statTotalEl.textContent = String(total);
+                statExpiredEl.textContent = String(expired);
+                statSoonEl.textContent = String(soon);
+
+                gridEl.textContent = '';
+                const offset = new Date(viewY, viewM, 1).getDay();
+                const days = new Date(viewY, viewM + 1, 0).getDate();
+                const weeks = Math.ceil((offset + days) / 7);
+                const start = new Date(viewY, viewM, 1 - offset);
+                for (let i = 0; i < weeks * 7; i++) {
+                    const cellDate = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+                    const key = dateKey(cellDate.getFullYear(), cellDate.getMonth(), cellDate.getDate());
+                    const inMonth = cellDate.getMonth() === viewM;
+                    const list = idx[key] || [];
+                    const count = list.length;
+                    const btn = el('button', 'usm-cal-day');
+                    btn.type = 'button';
+                    let cls = 'usm-cal-day';
+                    if (inMonth === false) cls += ' is-out';
+                    if (count > 0) {
+                        const diff = dayDiff(key, today);
+                        const tone = diff < 0 ? 'past' : (diff <= 7 ? 'soon' : 'future');
+                        const heat = count >= 5 ? 3 : (count >= 2 ? 2 : 1);
+                        cls += ' is-' + tone + ' is-heat-' + heat;
+                    } else {
+                        cls += ' is-empty';
+                    }
+                    if (key === today) cls += ' is-today';
+                    if (key === expiryExactDateFilter) cls += ' is-selected';
+                    btn.className = cls;
+                    btn.appendChild(el('span', 'usm-cal-daynum', String(cellDate.getDate())));
+                    if (count > 0) {
+                        btn.appendChild(el('span', 'usm-cal-count', String(count)));
+                        const names = list.slice(0, 4).map(r => String(r.name || T('(tanpa nama)', '(no name)'))).join(', ');
+                        const more = list.length > 4 ? '…' : '';
+                        btn.title = key + ' · ' + T(count + ' kad luput: ', count + (count === 1 ? ' card expires: ' : ' cards expire: ')) + names + more;
+                        btn.setAttribute('aria-label', key + ': ' + T(count + ' kad luput', count + (count === 1 ? ' card expires' : ' cards expire')));
+                        btn.addEventListener('click', function () { drillDown(key); });
+                    } else {
+                        btn.disabled = true;
+                        btn.title = inMonth ? T('Tiada kad luput pada tarikh ini', 'No cards expire on this date') : '';
+                        btn.setAttribute('aria-label', key + ': ' + T('tiada kad luput', 'no cards expire'));
+                    }
+                    gridEl.appendChild(btn);
+                }
+
+                weekEl.hidden = hasData === false;
+                gridEl.hidden = hasData === false;
+                emptyEl.hidden = hasData;
+                if (hasData === false) {
+                    const pending = dataPending === true;
+                    emptyTextEl.textContent = pending ? T(CAL_TAGS['cal.loading'][0], CAL_TAGS['cal.loading'][1]) : T(CAL_TAGS['cal.empty'][0], CAL_TAGS['cal.empty'][1]);
+                    emptyBtnEl.hidden = pending;
+                }
+            }
+
+            /* One click = one exact-date drill-down. Other controls reset so the day's list
+               is deterministic; the directory banner names the date and clears it. */
+            function drillDown(key) {
+                expiryExactDateFilter = key;
+                ['master-search', 'master-school-filter', 'master-education-filter', 'master-category-filter', 'master-status-filter'].forEach(id => {
+                    const control = document.getElementById(id);
+                    if (control) control.value = '';
+                });
+                const sortEl = document.getElementById('master-sort');
+                if (sortEl) sortEl.value = 'name_asc';
+                if (typeof navigateToDirectoryPage === 'function') navigateToDirectoryPage();
+                if (typeof filterMasterTable === 'function') filterMasterTable();
+                const pills = document.getElementById('quick-expiry-pills');
+                if (pills) pills.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            function onGridKey(event) {
+                const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+                if (keys.indexOf(event.key) === -1) return;
+                const cells = Array.prototype.slice.call(gridEl.querySelectorAll('button.usm-cal-day'));
+                const at = cells.indexOf(document.activeElement);
+                if (at === -1) return;
+                const step = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : event.key === 'ArrowUp' ? -7 : 7;
+                let next = at + step;
+                while (next >= 0 && next < cells.length && cells[next].disabled) next += step;
+                if (next < 0 || next >= cells.length) return;
+                event.preventDefault();
+                cells[next].focus();
+            }
+
+            function hookLoader() {
+                const orig = window.loadMasterStudents;
+                if (typeof orig !== 'function' || orig.__usmCal) return;
+                const wrapped = async function () {
+                    dataPending = true; dataAsked = true;
+                    try { return await orig.apply(this, arguments); }
+                    finally {
+                        dataPending = false;
+                        const view = document.getElementById('view-expiry-calendar');
+                        if (view && view.classList.contains('hidden') === false) render();
+                    }
+                };
+                wrapped.__usmCal = true;
+                window.loadMasterStudents = wrapped;
+            }
+            function ensureData() {
+                if (masterRows().length > 0 || dataAsked === true) return;
+                dataAsked = true;
+                if (typeof window.loadMasterStudents === 'function') window.loadMasterStudents();
+            }
+
+            function boot() {
+                if (built === true) return;
+                const host = document.getElementById('view-expiry-calendar');
+                if (host === null) return;
+                build(host);
+                built = true;
+                retag();
+                hookLoader();
+                window.__usmExpiryCalendarRender = function () { ensureData(); render(); };
+                render();
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+            else boot();
+            window.addEventListener('load', function () { hookLoader(); if (built === true) render(); });
+            window.addEventListener('usm:langchange', function () { if (built === true) { retag(); render(); } });
+        })();
+
+        /* ===== usmsmart-trend-delta-2026-v1 ===== */
+        /* One local snapshot per day powers the deltas beside the four analytics KPI values.
+           Nothing is stored on the server: if a browser has no earlier snapshot, the tiles stay
+           clean and a one-line hint explains when the trend will start. */
+        (function initCardTrendDeltas() {
+            const STORE_KEY = 'usmsmart_card_trend_v1';
+            const STORE_VERSION = 1;
+            const MAX_AGE_DAYS = 120;
+            const TILES = [
+                { key: 'total', id: 'card-delta-total', goodWhenUp: true },
+                { key: 'active', id: 'card-delta-active', goodWhenUp: true },
+                { key: 'expiring', id: 'card-delta-expiring', goodWhenUp: false },
+                { key: 'expired', id: 'card-delta-expired', goodWhenUp: false }
+            ];
+            const COPY = {
+                ms: {
+                    up: 'Bertambah ', down: 'Berkurang ', flat: 'Tidak berubah',
+                    yesterday: 'berbanding semalam', days: 'berbanding ', daysTail: ' hari lepas',
+                    hint: 'Trend harian akan muncul selepas lawatan pertama tersimpan. Perubahan dibandingkan dengan hari sebelumnya.'
+                },
+                en: {
+                    up: 'Up ', down: 'Down ', flat: 'No change',
+                    yesterday: 'vs yesterday', days: 'vs ', daysTail: ' days ago',
+                    hint: 'Daily trends appear after your first visit is saved. Changes compare against the previous day.'
+                }
+            };
+            let lastCounts = null;
+
+            function lang() { return window.__usmLang === 'en' ? 'en' : 'ms'; }
+            function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+            function startOfDay(value) {
+                const day = new Date(value.getTime());
+                day.setHours(0, 0, 0, 0);
+                return day;
+            }
+
+            function dayKey(date) {
+                return date.getFullYear() + '-' + pad2(date.getMonth() + 1) + '-' + pad2(date.getDate());
+            }
+
+            function parseDay(key) {
+                if (typeof key !== 'string' || /^\d{4}-\d{2}-\d{2}$/.test(key) === false) return null;
+                const parts = key.split('-');
+                const day = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                return Number.isNaN(day.getTime()) ? null : startOfDay(day);
+            }
+
+            function readStore() {
+                const empty = { version: STORE_VERSION, days: {} };
+                try {
+                    const raw = window.localStorage.getItem(STORE_KEY);
+                    if (raw === null || raw === '') return empty;
+                    const parsed = JSON.parse(raw);
+                    if (parsed === null || typeof parsed !== 'object') return empty;
+                    if (parsed.version !== STORE_VERSION) return empty;
+                    if (parsed.days === null || typeof parsed.days !== 'object') return empty;
+                    return { version: STORE_VERSION, days: parsed.days };
+                } catch (error) {
+                    return empty;
+                }
+            }
+
+            function writeStore(store) {
+                try { window.localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (error) {}
+            }
+
+            function record(counts) {
+                if (counts === null || typeof counts !== 'object') return;
+                const total = Number(counts.total) || 0;
+                if (total <= 0) return;
+                lastCounts = {
+                    total: total,
+                    active: Number(counts.active) || 0,
+                    expiring: Number(counts.expiring) || 0,
+                    expired: Number(counts.expired) || 0
+                };
+                const today = startOfDay(new Date());
+                const store = readStore();
+                store.days[dayKey(today)] = lastCounts;
+                const cutoff = today.getTime() - (MAX_AGE_DAYS * 86400000);
+                Object.keys(store.days).forEach(function (key) {
+                    const day = parseDay(key);
+                    if (day === null || day.getTime() < cutoff) delete store.days[key];
+                });
+                writeStore(store);
+                render();
+            }
+
+            // Prefer the snapshot nearest to a week ago; otherwise fall back to the latest
+            // earlier day so a new browser still gets a truthful, shorter comparison.
+            function pickBaseline(days) {
+                const today = startOfDay(new Date());
+                const todayMs = today.getTime();
+                const keys = [];
+                Object.keys(days).forEach(function (key) {
+                    const day = parseDay(key);
+                    if (day === null) return;
+                    if (day.getTime() < todayMs) keys.push(key);
+                });
+                if (keys.length === 0) return null;
+                const target = todayMs - (7 * 86400000);
+                keys.sort(function (a, b) {
+                    return Math.abs(parseDay(a).getTime() - target) - Math.abs(parseDay(b).getTime() - target);
+                });
+                let best = keys[0];
+                let age = Math.round((todayMs - parseDay(best).getTime()) / 86400000);
+                if (age < 5 || age > 11) {
+                    best = keys.slice().sort(function (a, b) {
+                        return parseDay(b).getTime() - parseDay(a).getTime();
+                    })[0];
+                    age = Math.round((todayMs - parseDay(best).getTime()) / 86400000);
+                }
+                return { key: best, age: age };
+            }
+
+            function versus(age) {
+                const copy = COPY[lang()];
+                if (age === 1) return copy.yesterday;
+                return copy.days + age + copy.daysTail;
+            }
+
+            function render() {
+                if (lastCounts === null) return;
+                const store = readStore();
+                const baseline = pickBaseline(store.days);
+                const base = baseline === null ? null : store.days[baseline.key];
+                const copy = COPY[lang()];
+                TILES.forEach(function (tile) {
+                    const node = document.getElementById(tile.id);
+                    if (node === null) return;
+                    if (base === undefined || base === null || typeof base !== 'object') {
+                        node.setAttribute('hidden', '');
+                        return;
+                    }
+                    const previous = Number(base[tile.key]);
+                    if (Number.isNaN(previous)) {
+                        node.setAttribute('hidden', '');
+                        return;
+                    }
+                    const change = lastCounts[tile.key] - previous;
+                    let cls = 'is-flat';
+                    let text = '0';
+                    let spoken = copy.flat;
+                    if (change > 0) {
+                        cls = tile.goodWhenUp === true ? 'is-good' : 'is-bad';
+                        text = '▲' + change;
+                        spoken = copy.up + change;
+                    } else if (change < 0) {
+                        cls = tile.goodWhenUp === true ? 'is-bad' : 'is-good';
+                        text = '▼' + Math.abs(change);
+                        spoken = copy.down + Math.abs(change);
+                    }
+                    node.textContent = text;
+                    node.className = 'usm-trend-delta ' + cls;
+                    const label = spoken + ', ' + versus(baseline.age);
+                    node.setAttribute('title', label);
+                    node.setAttribute('aria-label', label);
+                    node.removeAttribute('hidden');
+                });
+                const hint = document.getElementById('card-trend-hint');
+                if (hint !== null) {
+                    if (baseline === null) {
+                        hint.textContent = copy.hint;
+                        hint.removeAttribute('hidden');
+                    } else {
+                        hint.textContent = '';
+                        hint.setAttribute('hidden', '');
+                    }
+                }
+            }
+
+            window.__usmTrendRecord = record;
+            window.addEventListener('usm:langchange', function () { render(); });
+            document.addEventListener('DOMContentLoaded', function () { render(); });
+        })();
+
+        /* ===== usmsmart-hero-status-2026-v1 ===== */
+        /* The line under the greeting states the one thing that needs attention: expired cards
+           first, then the 30-day window, otherwise calm. Rebuilt from counts, never translated
+           by the i18n pass (the element is marked data-usm-nolang). */
+        (function initHeroStatusLive() {
+            const node = document.getElementById('usm-hero-status');
+            if (node === null) return;
+            const COPY = {
+                ms: {
+                    loading: 'Memeriksa status kad…',
+                    calm: 'Semua kad aktif — tiada tindakan segera.',
+                    expired: function (n) { return n + ' kad tamat tempoh'; },
+                    expiring: function (n) { return n + ' kad luput dalam 30 hari'; },
+                    expiredTitle: 'Lihat senarai kad tamat tempoh',
+                    expiringTitle: 'Buka Kalendar Luput',
+                    unavailable: 'Ringkasan kad tidak tersedia. Buka Direktori Kad untuk semak status.'
+                },
+                en: {
+                    loading: 'Checking card status…',
+                    calm: 'All cards active — nothing needs attention.',
+                    expired: function (n) { return n === 1 ? '1 card expired' : n + ' cards expired'; },
+                    expiring: function (n) { return n === 1 ? '1 card expires within 30 days' : n + ' cards expire within 30 days'; },
+                    expiredTitle: 'View expired cards',
+                    expiringTitle: 'Open the expiry calendar',
+                    unavailable: 'Card summary unavailable. Open the Card Directory to check the status.'
+                }
+            };
+            let counts = null;
+            let settled = false;
+
+            function lang() { return window.__usmLang === 'en' ? 'en' : 'ms'; }
+
+            function actionButton(action, label) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'usm-hero-status-action';
+                button.setAttribute('data-usm-hero-action', action);
+                button.textContent = label;
+                return button;
+            }
+
+            function separator() {
+                const dot = document.createElement('span');
+                dot.className = 'usm-hero-status-sep';
+                dot.setAttribute('aria-hidden', 'true');
+                dot.textContent = ' · ';
+                return dot;
+            }
+
+            function render() {
+                const copy = COPY[lang()];
+                node.textContent = '';
+                if (counts === null) {
+                    node.textContent = settled === true ? copy.unavailable : copy.loading;
+                    return;
+                }
+                const expired = counts.expired > 0;
+                const expiring = counts.expiring > 0;
+                if (expired === false && expiring === false) {
+                    node.textContent = copy.calm;
+                    return;
+                }
+                if (expired) {
+                    const button = actionButton('expired', copy.expired(counts.expired));
+                    button.title = copy.expiredTitle;
+                    node.appendChild(button);
+                }
+                if (expired && expiring) node.appendChild(separator());
+                if (expiring) {
+                    const button = actionButton('expiring', copy.expiring(counts.expiring));
+                    button.title = copy.expiringTitle;
+                    node.appendChild(button);
+                }
+            }
+
+            node.addEventListener('click', function (event) {
+                if (event.target === null || typeof event.target.closest !== 'function') return;
+                const trigger = event.target.closest('[data-usm-hero-action]');
+                if (trigger === null) return;
+                const action = trigger.getAttribute('data-usm-hero-action');
+                if (action === 'expired' && typeof window.viewStudentsByExpiryStatus === 'function') {
+                    window.viewStudentsByExpiryStatus('expired');
+                } else if (action === 'expiring' && typeof window.navigateToExpiryCalendar === 'function') {
+                    window.navigateToExpiryCalendar();
+                }
+            });
+
+            window.__usmHeroStatus = function (next) {
+                if (next === null || typeof next !== 'object') return;
+                counts = {
+                    total: Number(next.total) || 0,
+                    active: Number(next.active) || 0,
+                    expiring: Number(next.expiring) || 0,
+                    expired: Number(next.expired) || 0
+                };
+                settled = true;
+                render();
+            };
+            window.addEventListener('usm:langchange', render);
+            render();
+            // A failed or very slow load must not leave the line stuck on "checking".
+            window.setTimeout(function () {
+                if (counts === null) { settled = true; render(); }
+            }, 15000);
+        })();
+
+        /* ===== usmsmart-hero-slides-2026-v1 ===== */
+        /* The hero is a small carousel: page one is the greeting, then one page per card fact
+           (month trend, 30-day expiry, register size). It advances every nine seconds on its own;
+           a hidden tab or reduced motion stop the timer, and choosing a dot holds that slide until
+           the same dot is picked again. Fact pages are built and translated here (data-usm-nolang);
+           the greeting keeps the normal i18n pass. */
+        (function initHeroSlides() {
+            const track = document.getElementById('usm-hero-track');
+            const pager = document.getElementById('usm-hero-pager');
+            const dots = document.getElementById('usm-hero-dots');
+            if (track === null || pager === null || dots === null) return;
+
+            const ROTATE_MS = 9000;
+            const COPY = {
+                ms: {
+                    brief: 'Ringkasan kad',
+                    open: 'Buka Analitik',
+                    slides: 'Navigasi slaid',
+                    slideWord: 'slaid',
+                    greeting: 'Aluan',
+                    slide: function (i, n) { return 'Slaid ' + i + ' daripada ' + n; },
+                    trend: function (n, prev) {
+                        const head = fmt(n) + ' kad baharu';
+                        if (prev <= 0) return { lead: head, sub: 'bulan ini' };
+                        if (n > prev) return { lead: head, sub: 'bulan ini · naik ' + fmt(n - prev) + ' berbanding bulan lalu' };
+                        if (n === prev) return { lead: head, sub: 'bulan ini · sama seperti bulan lalu' };
+                        return { lead: head, sub: 'bulan ini · turun ' + fmt(prev - n) + ' berbanding bulan lalu' };
+                    },
+                    expiry: function (n) {
+                        const lead = n === 0 ? 'Tiada kad luput' : (n === 1 ? '1 kad luput' : fmt(n) + ' kad luput');
+                        return { lead: lead, sub: 'dalam 30 hari akan datang' };
+                    },
+                    register: function (total, active) {
+                        return { lead: fmt(active) + ' kad aktif', sub: 'daripada ' + fmt(total) + ' kad berdaftar' };
+                    }
+                },
+                en: {
+                    brief: 'Card brief',
+                    open: 'Open Analytics',
+                    slides: 'Slide navigation',
+                    slideWord: 'slide',
+                    greeting: 'Welcome',
+                    slide: function (i, n) { return 'Slide ' + i + ' of ' + n; },
+                    trend: function (n, prev) {
+                        const head = n === 1 ? '1 new card' : fmt(n) + ' new cards';
+                        if (prev <= 0) return { lead: head, sub: 'this month' };
+                        if (n > prev) return { lead: head, sub: 'this month · up ' + fmt(n - prev) + ' on last month' };
+                        if (n === prev) return { lead: head, sub: 'this month · level with last month' };
+                        return { lead: head, sub: 'this month · down ' + fmt(prev - n) + ' on last month' };
+                    },
+                    expiry: function (n) {
+                        const lead = n === 0 ? 'No cards expiring' : (n === 1 ? '1 card expiring' : fmt(n) + ' cards expiring');
+                        return { lead: lead, sub: 'within the next 30 days' };
+                    },
+                    register: function (total, active) {
+                        return { lead: fmt(active) + ' active cards', sub: 'of ' + fmt(total) + ' registered cards' };
+                    }
+                }
+            };
+
+            let counts = null;
+            let facts = [];
+            let factPages = [];
+            let pageTotal = 1;
+            let index = 0;
+            let timer = null;
+            // Set when the visitor picks a dot, so the chosen slide stays put; picking the
+            // active dot again hands the rotation back.
+            let held = false;
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+            function lang() { return window.__usmLang === 'en' ? 'en' : 'ms'; }
+
+            function fmt(n) {
+                const value = Number(n) || 0;
+                try { return value.toLocaleString(lang() === 'en' ? 'en-MY' : 'ms-MY'); }
+                catch (e) { return String(value); }
+            }
+
+            function openAnalytics() {
+                const tab = document.getElementById('btn-tab-analytics');
+                if (tab !== null) tab.click();
+            }
+
+            function buildFacts() {
+                const copy = COPY[lang()];
+                const list = [];
+                const joined = Number(counts.joinedThisMonth) || 0;
+                if (joined > 0) {
+                    const trend = copy.trend(joined, Number(counts.joinedPrevMonth) || 0);
+                    list.push({ key: 'trend', icon: 'fa-chart-line', lead: trend.lead, sub: trend.sub });
+                }
+                const expiry = copy.expiry(Number(counts.expiring) || 0);
+                list.push({ key: 'expiry', icon: 'fa-user-clock', lead: expiry.lead, sub: expiry.sub });
+                const register = copy.register(counts.total, counts.active);
+                list.push({ key: 'register', icon: 'fa-id-card', lead: register.lead, sub: register.sub });
+                return list;
+            }
+
+            function buildPage(fact) {
+                const copy = COPY[lang()];
+                const page = document.createElement('div');
+                page.className = 'usm-hero-page usm-hero-fact';
+                page.setAttribute('data-fact', fact.key);
+                page.setAttribute('data-usm-nolang', '');
+                page.setAttribute('role', 'group');
+                page.setAttribute('aria-roledescription', copy.slideWord);
+
+                const inner = document.createElement('div');
+                inner.className = 'usm-hero-inner';
+
+                const mark = document.createElement('span');
+                mark.className = 'usm-hero-mark';
+                mark.setAttribute('aria-hidden', 'true');
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid ' + fact.icon;
+                mark.appendChild(icon);
+
+                const eyebrow = document.createElement('p');
+                eyebrow.className = 'usm-hero-eyebrow';
+                eyebrow.textContent = copy.brief;
+
+                const lead = document.createElement('p');
+                lead.className = 'usm-hero-title usm-hero-fact-lead';
+                lead.textContent = fact.lead;
+
+                const sub = document.createElement('p');
+                sub.className = 'usm-hero-sub usm-hero-fact-sub';
+                sub.textContent = fact.sub;
+
+                const link = document.createElement('button');
+                link.type = 'button';
+                link.className = 'usm-hero-fact-link';
+                link.textContent = copy.open;
+                const arrow = document.createElement('i');
+                arrow.className = 'fa-solid fa-arrow-right';
+                arrow.setAttribute('aria-hidden', 'true');
+                link.appendChild(arrow);
+                link.addEventListener('click', openAnalytics);
+
+                [mark, eyebrow, lead, sub, link].forEach(function (node) { inner.appendChild(node); });
+                page.appendChild(inner);
+                return page;
+            }
+
+            function pageAria(i) {
+                const copy = COPY[lang()];
+                const base = copy.slide(i + 1, pageTotal);
+                if (i === 0) return base + ': ' + copy.greeting;
+                const fact = facts[i - 1];
+                return fact ? base + ': ' + fact.lead : base;
+            }
+
+            function syncActive() {
+                const copy = COPY[lang()];
+                Array.from(track.children).forEach(function (page, i) {
+                    const active = i === index;
+                    page.classList.toggle('is-active', active);
+                    page.setAttribute('aria-hidden', active ? 'false' : 'true');
+                    if (active) page.removeAttribute('inert');
+                    else page.setAttribute('inert', '');
+                    if (i > 0) {
+                        page.setAttribute('aria-label', pageAria(i));
+                        page.setAttribute('aria-roledescription', copy.slideWord);
+                    }
+                });
+                Array.from(dots.children).forEach(function (dot, i) {
+                    dot.classList.toggle('is-on', i === index);
+                    if (i === index) dot.setAttribute('aria-current', 'true');
+                    else dot.removeAttribute('aria-current');
+                    dot.setAttribute('aria-label', pageAria(i));
+                });
+                dots.setAttribute('aria-label', copy.slides);
+            }
+
+            function applyTransform() {
+                track.style.transform = index === 0 ? '' : 'translate3d(-' + (index * 100) + '%,0,0)';
+            }
+
+            function renderPager() {
+                dots.textContent = '';
+                for (let i = 0; i < pageTotal; i++) {
+                    const dot = document.createElement('button');
+                    dot.type = 'button';
+                    dot.className = 'usm-hero-dot';
+                    dot.setAttribute('data-index', String(i));
+                    dot.addEventListener('click', function () { pick(i); });
+                    dots.appendChild(dot);
+                }
+                pager.hidden = pageTotal < 2;
+            }
+
+            function stopAuto() {
+                if (timer !== null) { window.clearInterval(timer); timer = null; }
+            }
+
+            function restartAuto() {
+                stopAuto();
+                if (reduceMotion.matches || held || pageTotal < 2) return;
+                timer = window.setInterval(tick, ROTATE_MS);
+            }
+
+            function tick() {
+                if (held || document.hidden || pageTotal < 2) return;
+                goTo(index + 1 >= pageTotal ? 0 : index + 1);
+            }
+
+            function goTo(next) {
+                if (next === index) { restartAuto(); return; }
+                index = Math.max(0, Math.min(next, pageTotal - 1));
+                applyTransform();
+                syncActive();
+                restartAuto();
+            }
+
+            function pick(next) {
+                const same = next === index;
+                held = same ? !held : true;
+                if (same) restartAuto();
+                else goTo(next);
+            }
+
+            function render(reset) {
+                if (counts === null) return;
+                const keep = reset === true ? 0 : index;
+                stopAuto();
+                factPages.forEach(function (page) { page.remove(); });
+                facts = buildFacts();
+                factPages = facts.map(function (fact) {
+                    const page = buildPage(fact);
+                    track.appendChild(page);
+                    return page;
+                });
+                pageTotal = 1 + factPages.length;
+                index = Math.max(0, Math.min(keep, pageTotal - 1));
+                renderPager();
+                applyTransform();
+                syncActive();
+                restartAuto();
+            }
+
+            if (typeof reduceMotion.addEventListener === 'function') {
+                reduceMotion.addEventListener('change', function () {
+                    if (reduceMotion.matches) held = false;
+                    render(false);
+                });
+            }
+            window.addEventListener('usm:langchange', function () { render(false); });
+
+            dots.setAttribute('role', 'group');
+            syncActive();
+
+            window.__usmHeroBrief = function (next) {
+                if (next === null || typeof next !== 'object') return;
+                counts = {
+                    total: Number(next.total) || 0,
+                    active: Number(next.active) || 0,
+                    expiring: Number(next.expiring) || 0,
+                    joinedThisMonth: Number(next.joinedThisMonth) || 0,
+                    joinedPrevMonth: Number(next.joinedPrevMonth) || 0
+                };
+                render(false);
+            };
         })();
