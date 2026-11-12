@@ -30,6 +30,15 @@
         'views.label': 'Views', 'views.saved': 'Saved Views', 'views.clearRecent': 'Clear recent', 'views.save': 'Save view',
         'views.nameLabel': 'View name', 'views.cancel': 'Cancel', 'views.confirm': 'Save',
         'views.panelAria': 'Saved views and recent searches', 'views.saveAria': 'Save view', 'views.namePlaceholder': 'e.g. Expiring ≤30 days',
+        'views.previewLabel': 'Will save', 'views.saveHint': 'Enter saves · Esc cancels',
+        'cal.eyebrow': 'EXPIRY CALENDAR', 'cal.title': 'Student Card Expiries',
+        'cal.back': 'Back to main', 'cal.prev': 'Previous month', 'cal.next': 'Next month', 'cal.today': 'Today',
+        'cal.gridAria': 'Card expiry calendar',
+        'cal.legPast': 'Past expiry', 'cal.legSoon': '≤ 7 days', 'cal.legFuture': 'Upcoming', 'cal.legNone': 'No records',
+        'cal.statTotal': 'Expiring this month', 'cal.statExpired': 'Already expired', 'cal.statSoon': '≤ 7 days',
+        'cal.hint': 'Click a marked day to filter the directory by that expiry date.',
+        'cal.empty': 'No student records loaded yet.', 'cal.loading': 'Loading student records…', 'cal.emptyBtn': 'Open Directory',
+        'cal.d0': 'Sun', 'cal.d1': 'Mon', 'cal.d2': 'Tue', 'cal.d3': 'Wed', 'cal.d4': 'Thu', 'cal.d5': 'Fri', 'cal.d6': 'Sat',
         'undo.sub': 'Not sent to the server yet — undo now.', 'undo.btn': 'Undo', 'undo.dismiss': 'Send now'
     };
 
@@ -51,6 +60,8 @@
         ['Selamat petang', 'Good evening'], ['Selamat malam', 'Good night'],
         ['Bahagian', 'Sections'], ['Transporter Utama', 'Main Transporter'],
         ['Analisis Grafik', 'Graphical Analysis'], ['Direktori Kad', 'Card Directory'],
+        ['Kalendar Luput', 'Expiry Calendar'], ['Kalendar Luput Kad', 'Card Expiry Calendar'],
+        ['Peta haba tarikh luput kad', 'Heatmap of card expiry dates'],
         ['Direktori Staf', 'Staff Directory'], ['Sejarah & Log Audit', 'History & Audit Log'],
         ['Kualiti Data', 'Data Quality'], ['Pengurusan Akaun', 'Account Management'],
         ['Profil Saya', 'My Profile'], ['Imbas Kad', 'Scan Card'],
@@ -1595,6 +1606,13 @@
     /* Distinctive multi-word fragments (longest-first). Generic single words are
        deliberately excluded so record data (names, notes, schools) passes through. */
     var FRAGMENTS = [
+        ['Pelajar Luput Pada ', 'Students Expiring On '],
+        [' · Luput pada ', ' · Expiring on '],
+        ['Pelajar Kad Hampir Luput (≤ 30 Hari)', 'Students with Cards Expiring Soon (≤ 30 Days)'],
+        ['Pelajar Kad Tamat Segera (≤ 7 Hari)', 'Students with Cards Expiring Imminently (≤ 7 Days)'],
+        ['Pelajar Kad Tamat (≤ 14 Hari)', 'Students with Cards Expiring (≤ 14 Days)'],
+        ['Pelajar Kad Telah Tamat Tempoh', 'Students with Expired Cards'],
+        ['Pelajar Kad Masih Aktif', 'Students with Still-Active Cards'],
         [' sesi dalam julat ini · ', ' sessions in this range · '],
         [' pelajar dihantar · ', ' students sent · '],
         [' pelajar dihantar  |  ', ' students sent  |  '],

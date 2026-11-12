@@ -73,6 +73,7 @@
         <div class="usm-rail-group">
             <p class="usm-rail-eyebrow">Data &amp; Rekod</p>
             <button type="button" class="usm-rail-link seg-directory" data-usm-view="view-directory-page" onclick="navigateToDirectoryPage()" title="Direktori Kad Pelajar &amp; Staf"><i class="fa-solid fa-id-card-clip" aria-hidden="true"></i><span class="usm-rail-label">Direktori Kad</span></button>
+            <button type="button" class="usm-rail-link seg-calendar" data-usm-view="view-expiry-calendar" onclick="navigateToExpiryCalendar()" title="Kalendar Luput Kad"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i><span class="usm-rail-label">Kalendar Luput</span></button>
             <button type="button" class="usm-rail-link seg-audit" data-usm-view="view-audit-history" onclick="navigateToAuditHistory('directory')" title="Sejarah Rekod &amp; Log Audit"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span class="usm-rail-label">Sejarah &amp; Log Audit</span></button>
             <?php if (($_SESSION['role'] ?? '') === 'admin') { ?>
             <button type="button" class="usm-rail-link seg-users" data-usm-view="view-user-management" onclick="navigateToUserManagement()" title="Pengurusan Akaun"><i class="fa-solid fa-users-gear" aria-hidden="true"></i><span class="usm-rail-label">Pengurusan Akaun</span></button>
@@ -853,6 +854,9 @@
                 </section>
             </div>
         </div>
+
+        <!-- HALAMAN KHAS: KALENDAR LUPUT KAD (modul membina grid di dalam bekas ini) -->
+        <div id="view-expiry-calendar" class="hidden page-transition space-y-6"></div>
 
         <!-- HALAMAN KHAS: PENGURUSAN AKAUN PENGGUNA (ADMIN) -->
         <div id="view-user-management" class="hidden page-transition space-y-6">
@@ -1898,7 +1902,7 @@
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Jumlah rekod kad</p>
                             <span class="text-[10px] font-medium text-indigo-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                         </div>
-                        <p id="card-stat-total" class="analytics-stat-value text-2xl font-bold mt-1">—</p>
+                        <p class="analytics-stat-value text-2xl font-bold mt-1 usm-trend-value"><span id="card-stat-total">—</span><span id="card-delta-total" class="usm-trend-delta" data-usm-nolang hidden></span></p>
                         <div class="flex items-center justify-between mt-1">
                             <p class="text-[11px] text-slate-500 dark:text-zinc-400">Semua rekod pelajar</p>
                             <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium group-hover:underline">Papar semua →</span>
@@ -1909,7 +1913,7 @@
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Kad aktif</p>
                             <span class="text-[10px] font-medium text-emerald-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                         </div>
-                        <p id="card-stat-active" class="analytics-stat-value text-2xl font-bold text-emerald-600 mt-1">—</p>
+                        <p class="analytics-stat-value text-2xl font-bold text-emerald-600 mt-1 usm-trend-value"><span id="card-stat-active">—</span><span id="card-delta-active" class="usm-trend-delta" data-usm-nolang hidden></span></p>
                         <div class="flex items-center justify-between mt-1">
                             <p id="card-stat-active-rate" class="text-[11px] text-slate-500 dark:text-zinc-400">—% daripada rekod</p>
                             <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium group-hover:underline">Papar aktif →</span>
@@ -1920,7 +1924,7 @@
                             <p class="text-xs font-semibold text-amber-800 dark:text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-clock text-amber-500 animate-pulse"></i> Luput dalam 30 hari</p>
                             <span class="text-[10px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/60 px-1.5 py-0.5 rounded flex items-center gap-1">Tindakan <i class="fa-solid fa-arrow-right text-[8px]"></i></span>
                         </div>
-                        <p id="card-stat-expiring" class="analytics-stat-value text-2xl font-bold text-amber-600 mt-1">—</p>
+                        <p class="analytics-stat-value text-2xl font-bold text-amber-600 mt-1 usm-trend-value"><span id="card-stat-expiring">—</span><span id="card-delta-expiring" class="usm-trend-delta" data-usm-nolang hidden></span></p>
                         <div class="flex items-center justify-between mt-1">
                             <p class="text-[11px] text-amber-700/80 dark:text-zinc-400">Perlu perhatian / pembaharuan</p>
                             <span class="text-[10px] text-amber-700 dark:text-amber-400 font-bold group-hover:underline">Klik lihat senarai →</span>
@@ -1931,13 +1935,14 @@
                             <p class="text-xs text-slate-500 dark:text-zinc-400">Kad tamat tempoh</p>
                             <span class="text-[10px] font-medium text-rose-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                         </div>
-                        <p id="card-stat-expired" class="analytics-stat-value text-2xl font-bold text-rose-600 mt-1">—</p>
+                        <p class="analytics-stat-value text-2xl font-bold text-rose-600 mt-1 usm-trend-value"><span id="card-stat-expired">—</span><span id="card-delta-expired" class="usm-trend-delta" data-usm-nolang hidden></span></p>
                         <div class="flex items-center justify-between mt-1">
                             <p class="text-[11px] text-slate-500 dark:text-zinc-400">Tarikh luput sebelum hari ini</p>
                             <span class="text-[10px] text-rose-600 dark:text-rose-400 font-medium group-hover:underline">Papar tamat →</span>
                         </div>
                     </div>
                 </section>
+                <p id="card-trend-hint" class="usm-trend-hint hidden" data-usm-nolang role="status"></p>
                 <div data-usm-reveal class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 px-1">
                     <div>
                         <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-400 mb-2">USMSmart / Statistik</p>

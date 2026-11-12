@@ -1241,6 +1241,7 @@ html.dark .usm-rail #nav-tabs .usm-tab.is-active{color:var(--usm-accent-hover)}
 .seg-audit{--seg:#475569;--seg-soft:rgba(71,85,105,.11)}
 .seg-users{--seg:#86198f;--seg-soft:rgba(134,25,143,.10)}
 .seg-quality{--seg:#be123c;--seg-soft:rgba(190,18,60,.10)}
+.seg-calendar{--seg:#4d7c0f;--seg-soft:rgba(77,124,15,.11)}
 html.dark .seg-transporter{--seg:#c4b5fd;--seg-soft:rgba(139,92,246,.20)}
 html.dark .seg-analytics{--seg:#7dd3fc;--seg-soft:rgba(14,165,233,.22)}
 html.dark .seg-sysweb{--seg:#6ee7b7;--seg-soft:rgba(16,185,129,.20)}
@@ -1249,6 +1250,7 @@ html.dark .seg-staff{--seg:#5eead4;--seg-soft:rgba(20,184,166,.20)}
 html.dark .seg-audit{--seg:#cbd5e1;--seg-soft:rgba(148,163,184,.18)}
 html.dark .seg-users{--seg:#f0abfc;--seg-soft:rgba(217,70,239,.20)}
 html.dark .seg-quality{--seg:#fda4af;--seg-soft:rgba(244,63,94,.20)}
+html.dark .seg-calendar{--seg:#bef264;--seg-soft:rgba(163,230,53,.18)}
 #usm-rail .usm-rail-link>i,#usm-rail #nav-tabs .usm-tab>i{flex:none;width:22px;height:22px;border-radius:7px;
   display:inline-flex;align-items:center;justify-content:center;font-size:11px;line-height:1;
   background:var(--seg-soft,rgba(100,116,139,.12));color:var(--seg,var(--usm-muted))}
@@ -1713,6 +1715,7 @@ html:has(.usm-rail-link.seg-staff.is-active){--usm-chrome-hue:#0f766e;--usm-chro
 html:has(.usm-rail-link.seg-audit.is-active){--usm-chrome-hue:#475569;--usm-chrome-soft:rgba(71,85,105,.11);--usm-chrome-line:rgba(71,85,105,.38)}
 html:has(.usm-rail-link.seg-users.is-active){--usm-chrome-hue:#86198f;--usm-chrome-soft:rgba(134,25,143,.10);--usm-chrome-line:rgba(134,25,143,.34)}
 html:has(.usm-rail-link.seg-quality.is-active){--usm-chrome-hue:#be123c;--usm-chrome-soft:rgba(190,18,60,.10);--usm-chrome-line:rgba(190,18,60,.32)}
+html:has(.usm-rail-link.seg-calendar.is-active){--usm-chrome-hue:#4d7c0f;--usm-chrome-soft:rgba(77,124,15,.11);--usm-chrome-line:rgba(77,124,15,.32)}
 /* Each dark rule carries one more class than any light rule, so a segment hue can never paint a dark rail with a
    low-contrast deep ink. The dark hues are the existing html.dark --seg tints, and the soft values are the
    existing --seg-soft alphas, the same ones the active icon well already uses. */
@@ -1725,6 +1728,7 @@ html.dark:has(.usm-rail-link.seg-staff.is-active){--usm-chrome-hue:#5eead4;--usm
 html.dark:has(.usm-rail-link.seg-audit.is-active){--usm-chrome-hue:#cbd5e1;--usm-chrome-soft:rgba(148,163,184,.18);--usm-chrome-line:rgba(203,213,225,.40)}
 html.dark:has(.usm-rail-link.seg-users.is-active){--usm-chrome-hue:#f0abfc;--usm-chrome-soft:rgba(217,70,239,.20);--usm-chrome-line:rgba(240,171,252,.42)}
 html.dark:has(.usm-rail-link.seg-quality.is-active){--usm-chrome-hue:#fda4af;--usm-chrome-soft:rgba(244,63,94,.20);--usm-chrome-line:rgba(253,164,175,.42)}
+html.dark:has(.usm-rail-link.seg-calendar.is-active){--usm-chrome-hue:#bef264;--usm-chrome-soft:rgba(163,230,53,.18);--usm-chrome-line:rgba(190,242,100,.42)}
 
 /* A - where that hue is painted. The rail rule restates nothing it does not change: background-image does not
    reset the background-color the rail block already set, so the column stays --usm-surface in both themes. */
@@ -2599,8 +2603,9 @@ html.dark .usm-glink-badge.is-on{background:rgba(6,78,59,.55);color:#34d399}
 .usm-views-anchor.is-open .usm-views-caret{transform:rotate(180deg)}
 .usm-views-panel{position:absolute;top:calc(100% + 8px);left:0;z-index:70;width:340px;max-width:calc(100vw - 32px);max-height:400px;display:flex;flex-direction:column;background:var(--usm-surface,#fff);border:1px solid var(--usm-line,#e6e8f2);border-radius:16px;box-shadow:var(--usm-shadow,0 2px 10px rgba(0,0,0,.08));overflow:hidden;animation:usmViewsIn .16s ease}
 .usm-views-panel[hidden]{display:none}
-.usm-views-savepanel{left:auto;right:0;width:320px;padding:12px}
+.usm-views-savepanel{left:0;right:auto;width:320px;padding:12px}
 .usm-views-scroll{overflow-y:auto;padding:6px;scrollbar-width:thin;scrollbar-color:var(--usm-line-strong,#cbd2e2) transparent}
+.usm-views-scroll.is-fade{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 16px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 16px),transparent)}
 .usm-views-scroll::-webkit-scrollbar{width:8px}
 .usm-views-scroll::-webkit-scrollbar-track{background:transparent}
 .usm-views-scroll::-webkit-scrollbar-thumb{background:var(--usm-line-strong,#cbd2e2);border-radius:8px}
@@ -2627,7 +2632,9 @@ html.dark .usm-glink-badge.is-on{background:rgba(6,78,59,.55);color:#34d399}
 .usm-views-fieldlabel{display:block;margin-bottom:5px;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--usm-muted,#68758b)}
 .usm-views-input{width:100%;padding:8px 10px;border:1px solid var(--usm-line,#e6e8f2);border-radius:10px;background:var(--usm-surface-soft,#f8f9fe);color:var(--usm-ink,#182033);font:inherit;font-size:12px;outline:none;transition:border-color .15s ease,box-shadow .15s ease}
 .usm-views-input:focus{border-color:var(--usm-accent,#6d28d9);box-shadow:0 0 0 3px var(--usm-accent-ring,rgba(109,40,217,.2))}
-.usm-views-preview{margin:8px 0 0;padding:8px 10px;border:1px dashed var(--usm-line-strong,#cbd2e2);border-radius:10px;background:var(--usm-surface-soft,#f8f9fe);font-size:10.5px;line-height:1.5;color:var(--usm-muted,#68758b)}
+.usm-views-preview{margin:0;padding:8px 10px;border:1px dashed var(--usm-line-strong,#cbd2e2);border-radius:10px;background:var(--usm-surface-soft,#f8f9fe);font-size:10.5px;line-height:1.5;color:var(--usm-muted,#68758b)}
+.usm-views-previewlabel{margin:10px 0 5px}
+.usm-views-hint{margin-top:8px;font-size:9.5px;letter-spacing:.02em;color:var(--usm-muted,#68758b);text-align:center}
 .usm-views-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
 .usm-views-btn{padding:7px 14px;border:1px solid var(--usm-line,#e6e8f2);border-radius:10px;background:var(--usm-surface,#fff);color:var(--usm-ink,#182033);font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:background-color .15s ease}
 .usm-views-btn:hover{background:var(--usm-surface-soft,#f8f9fe)}
@@ -2741,3 +2748,121 @@ html.dark .usm-expiry-chip.is-danger b{color:#fb7185}
 @keyframes usmViewsIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.usm-views-panel{animation:none}.usm-views-caret{transition:none}}
 @media(forced-colors:active){.usm-views-trigger,.usm-views-panel,.usm-views-input,.usm-views-btn{border:1px solid ButtonText}.usm-views-btn-primary{background:Highlight;color:HighlightText}}
+
+/* ===== Expiry calendar =====
+   Month heatmap of student-card expiry dates. Rides the --usm-* tokens; semantic
+   rose/amber/indigo tones mark past, ≤7-day and upcoming expiries, with three heat
+   steps by count. The head reuses usm-dir-*; everything else is custom usm-cal-*
+   so Tailwind gains nothing. */
+.usm-cal-root{display:flex;flex-direction:column;gap:14px}
+.usm-cal-legend{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.usm-cal-legend-item{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:600;color:var(--usm-muted,#68758b)}
+.usm-cal-swatch{width:11px;height:11px;border-radius:4px;border:1px solid var(--usm-line-strong,#cbd2e2);background:var(--usm-surface-soft,#f8f9fe)}
+.usm-cal-swatch.is-past{background:rgba(225,29,72,.16);border-color:rgba(225,29,72,.45)}
+.usm-cal-swatch.is-soon{background:rgba(217,119,6,.18);border-color:rgba(217,119,6,.5)}
+.usm-cal-swatch.is-future{background:rgba(109,40,217,.14);border-color:rgba(109,40,217,.45)}
+.usm-cal-shell{padding:16px;border:1px solid var(--usm-line,#e6e8f2);border-radius:var(--usm-r-lg,16px);background:var(--usm-surface,#fff);box-shadow:0 2px 10px rgba(24,32,51,.04)}
+.usm-cal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.usm-cal-navgroup{display:flex;align-items:center;gap:8px}
+.usm-cal-nav{appearance:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px solid var(--usm-line,#e6e8f2);border-radius:9px;background:var(--usm-surface,#fff);color:var(--usm-ink,#182033);font-size:11px;line-height:1;cursor:pointer;transition:border-color .14s ease,color .14s ease,background-color .14s ease}
+.usm-cal-nav:hover{border-color:var(--usm-accent,#6d28d9);color:var(--usm-accent,#6d28d9);background:var(--usm-accent-soft,#f2efff)}
+.usm-cal-nav:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring,rgba(109,40,217,.2))}
+.usm-cal-month{min-width:132px;text-align:center;font-size:14px;font-weight:800;letter-spacing:.01em;color:var(--usm-ink,#182033)}
+.usm-cal-todaybtn{appearance:none;padding:7px 12px;border:1px solid var(--usm-line,#e6e8f2);border-radius:999px;background:var(--usm-surface-soft,#f8f9fe);color:var(--usm-ink,#182033);font:inherit;font-size:11px;font-weight:700;line-height:1;cursor:pointer;transition:border-color .14s ease,color .14s ease}
+.usm-cal-todaybtn:hover{border-color:var(--usm-accent,#6d28d9);color:var(--usm-accent,#6d28d9)}
+.usm-cal-todaybtn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring,rgba(109,40,217,.2))}
+.usm-cal-stats{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.usm-cal-stat{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;border:1px solid var(--usm-line,#e6e8f2);background:var(--usm-surface-soft,#f8f9fe);font-size:10.5px;font-weight:600;color:var(--usm-muted,#68758b)}
+.usm-cal-stat b{font-size:12px;font-weight:800;color:var(--usm-ink,#182033)}
+.usm-cal-stat.is-expired b{color:#e11d48}
+.usm-cal-stat.is-soon b{color:#b45309}
+.usm-cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+.usm-cal-week[hidden]{display:none}
+.usm-cal-weekday{padding:4px 0;text-align:center;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--usm-muted,#68758b)}
+.usm-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.usm-cal-grid[hidden]{display:none}
+.usm-cal-day{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:4px;min-height:64px;padding:7px 8px;border:1px solid var(--usm-line,#e6e8f2);border-radius:12px;background:var(--usm-surface,#fff);color:var(--usm-ink,#182033);font:inherit;text-align:left;cursor:pointer;transition:border-color .14s ease,transform .12s ease,background-color .14s ease}
+.usm-cal-daynum{font-size:11.5px;font-weight:700;line-height:1}
+.usm-cal-count{align-self:flex-end;display:inline-flex;align-items:center;justify-content:center;min-width:20px;padding:2px 7px;border-radius:999px;background:rgba(100,116,139,.12);color:var(--usm-ink,#182033);font-size:9.5px;font-weight:800;line-height:1.2}
+.usm-cal-day.is-empty{cursor:default}
+.usm-cal-day.is-empty .usm-cal-daynum{font-weight:600;color:var(--usm-muted,#68758b)}
+.usm-cal-day.is-out{opacity:.38;cursor:default}
+.usm-cal-day.is-past{border-color:rgba(225,29,72,.35);background:rgba(225,29,72,.06)}
+.usm-cal-day.is-past .usm-cal-count{background:rgba(225,29,72,.14);color:#e11d48}
+.usm-cal-day.is-soon{border-color:rgba(217,119,6,.4);background:rgba(217,119,6,.07)}
+.usm-cal-day.is-soon .usm-cal-count{background:rgba(217,119,6,.16);color:#b45309}
+.usm-cal-day.is-future{border-color:rgba(109,40,217,.32);background:rgba(109,40,217,.05)}
+.usm-cal-day.is-future .usm-cal-count{background:rgba(109,40,217,.12);color:#6d28d9}
+.usm-cal-day.is-past.is-heat-2{background:rgba(225,29,72,.12)}
+.usm-cal-day.is-past.is-heat-3{background:rgba(225,29,72,.19)}
+.usm-cal-day.is-soon.is-heat-2{background:rgba(217,119,6,.14)}
+.usm-cal-day.is-soon.is-heat-3{background:rgba(217,119,6,.22)}
+.usm-cal-day.is-future.is-heat-2{background:rgba(109,40,217,.10)}
+.usm-cal-day.is-future.is-heat-3{background:rgba(109,40,217,.16)}
+.usm-cal-day.is-today{box-shadow:0 0 0 2px var(--usm-accent,#6d28d9)}
+.usm-cal-day.is-today .usm-cal-daynum{color:var(--usm-accent,#6d28d9)}
+.usm-cal-day.is-selected{outline:2px solid var(--usm-accent,#6d28d9);outline-offset:1px}
+.usm-cal-day:not(:disabled):hover{border-color:var(--usm-accent,#6d28d9);transform:translateY(-1px)}
+.usm-cal-day:focus-visible{outline:none;box-shadow:0 0 0 3px var(--usm-accent-ring,rgba(109,40,217,.2))}
+.usm-cal-day:disabled{cursor:default}
+.usm-cal-empty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:26px 14px;text-align:center}
+.usm-cal-empty[hidden]{display:none}
+.usm-cal-empty-text{margin:0;font-size:12px;color:var(--usm-muted,#68758b)}
+.usm-cal-emptybtn{appearance:none;padding:8px 16px;border:1px solid var(--usm-accent,#6d28d9);border-radius:10px;background:var(--usm-accent,#6d28d9);color:#fff;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;transition:background-color .14s ease}
+.usm-cal-emptybtn:hover{background:var(--usm-accent-hover,#5b21b6)}
+.usm-cal-emptybtn[hidden]{display:none}
+.usm-cal-hint{margin:12px 0 0;font-size:9.5px;letter-spacing:.02em;color:var(--usm-muted,#68758b);text-align:center}
+html.dark .usm-cal-shell{box-shadow:none}
+html.dark .usm-cal-stat.is-expired b{color:#fb7185}
+html.dark .usm-cal-stat.is-soon b{color:#fbbf24}
+html.dark .usm-cal-day.is-past{border-color:rgba(251,113,133,.35);background:rgba(251,113,133,.08)}
+html.dark .usm-cal-day.is-past .usm-cal-count{background:rgba(251,113,133,.16);color:#fb7185}
+html.dark .usm-cal-day.is-soon{border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.07)}
+html.dark .usm-cal-day.is-soon .usm-cal-count{background:rgba(251,191,36,.14);color:#fbbf24}
+html.dark .usm-cal-day.is-future{border-color:rgba(196,181,253,.32);background:rgba(196,181,253,.07)}
+html.dark .usm-cal-day.is-future .usm-cal-count{background:rgba(196,181,253,.14);color:#c4b5fd}
+html.dark .usm-cal-day.is-past.is-heat-2{background:rgba(251,113,133,.14)}
+html.dark .usm-cal-day.is-past.is-heat-3{background:rgba(251,113,133,.22)}
+html.dark .usm-cal-day.is-soon.is-heat-2{background:rgba(251,191,36,.13)}
+html.dark .usm-cal-day.is-soon.is-heat-3{background:rgba(251,191,36,.20)}
+html.dark .usm-cal-day.is-future.is-heat-2{background:rgba(196,181,253,.12)}
+html.dark .usm-cal-day.is-future.is-heat-3{background:rgba(196,181,253,.19)}
+html.dark .usm-cal-day.is-today{box-shadow:0 0 0 2px #c4b5fd}
+html.dark .usm-cal-day.is-today .usm-cal-daynum{color:#c4b5fd}
+html.dark .usm-cal-day.is-selected{outline-color:#c4b5fd}
+html.dark .usm-cal-swatch.is-past{background:rgba(251,113,133,.2);border-color:rgba(251,113,133,.5)}
+html.dark .usm-cal-swatch.is-soon{background:rgba(251,191,36,.2);border-color:rgba(251,191,36,.5)}
+html.dark .usm-cal-swatch.is-future{background:rgba(196,181,253,.18);border-color:rgba(196,181,253,.5)}
+@media(max-width:640px){
+  .usm-cal-shell{padding:12px}
+  .usm-cal-toolbar{gap:9px}
+  .usm-cal-month{min-width:110px;font-size:13px}
+  .usm-cal-grid,.usm-cal-week{gap:4px}
+  .usm-cal-day{min-height:48px;padding:5px 6px;border-radius:9px}
+  .usm-cal-daynum{font-size:10.5px}
+  .usm-cal-count{min-width:17px;padding:1px 5px;font-size:9px}
+  .usm-cal-legend{gap:8px}
+  .usm-cal-stats{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.usm-cal-day,.usm-cal-nav,.usm-cal-todaybtn,.usm-cal-emptybtn{transition:none}.usm-cal-day:not(:disabled):hover{transform:none}}
+@media(forced-colors:active){.usm-cal-day,.usm-cal-shell,.usm-cal-nav,.usm-cal-todaybtn,.usm-cal-stat{border:1px solid ButtonText}.usm-cal-day.is-selected{outline:2px solid Highlight}.usm-cal-day.is-today{box-shadow:0 0 0 2px Highlight}}
+@media print{.usm-cal-nav,.usm-cal-todaybtn,.usm-cal-hint,.usm-cal-emptybtn{display:none}}
+
+/* ===== usmsmart-trend-delta-2026-v1 ===== */
+/* Delta pills beside the four analytics KPI values. The comparison comes from one local
+   snapshot per day, so the numbers stay honest when no history exists yet. */
+.usm-trend-value{display:flex;align-items:baseline;gap:8px;min-width:0}
+.usm-trend-value>#card-stat-total,.usm-trend-value>#card-stat-active,.usm-trend-value>#card-stat-expiring,.usm-trend-value>#card-stat-expired{flex:none}
+.usm-trend-delta{flex:none;display:inline-flex;align-items:center;border-radius:999px;
+  padding:2px 6px;font-size:10px;font-weight:700;line-height:1.35;letter-spacing:.01em;white-space:nowrap}
+.usm-trend-delta[hidden]{display:none}
+.usm-trend-delta.is-good{color:#047857;background:rgba(16,185,129,.11)}
+.usm-trend-delta.is-bad{color:#be123c;background:rgba(244,63,94,.11)}
+.usm-trend-delta.is-flat{color:#64748b;background:rgba(100,116,139,.10)}
+html.dark .usm-trend-delta.is-good{color:#34d399;background:rgba(52,211,153,.14)}
+html.dark .usm-trend-delta.is-bad{color:#fb7185;background:rgba(251,113,133,.14)}
+html.dark .usm-trend-delta.is-flat{color:#a1a1aa;background:rgba(161,161,170,.14)}
+.usm-trend-hint{margin:-4px 0 0;padding:0 4px;font-size:11px;line-height:1.5;color:#64748b}
+html.dark .usm-trend-hint{color:#a1a1aa}
+@media(forced-colors:active){.usm-trend-delta{border:1px solid CanvasText}}
+@media print{.usm-trend-delta,.usm-trend-hint{display:none}}
