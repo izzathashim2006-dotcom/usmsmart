@@ -608,9 +608,29 @@ function usmsmartSyswebLivePlaceholder() { return 'CHANGE_ME'; }
 
 function usmsmartSyswebLiveConfig() {
     $file = usmsmartSyswebLiveConfigFile();
-    if (!is_file($file) || !is_readable($file)) return array();
-    $config = @require $file;
-    return is_array($config) ? $config : array();
+    $config = array();
+    if (is_file($file) && is_readable($file)) {
+        $loaded = @require $file;
+        $config = is_array($loaded) ? $loaded : array();
+    }
+    // Environment variables win over the file, so a deployment can hold no
+    // credentials on disk at all. Empty values are ignored, which keeps the
+    // placeholder-based setup working unchanged.
+    $envKeys = array(
+        'server' => 'USMSMART_SYSWEB_SERVER',
+        'database' => 'USMSMART_SYSWEB_DATABASE',
+        'username' => 'USMSMART_SYSWEB_USERNAME',
+        'password' => 'USMSMART_SYSWEB_PASSWORD',
+        'card_table' => 'USMSMART_SYSWEB_CARD_TABLE',
+        'login_timeout' => 'USMSMART_SYSWEB_LOGIN_TIMEOUT',
+    );
+    foreach ($envKeys as $key => $envName) {
+        $value = getenv($envName);
+        if ($value === false) { $value = $_SERVER[$envName] ?? ($_ENV[$envName] ?? ''); }
+        if (trim((string)$value) === '') { continue; }
+        $config[$key] = $key === 'login_timeout' ? (int)$value : (string)$value;
+    }
+    return $config;
 }
 
 function usmsmartSyswebLiveFilled($value) {

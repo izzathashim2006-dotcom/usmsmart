@@ -183,7 +183,7 @@ function usmsmartSendOpsDigest($pdo, $trigger = 'manual') {
         $result['success'] = $result['sent'] > 0;
         $result['message'] = $result['success']
             ? ('Ringkasan dihantar ke ' . $result['sent'] . ' pentadbir' . ($result['failed'] > 0 ? ('; ' . $result['failed'] . ' gagal') : '') . '.')
-            : 'Penghantaran gagal. Semak konfigurasi SMTP (config/mail.local.php).';
+            : 'Penghantaran gagal. Semak konfigurasi SMTP (fail kredensial di luar web root atau pemboleh ubah USMSMART_SMTP_*).';
         if (function_exists('auditLog')) {
             auditLog($pdo, 'ops_digest', 'system', null, null, json_encode(array('trigger' => $trigger, 'sent' => $result['sent'], 'failed' => $result['failed']), JSON_UNESCAPED_UNICODE));
         }

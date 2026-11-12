@@ -8,7 +8,8 @@
  * replaces any earlier unused token for the same account.
  *
  * Delivery: this installation has no guaranteed mail transport, so a request is first
- * offered to the configured SMTP server (config/mail.local.php) or PHP mail(). When
+ * offered to the configured SMTP server (credentials live outside the web root, or in
+ * USMSMART_SMTP_* environment variables) or PHP mail(). When
  * neither can deliver, the request stays in the queue and an administrator hands the
  * one-time link to the user from Pengurusan Akaun. The requester always receives the
  * same generic answer, so the endpoint never reveals whether an account exists.
@@ -129,11 +130,41 @@ function usmsmartPasswordResetLatest($pdo, $userId) {
 
 /* ===== Delivery =================================================------------ */
 
+// Where the SMTP credentials live. The preferred file sits outside the document
+// root so a server misconfiguration or a stray backup cannot expose the app
+// password. config/mail.local.php remains a read-only fallback for installations
+// that still keep it in place. Only the path is overridable, never a credential.
+function usmsmartMailConfigFile() {
+    $override = trim((string)(getenv('USMSMART_MAIL_CONFIG') ?: ''));
+    if ($override !== '') { return $override; }
+    $private = 'C:/xampp/private/usmsmart_mail.php';
+    if (is_file($private)) { return $private; }
+    return USM_ROOT . '/config/mail.local.php';
+}
+
+// Environment variables win over the file, so a deployment can keep credentials
+// off disk entirely. An empty variable is ignored: an unauthenticated relay has
+// no username or password, and a blank override must not erase a configured one.
 function usmsmartResetMailConfig() {
     static $config = null;
     if ($config !== null) { return $config; }
-    $file = USM_ROOT . '/config/mail.local.php';
+    $file = usmsmartMailConfigFile();
     $config = is_file($file) ? (array)require $file : array();
+    $envKeys = array(
+        'host' => 'USMSMART_SMTP_HOST',
+        'port' => 'USMSMART_SMTP_PORT',
+        'secure' => 'USMSMART_SMTP_SECURE',
+        'username' => 'USMSMART_SMTP_USERNAME',
+        'password' => 'USMSMART_SMTP_PASSWORD',
+        'from_email' => 'USMSMART_SMTP_FROM_EMAIL',
+        'from_name' => 'USMSMART_SMTP_FROM_NAME',
+    );
+    foreach ($envKeys as $key => $envName) {
+        $value = getenv($envName);
+        if ($value === false) { $value = $_SERVER[$envName] ?? ($_ENV[$envName] ?? ''); }
+        if (trim((string)$value) === '') { continue; }
+        $config[$key] = $key === 'port' ? (int)$value : (string)$value;
+    }
     return $config;
 }
 

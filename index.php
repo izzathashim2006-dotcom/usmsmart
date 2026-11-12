@@ -48,13 +48,16 @@ $usmGoogleAdminDomains = array_values(array_filter(array_map('strtolower', array
 if (!$usmGoogleAdminDomains) { $usmGoogleAdminDomains = array('usm.my', 'student.usm.my'); }
 
 // Credentials are not kept in this file. config/database.local.php is the
-// per-installation, gitignored file; environment variables are the fallback.
-$usmDbConfigFile = __DIR__ . '/config/database.local.php';
+// per-installation, gitignored file; USM_DB_* environment variables win over it
+// and USM_DB_CONFIG may point at a file outside the web root.
+require_once __DIR__ . '/app/db-config.php';
+$usmDbConfigFile = trim((string)(getenv('USM_DB_CONFIG') ?: ''));
+if ($usmDbConfigFile === '') { $usmDbConfigFile = __DIR__ . '/config/database.local.php'; }
 $usmDbConfig = is_file($usmDbConfigFile) ? require $usmDbConfigFile : array();
-$host = (string)($usmDbConfig['host'] ?? (getenv('USM_DB_HOST') ?: 'localhost'));
-$dbname = (string)($usmDbConfig['database'] ?? (getenv('USM_DB_NAME') ?: 'usmsmart_db'));
-$username = (string)($usmDbConfig['username'] ?? (getenv('USM_DB_USER') ?: ''));
-$password = (string)($usmDbConfig['password'] ?? (getenv('USM_DB_PASS') ?: ''));
+$host = usmsmartDbConfigValue($usmDbConfig, 'host', 'USM_DB_HOST', 'localhost');
+$dbname = usmsmartDbConfigValue($usmDbConfig, 'database', 'USM_DB_NAME', 'usmsmart_db');
+$username = usmsmartDbConfigValue($usmDbConfig, 'username', 'USM_DB_USER');
+$password = usmsmartDbConfigValue($usmDbConfig, 'password', 'USM_DB_PASS');
 
 try {
     $pdo = new PDO("mysql:host=" . $host . ";dbname=" . $dbname . ";charset=utf8mb4", $username, $password);

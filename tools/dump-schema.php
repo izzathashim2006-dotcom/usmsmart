@@ -10,12 +10,14 @@
  * schema does, not every time a row is inserted.
  */
 
-$configFile = __DIR__ . '/../config/database.local.php';
+require __DIR__ . '/../app/db-config.php';
+$configFile = trim((string)(getenv('USM_DB_CONFIG') ?: ''));
+if ($configFile === '') { $configFile = __DIR__ . '/../config/database.local.php'; }
 $config = is_file($configFile) ? require $configFile : array();
-$host = (string)($config['host'] ?? (getenv('USM_DB_HOST') ?: 'localhost'));
-$dbname = (string)($config['database'] ?? (getenv('USM_DB_NAME') ?: 'usmsmart_db'));
-$username = (string)($config['username'] ?? (getenv('USM_DB_USER') ?: ''));
-$password = (string)($config['password'] ?? (getenv('USM_DB_PASS') ?: ''));
+$host = usmsmartDbConfigValue($config, 'host', 'USM_DB_HOST', 'localhost');
+$dbname = usmsmartDbConfigValue($config, 'database', 'USM_DB_NAME', 'usmsmart_db');
+$username = usmsmartDbConfigValue($config, 'username', 'USM_DB_USER');
+$password = usmsmartDbConfigValue($config, 'password', 'USM_DB_PASS');
 
 $pdo = new PDO("mysql:host={$host};dbname={$dbname};charset=utf8mb4", $username, $password);
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
