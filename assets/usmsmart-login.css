@@ -924,3 +924,26 @@ html.dark .reset-next li{color:#c6cede}
 @media(prefers-reduced-motion:reduce){
   .reset-card,.reset-done-icon,.reset-invalid-icon{animation:none!important}
 }
+
+/* ===== usmsmart-login-arrival ===== */
+/* Sign-in arrival -------------------------------------------------------------
+   The card and the intro column settle in once, on first paint: the card rises
+   14px over 480ms while its parts follow in 60ms steps, and the intro glides
+   12px from the left. Transform and opacity only, so the photograph, the scrim
+   and the measured contrast never move. The sequence ends under 0.8s, well
+   before anyone finishes typing, and the username autofocus is unaffected. */
+@keyframes usmLoginRise { from { opacity: 0; transform: translate3d(0, 14px, 0); } to { opacity: 1; transform: none; } }
+@keyframes usmLoginGlide { from { opacity: 0; transform: translate3d(-12px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes usmLoginSettle { from { opacity: 0; transform: translate3d(0, 7px, 0); } to { opacity: 1; transform: none; } }
+.card { animation: usmLoginRise .48s cubic-bezier(.22,.68,.3,1) both; }
+.intro { animation: usmLoginGlide .52s cubic-bezier(.22,.68,.3,1) both; }
+.card > .card-icon, .card > h2, .card > .card-desc, .card > form, .card > .passkey-block, .card > .security-note { animation: usmLoginSettle .42s cubic-bezier(.22,.68,.3,1) both; }
+.card > .card-icon { animation-delay: .08s; }
+.card > h2 { animation-delay: .14s; }
+.card > .card-desc { animation-delay: .2s; }
+.card > form { animation-delay: .26s; }
+.card > .passkey-block { animation-delay: .32s; }
+.card > .security-note { animation-delay: .38s; }
+@media (prefers-reduced-motion: reduce) {
+  .card, .card > .card-icon, .card > h2, .card > .card-desc, .card > form, .card > .passkey-block, .card > .security-note, .intro { animation: none !important; }
+}
