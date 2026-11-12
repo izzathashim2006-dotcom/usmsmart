@@ -139,26 +139,29 @@
         function usmPaletteAdmin() {
             try { return typeof USMSMART_IS_ADMIN !== 'undefined' && !!USMSMART_IS_ADMIN; } catch (error) { return false; }
         }
+        function usmPaletteT(ms, en) {
+            return typeof window.__usmT === 'function' ? window.__usmT(ms, en) : ms;
+        }
         function usmPaletteCommands() {
             const destinations = [
-                { group: 'Bahagian', label: 'Transporter Utama', meta: 'Papan pemuka', icon: 'fa-bus', keywords: 'utama dashboard transporter rekod', run: function () { switchMainTab('transporter'); } },
-                { group: 'Bahagian', label: 'Analisis Grafik', meta: 'Statistik dan eksport', icon: 'fa-chart-column', keywords: 'analisis statistik graf chart laporan', run: function () { switchMainTab('analytics'); } },
-                { group: 'Bahagian', label: 'Sysweb', meta: 'Integrasi dan batch', icon: 'fa-network-wired', keywords: 'sysweb integrasi batch hantar', run: function () { navigateToSyswebSegment('header'); } },
-                { group: 'Bahagian', label: 'Direktori Kad', meta: 'Pelajar', icon: 'fa-id-card-clip', keywords: 'direktori kad pelajar directory', run: function () { navigateToDirectoryPage('student'); } },
-                { group: 'Bahagian', label: 'Direktori Staf', meta: 'Rekod staf tempatan', icon: 'fa-user-tie', keywords: 'direktori staf staff', run: function () { navigateToDirectoryPage('staff'); } },
-                { group: 'Bahagian', label: 'Kalendar Luput', meta: 'Peta haba tarikh luput kad', icon: 'fa-calendar-check', keywords: 'kalendar luput expiry calendar tarikh heat peta', run: function () { navigateToExpiryCalendar(); } },
-                { group: 'Bahagian', label: 'Sejarah & Log Audit', meta: 'Jejak rekod', icon: 'fa-clock-rotate-left', keywords: 'sejarah audit log jejak', run: function () { navigateToAuditHistory('directory'); } },
-                { group: 'Bahagian', label: 'Kualiti Data', meta: 'Isu dan pendua', icon: 'fa-triangle-exclamation', keywords: 'kualiti data isu pendua duplicate', run: function () { navigateToDataQuality(); } }
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Transporter Utama', 'Main Transporter'), meta: usmPaletteT('Papan pemuka', 'Dashboard'), icon: 'fa-bus', keywords: 'utama dashboard transporter rekod', run: function () { switchMainTab('transporter'); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Analisis Grafik', 'Graphical Analysis'), meta: usmPaletteT('Statistik dan eksport', 'Statistics and exports'), icon: 'fa-chart-column', keywords: 'analisis statistik graf chart laporan', run: function () { switchMainTab('analytics'); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: 'Sysweb', meta: usmPaletteT('Integrasi dan batch', 'Integration and batches'), icon: 'fa-network-wired', keywords: 'sysweb integrasi batch hantar', run: function () { navigateToSyswebSegment('header'); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Direktori Kad', 'Card Directory'), meta: usmPaletteT('Pelajar', 'Students'), icon: 'fa-id-card-clip', keywords: 'direktori kad pelajar directory', run: function () { navigateToDirectoryPage('student'); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Direktori Staf', 'Staff Directory'), meta: usmPaletteT('Rekod staf tempatan', 'Local staff records'), icon: 'fa-user-tie', keywords: 'direktori staf staff', run: function () { navigateToDirectoryPage('staff'); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Kalendar Luput', 'Expiry Calendar'), meta: usmPaletteT('Peta haba tarikh luput kad', 'Heatmap of card expiry dates'), icon: 'fa-calendar-check', keywords: 'kalendar luput expiry calendar tarikh heat peta', run: function () { navigateToExpiryCalendar(); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Sejarah & Log Audit', 'History & Audit Log'), meta: usmPaletteT('Jejak rekod', 'Record trail'), icon: 'fa-clock-rotate-left', keywords: 'sejarah audit log jejak', run: function () { navigateToAuditHistory('directory'); } },
+                { group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Kualiti Data', 'Data Quality'), meta: usmPaletteT('Isu dan pendua', 'Issues and duplicates'), icon: 'fa-triangle-exclamation', keywords: 'kualiti data isu pendua duplicate', run: function () { navigateToDataQuality(); } }
             ];
             if (usmPaletteAdmin()) {
-                destinations.push({ group: 'Bahagian', label: 'Pengurusan Akaun', meta: 'Pengguna dan peranan', icon: 'fa-users-gear', keywords: 'akaun pengguna user admin peranan', run: function () { navigateToUserManagement(); } });
+                destinations.push({ group: usmPaletteT('Bahagian', 'Sections'), label: usmPaletteT('Pengurusan Akaun', 'Account Management'), meta: usmPaletteT('Pengguna dan peranan', 'Users and roles'), icon: 'fa-users-gear', keywords: 'akaun pengguna user admin peranan', run: function () { navigateToUserManagement(); } });
             }
             const actions = [
-                { group: 'Tindakan', label: 'Profil Saya', meta: 'Nama, avatar, kata laluan, passkey', icon: 'fa-user-circle', keywords: 'profil akaun avatar kata laluan passkey', run: function () { openMyProfile(); } },
-                { group: 'Tindakan', label: 'Imbas Kad', meta: 'Kamera atau pengimbas', icon: 'fa-camera', keywords: 'imbas kad scan kamera qr', run: function () { openScannerModal(); } },
-                { group: 'Tindakan', label: 'Panduan Pengguna', meta: 'Buku panduan dalam aplikasi', icon: 'fa-book-open', keywords: 'panduan manual bantuan help', run: function () { openUserManual(); } },
-                { group: 'Tindakan', label: 'Tukar Tema', meta: 'Terang atau gelap', icon: 'fa-moon', keywords: 'tema gelap terang dark light appearance', run: function () { toggleDarkMode(); } },
-                { group: 'Tindakan', label: 'Cetak Halaman', meta: 'Pencetak pelayar', icon: 'fa-print', keywords: 'cetak print kertas', run: function () { window.print(); } }
+                { group: usmPaletteT('Tindakan', 'Actions'), label: usmPaletteT('Profil Saya', 'My Profile'), meta: usmPaletteT('Nama, avatar, kata laluan, passkey', 'Name, avatar, password, passkey'), icon: 'fa-user-circle', keywords: 'profil akaun avatar kata laluan passkey', run: function () { openMyProfile(); } },
+                { group: usmPaletteT('Tindakan', 'Actions'), label: usmPaletteT('Imbas Kad', 'Scan Card'), meta: usmPaletteT('Kamera atau pengimbas', 'Camera or scanner'), icon: 'fa-camera', keywords: 'imbas kad scan kamera qr', run: function () { openScannerModal(); } },
+                { group: usmPaletteT('Tindakan', 'Actions'), label: usmPaletteT('Panduan Pengguna', 'User Guide'), meta: usmPaletteT('Buku panduan dalam aplikasi', 'In-app manual'), icon: 'fa-book-open', keywords: 'panduan manual bantuan help', run: function () { openUserManual(); } },
+                { group: usmPaletteT('Tindakan', 'Actions'), label: usmPaletteT('Tukar Tema', 'Toggle Theme'), meta: usmPaletteT('Terang atau gelap', 'Light or dark'), icon: 'fa-moon', keywords: 'tema gelap terang dark light appearance', run: function () { toggleDarkMode(); } },
+                { group: usmPaletteT('Tindakan', 'Actions'), label: usmPaletteT('Cetak Halaman', 'Print Page'), meta: usmPaletteT('Pencetak pelayar', 'Browser printer'), icon: 'fa-print', keywords: 'cetak print kertas', run: function () { window.print(); } }
             ];
             return destinations.concat(actions);
         }
@@ -191,7 +194,7 @@
                 const student = entry.student;
                 const meta = [student.matric, student.school].filter(Boolean).join(' · ');
                 return {
-                    group: 'Pelajar', label: student.name || 'Pelajar tanpa nama', meta: meta, icon: 'fa-graduation-cap',
+                    group: usmPaletteT('Pelajar', 'Students'), label: student.name || usmPaletteT('Pelajar tanpa nama', 'Unnamed student'), meta: meta, icon: 'fa-graduation-cap',
                     run: function () { openStudentProfile(student.id); }
                 };
             });
@@ -206,7 +209,7 @@
             }).slice(0, 5).map(function (record) {
                 const meta = [record.staffNo, record.department].filter(Boolean).join(' · ');
                 return {
-                    group: 'Staf', label: record.name || 'Staf tanpa nama', meta: meta, icon: 'fa-user-tie',
+                    group: usmPaletteT('Staf', 'Staff'), label: record.name || usmPaletteT('Staf tanpa nama', 'Unnamed staff member'), meta: meta, icon: 'fa-user-tie',
                     run: function () {
                         navigateToDirectoryPage('staff');
                         const search = document.getElementById('staff-directory-search');
@@ -278,7 +281,7 @@
                 icon.className = 'fa-solid fa-search';
                 icon.setAttribute('aria-hidden', 'true');
                 const line = document.createElement('div');
-                line.textContent = query ? 'Tiada padanan untuk “' + query + '”.' : 'Taip nama pelajar, matrik atau nama modul.';
+                line.textContent = query ? usmPaletteT('Tiada padanan untuk “' + query + '”.', 'No matches for “' + query + '”.') : usmPaletteT('Taip nama pelajar, matrik atau nama modul.', 'Type a student name, matric number or module name.');
                 empty.append(icon, line);
                 list.appendChild(empty);
                 input.removeAttribute('aria-activedescendant');
@@ -337,15 +340,35 @@
             // dialog, otherwise that focus return can pull focus back out.
             window.setTimeout(function () {
                 try { item.run(); } catch (error) {
-                    showToast(error && error.message ? error.message : 'Arahan tidak dapat dijalankan.');
+                    showToast(error && error.message ? error.message : usmPaletteT('Arahan tidak dapat dijalankan.', 'The command could not be run.'));
                 }
             }, 0);
+        }
+        function usmPaletteChrome() {
+            // The dialog carries data-usm-nolang, so the page-wide translator never
+            // rewrites it. Every string is rendered here in the active language, and
+            // the rows are rebuilt on usm:langchange, so English is immediate.
+            const title = document.getElementById('command-palette-title');
+            const input = document.getElementById('command-palette-input');
+            const list = document.getElementById('command-palette-list');
+            const hint = document.getElementById('command-palette-hint');
+            const openHint = document.getElementById('command-palette-open');
+            const placeholder = usmPaletteT('Cari pelajar, modul atau arahan…', 'Search students, modules or commands…');
+            if (title) title.textContent = usmPaletteT('Cari dan jalankan arahan', 'Search and run commands');
+            if (input) {
+                input.placeholder = placeholder;
+                input.setAttribute('aria-label', placeholder);
+            }
+            if (list) list.setAttribute('aria-label', usmPaletteT('Hasil carian', 'Search results'));
+            if (hint) hint.textContent = usmPaletteT('pilih', 'select');
+            if (openHint) openHint.textContent = usmPaletteT('buka', 'open');
         }
         function openCommandPalette() {
             const palette = document.getElementById('command-palette');
             if (!palette) return;
             const input = document.getElementById('command-palette-input');
             if (input) input.value = '';
+            usmPaletteChrome();
             usmPaletteRender();
             palette.classList.remove('hidden');
             if (input) input.setAttribute('aria-expanded', 'true');
@@ -388,6 +411,11 @@
                 if (usmPaletteObstructed()) return;
                 openCommandPalette();
             });
+            window.addEventListener('usm:langchange', function () {
+                usmPaletteChrome();
+                if (!palette.classList.contains('hidden')) usmPaletteRender();
+            });
+            usmPaletteChrome();
         })();
 
         let allMasterStudents = [];
@@ -2068,17 +2096,68 @@
             });
         });
 
-        function toggleDarkMode() {
-            let html = document.getElementById('html-root');
-            let icon = document.getElementById('theme-icon');
-            if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                icon.className = "fa-solid fa-moon text-xs";
-                localStorage.setItem('theme', 'light');
-            } else {
-                html.classList.add('dark');
-                icon.className = "fa-solid fa-sun text-xs";
-                localStorage.setItem('theme', 'dark');
+        /* Applies the theme everywhere the chrome reads it: the root class, the header icon
+           and the small fixed switch. Kept separate so the reveal can snapshot around it. */
+        function applyDarkMode(dark) {
+            const html = document.getElementById('html-root');
+            const icon = document.getElementById('theme-icon');
+            if (!html) return;
+            html.classList.toggle('dark', !!dark);
+            if (icon) icon.className = dark ? "fa-solid fa-sun text-xs" : "fa-solid fa-moon text-xs";
+            const fixed = document.getElementById('themeToggle');
+            if (fixed) fixed.textContent = dark ? '☀️' : '🌙';
+            try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) { /* private mode */ }
+        }
+        /* The switch expands the new theme as a circle from the button that was pressed.
+           View Transitions snapshots the old frame before the theme flips, so the flip lands
+           about a frame later. themeTarget keeps a second quick click honest: it toggles from
+           the intended state, not from a DOM class that has not been rewritten yet. Browsers
+           without the API and reduced-motion visitors get the instant switch instead. */
+        let themeTarget = null;
+        function toggleDarkMode(source) {
+            const html = document.getElementById('html-root');
+            if (!html) return;
+            const current = themeTarget === null ? html.classList.contains('dark') : themeTarget;
+            const dark = !current;
+            const fallbackButton = document.getElementById('theme-icon');
+            const button = (source && typeof source.getBoundingClientRect === 'function') ? source
+                : (fallbackButton && fallbackButton.closest('button')) || document.getElementById('themeToggle');
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (typeof document.startViewTransition !== 'function' || reduceMotion) {
+                themeTarget = null;
+                applyDarkMode(dark);
+                return;
+            }
+            themeTarget = dark;
+            const rect = button && typeof button.getBoundingClientRect === 'function' ? button.getBoundingClientRect() : null;
+            const x = rect && rect.width ? rect.left + rect.width / 2 : window.innerWidth - 32;
+            const y = rect && rect.height ? rect.top + rect.height / 2 : 32;
+            const radius = Math.ceil(Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y)));
+            const root = document.documentElement;
+            root.style.setProperty('--usm-theme-x', x + 'px');
+            root.style.setProperty('--usm-theme-y', y + 'px');
+            root.style.setProperty('--usm-theme-r', radius + 'px');
+            let transition = null;
+            try {
+                transition = document.startViewTransition(function () { applyDarkMode(dark); });
+            } catch (e) {
+                themeTarget = null;
+                applyDarkMode(dark);
+            }
+            if (transition && transition.finished && typeof transition.finished.then === 'function') {
+                // A transition that gets skipped (a second click arrived) rejects ready/finished;
+                // both are expected, so consume them instead of leaving console noise behind.
+                if (transition.ready && typeof transition.ready.catch === 'function') transition.ready.catch(function () {});
+                const settle = function () {
+                    // A newer click may already own the reveal; only the last one tidies up.
+                    if (themeTarget === dark) themeTarget = null;
+                    if (themeTarget === null) {
+                        root.style.removeProperty('--usm-theme-x');
+                        root.style.removeProperty('--usm-theme-y');
+                        root.style.removeProperty('--usm-theme-r');
+                    }
+                };
+                transition.finished.then(settle, settle);
             }
         }
 
@@ -7079,6 +7158,36 @@
             if (typeof window.__usmTrendRecord === 'function') {
                 window.__usmTrendRecord({ total: total, active: active, expiring: expiring, expired: expired });
             }
+            // The hero's status line shows whatever needs attention first.
+            if (typeof window.__usmHeroStatus === 'function') {
+                window.__usmHeroStatus({ total: total, active: active, expiring: expiring, expired: expired });
+            }
+
+            // Month-on-month registrations for the hero slider. Only a well-formed YYYY-MM
+            // joins a count; the same shape the quality scan already trusts.
+            const briefMonthOf = function (date) {
+                return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+            };
+            const briefThisMonth = briefMonthOf(today);
+            const briefPrevMonth = briefMonthOf(new Date(today.getFullYear(), today.getMonth() - 1, 1));
+            let joinedThisMonth = 0;
+            let joinedPrevMonth = 0;
+            allMasterStudents.forEach(r => {
+                const joined = String(r.dateJoined || r.date_joined || '').trim().slice(0, 7);
+                if (!/^\d{4}-\d{2}$/.test(joined)) return;
+                if (joined === briefThisMonth) joinedThisMonth++;
+                else if (joined === briefPrevMonth) joinedPrevMonth++;
+            });
+            if (typeof window.__usmHeroBrief === 'function') {
+                window.__usmHeroBrief({
+                    total: total,
+                    active: active,
+                    expiring: expiring,
+                    expired: expired,
+                    joinedThisMonth: joinedThisMonth,
+                    joinedPrevMonth: joinedPrevMonth
+                });
+            }
 
             // Synchronize Transporter Page Expiry Alert Banner
             const banner = document.getElementById('transporter-expiry-alert-banner');
@@ -9604,4 +9713,375 @@
             window.__usmTrendRecord = record;
             window.addEventListener('usm:langchange', function () { render(); });
             document.addEventListener('DOMContentLoaded', function () { render(); });
+        })();
+
+        /* ===== usmsmart-hero-status-2026-v1 ===== */
+        /* The line under the greeting states the one thing that needs attention: expired cards
+           first, then the 30-day window, otherwise calm. Rebuilt from counts, never translated
+           by the i18n pass (the element is marked data-usm-nolang). */
+        (function initHeroStatusLive() {
+            const node = document.getElementById('usm-hero-status');
+            if (node === null) return;
+            const COPY = {
+                ms: {
+                    loading: 'Memeriksa status kad…',
+                    calm: 'Semua kad aktif — tiada tindakan segera.',
+                    expired: function (n) { return n + ' kad tamat tempoh'; },
+                    expiring: function (n) { return n + ' kad luput dalam 30 hari'; },
+                    expiredTitle: 'Lihat senarai kad tamat tempoh',
+                    expiringTitle: 'Buka Kalendar Luput',
+                    unavailable: 'Ringkasan kad tidak tersedia. Buka Direktori Kad untuk semak status.'
+                },
+                en: {
+                    loading: 'Checking card status…',
+                    calm: 'All cards active — nothing needs attention.',
+                    expired: function (n) { return n === 1 ? '1 card expired' : n + ' cards expired'; },
+                    expiring: function (n) { return n === 1 ? '1 card expires within 30 days' : n + ' cards expire within 30 days'; },
+                    expiredTitle: 'View expired cards',
+                    expiringTitle: 'Open the expiry calendar',
+                    unavailable: 'Card summary unavailable. Open the Card Directory to check the status.'
+                }
+            };
+            let counts = null;
+            let settled = false;
+
+            function lang() { return window.__usmLang === 'en' ? 'en' : 'ms'; }
+
+            function actionButton(action, label) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'usm-hero-status-action';
+                button.setAttribute('data-usm-hero-action', action);
+                button.textContent = label;
+                return button;
+            }
+
+            function separator() {
+                const dot = document.createElement('span');
+                dot.className = 'usm-hero-status-sep';
+                dot.setAttribute('aria-hidden', 'true');
+                dot.textContent = ' · ';
+                return dot;
+            }
+
+            function render() {
+                const copy = COPY[lang()];
+                node.textContent = '';
+                if (counts === null) {
+                    node.textContent = settled === true ? copy.unavailable : copy.loading;
+                    return;
+                }
+                const expired = counts.expired > 0;
+                const expiring = counts.expiring > 0;
+                if (expired === false && expiring === false) {
+                    node.textContent = copy.calm;
+                    return;
+                }
+                if (expired) {
+                    const button = actionButton('expired', copy.expired(counts.expired));
+                    button.title = copy.expiredTitle;
+                    node.appendChild(button);
+                }
+                if (expired && expiring) node.appendChild(separator());
+                if (expiring) {
+                    const button = actionButton('expiring', copy.expiring(counts.expiring));
+                    button.title = copy.expiringTitle;
+                    node.appendChild(button);
+                }
+            }
+
+            node.addEventListener('click', function (event) {
+                if (event.target === null || typeof event.target.closest !== 'function') return;
+                const trigger = event.target.closest('[data-usm-hero-action]');
+                if (trigger === null) return;
+                const action = trigger.getAttribute('data-usm-hero-action');
+                if (action === 'expired' && typeof window.viewStudentsByExpiryStatus === 'function') {
+                    window.viewStudentsByExpiryStatus('expired');
+                } else if (action === 'expiring' && typeof window.navigateToExpiryCalendar === 'function') {
+                    window.navigateToExpiryCalendar();
+                }
+            });
+
+            window.__usmHeroStatus = function (next) {
+                if (next === null || typeof next !== 'object') return;
+                counts = {
+                    total: Number(next.total) || 0,
+                    active: Number(next.active) || 0,
+                    expiring: Number(next.expiring) || 0,
+                    expired: Number(next.expired) || 0
+                };
+                settled = true;
+                render();
+            };
+            window.addEventListener('usm:langchange', render);
+            render();
+            // A failed or very slow load must not leave the line stuck on "checking".
+            window.setTimeout(function () {
+                if (counts === null) { settled = true; render(); }
+            }, 15000);
+        })();
+
+        /* ===== usmsmart-hero-slides-2026-v1 ===== */
+        /* The hero is a small carousel: page one is the greeting, then one page per card fact
+           (month trend, 30-day expiry, register size). It advances every nine seconds on its own;
+           a hidden tab or reduced motion stop the timer, and choosing a dot holds that slide until
+           the same dot is picked again. Fact pages are built and translated here (data-usm-nolang);
+           the greeting keeps the normal i18n pass. */
+        (function initHeroSlides() {
+            const track = document.getElementById('usm-hero-track');
+            const pager = document.getElementById('usm-hero-pager');
+            const dots = document.getElementById('usm-hero-dots');
+            if (track === null || pager === null || dots === null) return;
+
+            const ROTATE_MS = 9000;
+            const COPY = {
+                ms: {
+                    brief: 'Ringkasan kad',
+                    open: 'Buka Analitik',
+                    slides: 'Navigasi slaid',
+                    slideWord: 'slaid',
+                    greeting: 'Aluan',
+                    slide: function (i, n) { return 'Slaid ' + i + ' daripada ' + n; },
+                    trend: function (n, prev) {
+                        const head = fmt(n) + ' kad baharu';
+                        if (prev <= 0) return { lead: head, sub: 'bulan ini' };
+                        if (n > prev) return { lead: head, sub: 'bulan ini · naik ' + fmt(n - prev) + ' berbanding bulan lalu' };
+                        if (n === prev) return { lead: head, sub: 'bulan ini · sama seperti bulan lalu' };
+                        return { lead: head, sub: 'bulan ini · turun ' + fmt(prev - n) + ' berbanding bulan lalu' };
+                    },
+                    expiry: function (n) {
+                        const lead = n === 0 ? 'Tiada kad luput' : (n === 1 ? '1 kad luput' : fmt(n) + ' kad luput');
+                        return { lead: lead, sub: 'dalam 30 hari akan datang' };
+                    },
+                    register: function (total, active) {
+                        return { lead: fmt(active) + ' kad aktif', sub: 'daripada ' + fmt(total) + ' kad berdaftar' };
+                    }
+                },
+                en: {
+                    brief: 'Card brief',
+                    open: 'Open Analytics',
+                    slides: 'Slide navigation',
+                    slideWord: 'slide',
+                    greeting: 'Welcome',
+                    slide: function (i, n) { return 'Slide ' + i + ' of ' + n; },
+                    trend: function (n, prev) {
+                        const head = n === 1 ? '1 new card' : fmt(n) + ' new cards';
+                        if (prev <= 0) return { lead: head, sub: 'this month' };
+                        if (n > prev) return { lead: head, sub: 'this month · up ' + fmt(n - prev) + ' on last month' };
+                        if (n === prev) return { lead: head, sub: 'this month · level with last month' };
+                        return { lead: head, sub: 'this month · down ' + fmt(prev - n) + ' on last month' };
+                    },
+                    expiry: function (n) {
+                        const lead = n === 0 ? 'No cards expiring' : (n === 1 ? '1 card expiring' : fmt(n) + ' cards expiring');
+                        return { lead: lead, sub: 'within the next 30 days' };
+                    },
+                    register: function (total, active) {
+                        return { lead: fmt(active) + ' active cards', sub: 'of ' + fmt(total) + ' registered cards' };
+                    }
+                }
+            };
+
+            let counts = null;
+            let facts = [];
+            let factPages = [];
+            let pageTotal = 1;
+            let index = 0;
+            let timer = null;
+            // Set when the visitor picks a dot, so the chosen slide stays put; picking the
+            // active dot again hands the rotation back.
+            let held = false;
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+            function lang() { return window.__usmLang === 'en' ? 'en' : 'ms'; }
+
+            function fmt(n) {
+                const value = Number(n) || 0;
+                try { return value.toLocaleString(lang() === 'en' ? 'en-MY' : 'ms-MY'); }
+                catch (e) { return String(value); }
+            }
+
+            function openAnalytics() {
+                const tab = document.getElementById('btn-tab-analytics');
+                if (tab !== null) tab.click();
+            }
+
+            function buildFacts() {
+                const copy = COPY[lang()];
+                const list = [];
+                const joined = Number(counts.joinedThisMonth) || 0;
+                if (joined > 0) {
+                    const trend = copy.trend(joined, Number(counts.joinedPrevMonth) || 0);
+                    list.push({ key: 'trend', icon: 'fa-chart-line', lead: trend.lead, sub: trend.sub });
+                }
+                const expiry = copy.expiry(Number(counts.expiring) || 0);
+                list.push({ key: 'expiry', icon: 'fa-user-clock', lead: expiry.lead, sub: expiry.sub });
+                const register = copy.register(counts.total, counts.active);
+                list.push({ key: 'register', icon: 'fa-id-card', lead: register.lead, sub: register.sub });
+                return list;
+            }
+
+            function buildPage(fact) {
+                const copy = COPY[lang()];
+                const page = document.createElement('div');
+                page.className = 'usm-hero-page usm-hero-fact';
+                page.setAttribute('data-fact', fact.key);
+                page.setAttribute('data-usm-nolang', '');
+                page.setAttribute('role', 'group');
+                page.setAttribute('aria-roledescription', copy.slideWord);
+
+                const inner = document.createElement('div');
+                inner.className = 'usm-hero-inner';
+
+                const mark = document.createElement('span');
+                mark.className = 'usm-hero-mark';
+                mark.setAttribute('aria-hidden', 'true');
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid ' + fact.icon;
+                mark.appendChild(icon);
+
+                const eyebrow = document.createElement('p');
+                eyebrow.className = 'usm-hero-eyebrow';
+                eyebrow.textContent = copy.brief;
+
+                const lead = document.createElement('p');
+                lead.className = 'usm-hero-title usm-hero-fact-lead';
+                lead.textContent = fact.lead;
+
+                const sub = document.createElement('p');
+                sub.className = 'usm-hero-sub usm-hero-fact-sub';
+                sub.textContent = fact.sub;
+
+                const link = document.createElement('button');
+                link.type = 'button';
+                link.className = 'usm-hero-fact-link';
+                link.textContent = copy.open;
+                const arrow = document.createElement('i');
+                arrow.className = 'fa-solid fa-arrow-right';
+                arrow.setAttribute('aria-hidden', 'true');
+                link.appendChild(arrow);
+                link.addEventListener('click', openAnalytics);
+
+                [mark, eyebrow, lead, sub, link].forEach(function (node) { inner.appendChild(node); });
+                page.appendChild(inner);
+                return page;
+            }
+
+            function pageAria(i) {
+                const copy = COPY[lang()];
+                const base = copy.slide(i + 1, pageTotal);
+                if (i === 0) return base + ': ' + copy.greeting;
+                const fact = facts[i - 1];
+                return fact ? base + ': ' + fact.lead : base;
+            }
+
+            function syncActive() {
+                const copy = COPY[lang()];
+                Array.from(track.children).forEach(function (page, i) {
+                    const active = i === index;
+                    page.classList.toggle('is-active', active);
+                    page.setAttribute('aria-hidden', active ? 'false' : 'true');
+                    if (active) page.removeAttribute('inert');
+                    else page.setAttribute('inert', '');
+                    if (i > 0) {
+                        page.setAttribute('aria-label', pageAria(i));
+                        page.setAttribute('aria-roledescription', copy.slideWord);
+                    }
+                });
+                Array.from(dots.children).forEach(function (dot, i) {
+                    dot.classList.toggle('is-on', i === index);
+                    if (i === index) dot.setAttribute('aria-current', 'true');
+                    else dot.removeAttribute('aria-current');
+                    dot.setAttribute('aria-label', pageAria(i));
+                });
+                dots.setAttribute('aria-label', copy.slides);
+            }
+
+            function applyTransform() {
+                track.style.transform = index === 0 ? '' : 'translate3d(-' + (index * 100) + '%,0,0)';
+            }
+
+            function renderPager() {
+                dots.textContent = '';
+                for (let i = 0; i < pageTotal; i++) {
+                    const dot = document.createElement('button');
+                    dot.type = 'button';
+                    dot.className = 'usm-hero-dot';
+                    dot.setAttribute('data-index', String(i));
+                    dot.addEventListener('click', function () { pick(i); });
+                    dots.appendChild(dot);
+                }
+                pager.hidden = pageTotal < 2;
+            }
+
+            function stopAuto() {
+                if (timer !== null) { window.clearInterval(timer); timer = null; }
+            }
+
+            function restartAuto() {
+                stopAuto();
+                if (reduceMotion.matches || held || pageTotal < 2) return;
+                timer = window.setInterval(tick, ROTATE_MS);
+            }
+
+            function tick() {
+                if (held || document.hidden || pageTotal < 2) return;
+                goTo(index + 1 >= pageTotal ? 0 : index + 1);
+            }
+
+            function goTo(next) {
+                if (next === index) { restartAuto(); return; }
+                index = Math.max(0, Math.min(next, pageTotal - 1));
+                applyTransform();
+                syncActive();
+                restartAuto();
+            }
+
+            function pick(next) {
+                const same = next === index;
+                held = same ? !held : true;
+                if (same) restartAuto();
+                else goTo(next);
+            }
+
+            function render(reset) {
+                if (counts === null) return;
+                const keep = reset === true ? 0 : index;
+                stopAuto();
+                factPages.forEach(function (page) { page.remove(); });
+                facts = buildFacts();
+                factPages = facts.map(function (fact) {
+                    const page = buildPage(fact);
+                    track.appendChild(page);
+                    return page;
+                });
+                pageTotal = 1 + factPages.length;
+                index = Math.max(0, Math.min(keep, pageTotal - 1));
+                renderPager();
+                applyTransform();
+                syncActive();
+                restartAuto();
+            }
+
+            if (typeof reduceMotion.addEventListener === 'function') {
+                reduceMotion.addEventListener('change', function () {
+                    if (reduceMotion.matches) held = false;
+                    render(false);
+                });
+            }
+            window.addEventListener('usm:langchange', function () { render(false); });
+
+            dots.setAttribute('role', 'group');
+            syncActive();
+
+            window.__usmHeroBrief = function (next) {
+                if (next === null || typeof next !== 'object') return;
+                counts = {
+                    total: Number(next.total) || 0,
+                    active: Number(next.active) || 0,
+                    expiring: Number(next.expiring) || 0,
+                    joinedThisMonth: Number(next.joinedThisMonth) || 0,
+                    joinedPrevMonth: Number(next.joinedPrevMonth) || 0
+                };
+                render(false);
+            };
         })();

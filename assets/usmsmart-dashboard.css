@@ -2866,3 +2866,115 @@ html.dark .usm-trend-delta.is-flat{color:#a1a1aa;background:rgba(161,161,170,.14
 html.dark .usm-trend-hint{color:#a1a1aa}
 @media(forced-colors:active){.usm-trend-delta{border:1px solid CanvasText}}
 @media print{.usm-trend-delta,.usm-trend-hint{display:none}}
+
+/* ===== usmsmart-hero-status-2026-v1 ===== */
+/* Inline actions inside the hero status line. They inherit the daypart text colour and
+   only deepen on hover, so nothing competes with the greeting itself. */
+.usm-hero-status-action{appearance:none;padding:0;margin:0;border:0;background:none;
+  color:inherit;font:inherit;font-weight:750;cursor:pointer;
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;
+  border-radius:4px;transition:color .14s ease,text-decoration-thickness .14s ease}
+.usm-hero-status-action:hover{color:#b45309;text-decoration-thickness:2px}
+html.dark .usm-hero-status-action:hover{color:#fcd34d}
+.usm-hero-status-action:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.usm-hero-status-sep{opacity:.55}
+@media(prefers-reduced-motion:reduce){.usm-hero-status-action{transition:none}}
+@media print{.usm-hero-status-action{text-decoration:none}}
+
+/* ===== usmsmart-message-preview-2026-v1 ===== */
+/* A new message slides in from the bottom-left, outside the messages panel, so a reply is
+   noticed without covering the page. It is dismissible, pauses its countdown under the
+   pointer or keyboard focus, and leaves before the page is printed. */
+.usm-msg-preview{position:fixed;left:24px;bottom:24px;z-index:1360;box-sizing:border-box;
+  width:min(360px,calc(100vw - 32px));border:1px solid var(--usm-line,#e5e7eb);
+  border-radius:16px;background:var(--usm-surface,#fff);color:var(--usm-ink,#172033);
+  box-shadow:0 18px 46px rgba(15,23,42,.22),0 2px 8px rgba(15,23,42,.08);
+  opacity:0;transform:translateX(calc(-100% - 40px));
+  transition:transform .38s cubic-bezier(.22,.9,.3,1),opacity .28s ease;will-change:transform}
+.usm-msg-preview[hidden]{display:none}
+.usm-msg-preview.is-in{opacity:1;transform:translateX(0)}
+html.dark .usm-msg-preview{box-shadow:0 18px 46px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.4)}
+.usm-msg-preview-open{appearance:none;display:flex;align-items:flex-start;gap:11px;width:100%;
+  margin:0;padding:14px 38px 14px 14px;border:0;border-radius:16px;background:transparent;
+  color:inherit;font:inherit;text-align:left;cursor:pointer}
+.usm-msg-preview-open:focus-visible{outline:2px solid var(--usm-accent,#6d28d9);outline-offset:-2px}
+.usm-msg-preview-icon{flex:0 0 36px;height:36px;border-radius:11px;display:flex;
+  align-items:center;justify-content:center;background:var(--usm-accent-soft,#f5f3ff);
+  color:var(--usm-accent,#6d28d9);font-size:14px}
+.usm-msg-preview-copy{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto}
+.usm-msg-preview-kicker{font-size:9.5px;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--usm-accent,#6d28d9)}
+.usm-msg-preview-subject{font-size:13px;font-weight:700;line-height:1.35;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.usm-msg-preview-body{font-size:12px;line-height:1.45;color:var(--usm-muted,#64748b);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  overflow-wrap:anywhere}
+.usm-msg-preview-meta{font-size:10.5px;color:var(--usm-muted,#64748b);margin-top:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usm-msg-preview-close{position:absolute;top:7px;right:7px;width:26px;height:26px;margin:0;
+  padding:0;border:0;border-radius:8px;background:transparent;color:var(--usm-muted,#64748b);
+  font:inherit;font-size:17px;line-height:1;cursor:pointer}
+.usm-msg-preview-close:hover{background:var(--usm-surface-soft,#f8fafc);color:var(--usm-ink,#172033)}
+.usm-msg-preview-close:focus-visible{outline:2px solid var(--usm-accent,#6d28d9);outline-offset:1px}
+@media(max-width:640px){.usm-msg-preview{left:12px;right:12px;bottom:12px;width:auto}}
+@media(prefers-reduced-motion:reduce){.usm-msg-preview{transition:none;transform:none}}
+@media(forced-colors:active){.usm-msg-preview{border:1px solid CanvasText}
+  .usm-msg-preview-icon{border:1px solid CanvasText}}
+@media print{.usm-msg-preview{display:none}}
+
+/* ===== usmsmart-theme-reveal-2026-v1 =====
+   The dark/light switch expands the new theme as a circle from the button that was
+   pressed. The outgoing frame stays still underneath; only the incoming snapshot is
+   clipped. Coordinates and radius arrive as custom properties from toggleDarkMode();
+   browsers without View Transitions never render these pseudos. */
+::view-transition-old(root){animation:none;mix-blend-mode:normal}
+::view-transition-new(root){animation:usm-theme-reveal .46s cubic-bezier(.22,.9,.3,1) both;mix-blend-mode:normal}
+@keyframes usm-theme-reveal{
+  from{clip-path:circle(0 at var(--usm-theme-x,100%) var(--usm-theme-y,0px))}
+  to{clip-path:circle(var(--usm-theme-r,150vmax) at var(--usm-theme-x,100%) var(--usm-theme-y,0px))}
+}
+@media(prefers-reduced-motion:reduce){
+  ::view-transition-old(root),::view-transition-new(root){animation:none}
+}
+
+/* ===== usmsmart-hero-slides-2026-v1 =====
+   The hero is a horizontal carousel. Page one is the greeting; the slider module appends one
+   page per card fact and keeps the same type scale, mark chip and palette as the greeting, so
+   every page reads as the same hero. The viewport clips the track; the pager sits underneath. */
+/* The hero is a grid; pin its single column to the panel width so a wide slide can never size
+   the grid track and push the carousel past the clip. */
+.usm-hero{grid-template-columns:minmax(0,1fr)}
+.usm-hero-stage{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;max-width:100%}
+.usm-hero-viewport{width:100%;max-width:100%;overflow:hidden}
+.usm-hero-track{display:flex;width:100%;max-width:100%;transition:transform .55s cubic-bezier(.22,.9,.3,1);will-change:transform}
+.usm-hero-page{flex:0 0 100%;display:flex;align-items:center;justify-content:center;min-width:0;max-width:100%}
+.usm-hero-inner{max-width:min(56ch,100%)}
+.usm-hero-fact .usm-hero-inner{max-width:min(52ch,100%)}
+.usm-hero-fact-lead{text-wrap:balance}
+.usm-hero-fact-sub{max-width:42ch}
+.usm-hero-fact-link{display:inline-flex;align-items:center;gap:7px;margin-top:20px;padding:5px 2px;
+  border:0;background:none;color:#b45309;font:inherit;font-size:11.5px;font-weight:700;
+  letter-spacing:.02em;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.usm-hero-fact-link:hover{color:#92400e}
+.usm-hero-fact-link:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.usm-hero-fact-link>i{font-size:9px}
+html.dark .usm-hero-fact-link{color:#fbbf24}
+html.dark .usm-hero-fact-link:hover{color:#fcd34d}
+.usm-hero-pager{display:flex;align-items:center;gap:10px;margin-top:22px;min-height:24px}
+.usm-hero-pager[hidden]{display:none}
+.usm-hero-dots{display:flex;align-items:center;gap:2px}
+.usm-hero-dot{width:20px;height:20px;padding:0;border:0;background:none;display:inline-flex;
+  align-items:center;justify-content:center;cursor:pointer;border-radius:999px}
+.usm-hero-dot::before{content:"";display:block;width:5px;height:5px;border-radius:999px;
+  background:#b9a794;opacity:.55;transition:width .22s ease,opacity .22s ease,background .22s ease}
+.usm-hero-dot.is-on::before{width:16px;opacity:1;background:#b45309}
+.usm-hero-dot:focus-visible{outline:2px solid currentColor;outline-offset:1px}
+html.dark .usm-hero-dot::before{background:#8f7f6c}
+html.dark .usm-hero-dot.is-on::before{background:#fbbf24}
+@media(max-width:640px){
+  .usm-hero-pager{margin-top:18px}
+  .usm-hero-fact-lead{font-size:clamp(24px,7vw,32px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .usm-hero-track,.usm-hero-dot::before{transition:none}
+}
